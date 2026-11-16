@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JavaScript DOM & Seçicilər — Azərbaycan dilində dərslik</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DejaVu+Sans&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ── Reset & base ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0f1117;
+      --surface:     #181c27;
+      --surface2:    #1f2435;
+      --border:      #2a3046;
+      --accent:      #5b8dee;
+      --accent2:     #7c5cbf;
+      --green:       #3dd68c;
+      --red:         #f06090;
+      --yellow:      #f5c842;
+      --orange:      #f08c4b;
+      --text:        #dde3f0;
+      --text-muted:  #7a8499;
+      --code-bg:     #141820;
+      --warn-bg:     #2a1e10;
+      --warn-border: #f08c4b;
+      --info-bg:     #101e2a;
+      --info-border: #5b8dee;
+      --tip-bg:      #0d2219;
+      --tip-border:  #3dd68c;
+      --err-bg:      #230f17;
+      --err-border:  #f06090;
+      --radius:      10px;
+      --font-body:   'Inter', 'DejaVu Sans', sans-serif;
+      --font-code:   'JetBrains Mono', 'DejaVu Sans Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    .page-wrap {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo .tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      background: rgba(91,141,238,.12);
+      border-radius: 4px;
+      padding: 2px 8px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .sidebar-logo h2 {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .nav-section { margin-bottom: 4px; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      padding: 10px 20px 4px;
+    }
+
+    .nav-link {
+      display: block;
+      font-size: 13.5px;
+      padding: 7px 20px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all .18s;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--accent);
+      background: rgba(91,141,238,.08);
+      border-left-color: var(--accent);
+    }
+
+    /* ── Main ───────────────────────────────────────────────── */
+    .main {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #111527 0%, #1a1033 50%, #0d1c2e 100%);
+      padding: 64px 56px 56px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -80px;
+      width: 380px; height: 380px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(91,141,238,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px; left: 30%;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,92,191,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(91,141,238,.12);
+      border: 1px solid rgba(91,141,238,.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: #8a96b4;
+      max-width: 600px;
+      margin-bottom: 28px;
+    }
+
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+    .chip-blue  { color: var(--accent);  border-color: rgba(91,141,238,.35); background: rgba(91,141,238,.08); }
+    .chip-green { color: var(--green);   border-color: rgba(61,214,140,.35); background: rgba(61,214,140,.08); }
+    .chip-purple{ color: #a07ad4;        border-color: rgba(160,122,212,.35); background: rgba(160,122,212,.08); }
+
+    /* ── Content ────────────────────────────────────────────── */
+    .content { padding: 48px 56px; }
+
+    /* ── Section ────────────────────────────────────────────── */
+    .section { margin-bottom: 64px; scroll-margin-top: 24px; }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .section-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .icon-blue   { background: rgba(91,141,238,.15); }
+    .icon-green  { background: rgba(61,214,140,.15); }
+    .icon-purple { background: rgba(160,122,212,.15); }
+    .icon-orange { background: rgba(240,140,75,.15);  }
+    .icon-red    { background: rgba(240,96,144,.15);  }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .section > p,
+    .prose > p {
+      font-size: 15px;
+      color: #b0bcd4;
+      margin-bottom: 16px;
+      max-width: 780px;
+    }
+
+    h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 12px;
+    }
+
+    /* ── Divider ────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 48px 0;
+    }
+
+    /* ── Code block ──────────────────────────────────────────── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 16px 0 24px;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-lang {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+
+    .code-copy-btn {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--font-body);
+    }
+
+    .code-copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    pre {
+      padding: 20px 20px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      font-family: var(--font-code);
+      font-size: 13.5px;
+      line-height: 1.7;
+      white-space: pre;
+      tab-size: 2;
+    }
+
+    code {
+      font-family: var(--font-code);
+    }
+
+    /* Syntax colours */
+    .kw  { color: #c792ea; }
+    .fn  { color: #82aaff; }
+    .str { color: #c3e88d; }
+    .cmt { color: #546e7a; font-style: italic; }
+    .num { color: #f78c6c; }
+    .tag { color: #f07178; }
+    .atr { color: #ffcb6b; }
+    .val { color: #c3e88d; }
+    .var { color: #eeffff; }
+    .sel { color: #89ddff; }
+    .pun { color: #89ddff; }
+    .htm { color: #f07178; }
+    .cls { color: #ffcb6b; }
+    .id_ { color: #f78c6c; }
+
+    /* Inline code */
+    :not(pre) > code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    /* ── Alert boxes ─────────────────────────────────────────── */
+    .alert {
+      border-left: 4px solid;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 18px;
+      margin: 20px 0 24px;
+    }
+
+    .alert-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 8px;
+    }
+
+    .alert p { font-size: 14px; margin-bottom: 8px; max-width: none; }
+    .alert p:last-child { margin-bottom: 0; }
+    .alert .code-wrap { margin: 10px 0 4px; }
+
+    .alert-warn  { background: var(--warn-bg);  border-color: var(--warn-border); }
+    .alert-warn  .alert-header  { color: var(--orange); }
+    .alert-info  { background: var(--info-bg);  border-color: var(--info-border); }
+    .alert-info  .alert-header  { color: var(--accent); }
+    .alert-tip   { background: var(--tip-bg);   border-color: var(--tip-border);  }
+    .alert-tip   .alert-header  { color: var(--green);  }
+    .alert-err   { background: var(--err-bg);   border-color: var(--err-border);  }
+    .alert-err   .alert-header  { color: var(--red);    }
+
+    /* ── Comparison table ────────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 16px 0 24px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      min-width: 520px;
+    }
+
+    th {
+      background: var(--surface2);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      color: #b0bcd4;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.025); }
+
+    td code { font-size: 12.5px; }
+
+    /* ── Method cards ────────────────────────────────────────── */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+
+    .method-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: border-color .2s;
+    }
+
+    .method-card:hover { border-color: var(--accent); }
+
+    .method-name {
+      font-family: var(--font-code);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .method-desc {
+      font-size: 13px;
+      color: #8a96b4;
+      line-height: 1.55;
+    }
+
+    .method-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .badge-modern  { background: rgba(61,214,140,.15); color: var(--green); }
+    .badge-classic { background: rgba(240,140,75,.15);  color: var(--orange); }
+
+    /* ── Step list ───────────────────────────────────────────── */
+    .steps { margin: 16px 0; }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-body { flex: 1; }
+    .step-body h4 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+    .step-body p  { font-size: 14px; color: #8a96b4; margin: 0; }
+
+    /* ── Demo sandbox ────────────────────────────────────────── */
+    .demo-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 16px 0 24px;
+    }
+
+    .demo-header {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .demo-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green  { background: #28c840; }
+
+    .demo-body { padding: 20px; }
+
+    .demo-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: opacity .15s, transform .1s;
+      margin: 4px 4px 4px 0;
+    }
+
+    .demo-btn:hover   { opacity: .88; }
+    .demo-btn:active  { transform: scale(.97); }
+
+    .demo-btn.danger  { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+    .demo-btn.success { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+    .demo-btn.warn    { background: linear-gradient(135deg, #d35400, #e67e22); }
+
+    .demo-output {
+      margin-top: 14px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 14px 16px;
+      font-family: var(--font-code);
+      font-size: 13px;
+      color: var(--green);
+      min-height: 48px;
+    }
+
+    .demo-target {
+      padding: 12px 16px;
+      border-radius: 7px;
+      border: 1px dashed var(--border);
+      font-size: 14px;
+      margin: 8px 0;
+      transition: all .3s;
+    }
+
+    /* ── Progress bar ────────────────────────────────────────── */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      z-index: 9999;
+      transition: width .1s;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* ── Highlight row ───────────────────────────────────────── */
+    .highlight-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+
+    .highlight-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+
+    .highlight-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .highlight-card p {
+      font-size: 13px;
+      color: #8a96b4;
+      margin: 0;
+    }
+
+    .hc-bad  { border-top: 3px solid var(--red);   }
+    .hc-good { border-top: 3px solid var(--green);  }
+    .hc-bad  h4 { color: var(--red);   }
+    .hc-good h4 { color: var(--green); }
+
+    /* ── Mobile nav toggle ───────────────────────────────────── */
+    .mob-nav-toggle {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 300;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 99;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 860px) {
+      .page-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        width: 260px;
+        transition: left .25s ease;
+        z-index: 200;
+      }
+
+      .sidebar.open { left: 0; }
+
+      .sidebar-overlay.open { display: block; }
+
+      .mob-nav-toggle { display: flex; align-items: center; }
+
+      .hero {
+        padding: 56px 20px 40px;
+      }
+
+      .content {
+        padding: 32px 20px;
+      }
+
+      .highlight-row {
+        grid-template-columns: 1fr;
+      }
+
+      .method-grid {
+        grid-template-columns: 1fr;
+      }
+
+      pre {
+        font-size: 12px;
+        padding: 16px 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 24px; }
+      pre { font-size: 11.5px; }
+    }
+
+    /* ── Scroll animation ────────────────────────────────────── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity .5s, transform .5s;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Mobile nav toggle -->
+<button class="mob-nav-toggle" id="navToggle" aria-label="Menyu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="page-wrap">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="tag">📚 Dərslik</div>
+      <h2>JavaScript<br/>DOM & Seçicilər</h2>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Giriş</div>
+      <a href="#dom-nedir"     class="nav-link">DOM nədir?</a>
+      <a href="#dom-agac"      class="nav-link">DOM Ağacı</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Seçicilər</div>
+      <a href="#klassik"       class="nav-link">Klassik metodlar</a>
+      <a href="#muasir"        class="nav-link">Müasir metodlar</a>
+      <a href="#müqayisə"      class="nav-link">Metodları Müqayisə</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">DOM Əməliyyatları</div>
+      <a href="#oxumaq"        class="nav-link">Məzmun oxumaq</a>
+      <a href="#deyismek"      class="nav-link">Məzmun dəyişmək</a>
+      <a href="#stil"          class="nav-link">Stil &amp; Siniflər</a>
+      <a href="#atributlar"    class="nav-link">Atributlar</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Hadisələr</div>
+      <a href="#events"        class="nav-link">Hadisə Dinləyiciləri</a>
+      <a href="#event-tipler"  class="nav-link">Hadisə Növləri</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Kritik Xətalar</div>
+      <a href="#xetalar"       class="nav-link">⚠️ Tipik Xətalar</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Təcrübə</div>
+      <a href="#praktiki"      class="nav-link">🎯 Praktiki Nümunə</a>
+    </div>
+  </nav>
+
+  <!-- ══ MAIN ════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ── HERO ─────────────────────────────────────────────── -->
+    <div class="hero">
+      <div class="hero-badge">🟡 JavaScript · Başlanğıc Səviyyəsi</div>
+      <h1>DOM və Seçicilər</h1>
+      <p>Brauzerdəki HTML elementlərini JavaScript ilə necə tapmaq, oxumaq və dəyişdirmək olar — izahdan praktikaya qədər addım-addım.</p>
+      <div class="hero-chips">
+        <span class="chip chip-blue">querySelector</span>
+        <span class="chip chip-blue">getElementById</span>
+        <span class="chip chip-green">DOM Ağacı</span>
+        <span class="chip chip-green">addEventListener</span>
+        <span class="chip chip-purple">Klassik vs Müasir</span>
+        <span class="chip chip-purple">Tipik Xətalar</span>
+      </div>
+    </div>
+
+    <!-- ── CONTENT ───────────────────────────────────────────── -->
+    <div class="content">
+
+      <!-- ══ BÖLMƏ 1: DOM NƏDİR? ══════════════════════════════ -->
+      <section class="section fade-in" id="dom-nedir">
+        <div class="section-header">
+          <div class="section-icon icon-blue">🌐</div>
+          <div>
+            <div class="section-title">DOM nədir?</div>
+            <div class="section-subtitle">Document Object Model — Sənəd Obyekt Modeli</div>
+          </div>
+        </div>
+
+        <p>
+          <strong>DOM</strong> (Document Object Model) — brauzer tərəfindən HTML səhifəsi yükləndikdə yaradılan bir <em>obyekt ağacıdır</em>.
+          Bu ağac HTML-dəki hər elementi (teq, mətn, atribut) bir JavaScript obyekti kimi göstərir.
+          JavaScript DOM vasitəsilə bu elementlərə müraciət edə, onları oxuya, dəyişdirə, silə və ya yeni elementlər əlavə edə bilər.
+        </p>
+
+        <div class="alert alert-info">
+          <div class="alert-header">💡 Sadə Analoq</div>
+          <p>HTML sənədi <strong>xəritə</strong>, DOM isə həmin xəritənin <strong>canlı, dəyişdirilə bilən elektron versiyasıdır</strong>. JavaScript bu xəritənin üzərindəki ölkələri (elementlər) tapa, adlarını dəyişə, yenilərini əlavə edə bilər.</p>
+        </div>
+
+        <p>Brauzer HTML sənədini oxuyanda:</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>HTML oxunur</h4>
+              <p>Brauzer <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code>, <code>&lt;body&gt;</code> kimi teqləri sırayla oxuyur.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>DOM ağacı qurulur</h4>
+              <p>Hər teq — bir <em>node (düyün)</em>ə çevrilir. Nestlənmiş teqlər isə valideyn-övlad münasibətləri yaradır.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>JavaScript müraciəti mümkün olur</h4>
+              <p>İndi <code>document</code> obyekti vasitəsilə bütün elementlərə çata bilərik.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 2: DOM AĞACI ════════════════════════════════ -->
+      <section class="section fade-in" id="dom-agac">
+        <div class="section-header">
+          <div class="section-icon icon-purple">🌳</div>
+          <div>
+            <div class="section-title">DOM Ağacı</div>
+            <div class="section-subtitle">HTML-dən JavaScript obyektinə</div>
+          </div>
+        </div>
+
+        <p>Bu sadə HTML kodu olduğunu düşünün:</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">HTML</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="htm">&lt;!DOCTYPE html&gt;</span>
+<span class="htm">&lt;html&gt;</span>
+  <span class="htm">&lt;head&gt;</span>
+    <span class="htm">&lt;title&gt;</span><span class="var">Mənim Səhifəm</span><span class="htm">&lt;/title&gt;</span>
+  <span class="htm">&lt;/head&gt;</span>
+  <span class="htm">&lt;body&gt;</span>
+    <span class="htm">&lt;h1</span> <span class="atr">id=</span><span class="val">"bashliq"</span><span class="htm">&gt;</span><span class="var">Salam Dünya</span><span class="htm">&lt;/h1&gt;</span>
+    <span class="htm">&lt;p</span> <span class="atr">class=</span><span class="val">"aciqlamalar"</span><span class="htm">&gt;</span><span class="var">Bu bir paraqrafdır.</span><span class="htm">&lt;/p&gt;</span>
+    <span class="htm">&lt;ul&gt;</span>
+      <span class="htm">&lt;li&gt;</span><span class="var">Element 1</span><span class="htm">&lt;/li&gt;</span>
+      <span class="htm">&lt;li&gt;</span><span class="var">Element 2</span><span class="htm">&lt;/li&gt;</span>
+    <span class="htm">&lt;/ul&gt;</span>
+  <span class="htm">&lt;/body&gt;</span>
+<span class="htm">&lt;/html&gt;</span></code></pre>
+        </div>
+
+        <p>Bu HTML-in DOM ağacı belə görünür:</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">DOM AĞACI (vizual)</span></div>
+          <pre><code><span class="cmt">document</span>
+  └── <span class="htm">html</span>
+       ├── <span class="htm">head</span>
+       │    └── <span class="htm">title</span>  ──▶  <span class="str">"Mənim Səhifəm"</span>
+       └── <span class="htm">body</span>
+            ├── <span class="htm">h1</span>  [id=<span class="str">"bashliq"</span>]  ──▶  <span class="str">"Salam Dünya"</span>
+            ├── <span class="htm">p</span>   [class=<span class="str">"aciqlamalar"</span>]  ──▶  <span class="str">"Bu bir paraqrafdır."</span>
+            └── <span class="htm">ul</span>
+                 ├── <span class="htm">li</span>  ──▶  <span class="str">"Element 1"</span>
+                 └── <span class="htm">li</span>  ──▶  <span class="str">"Element 2"</span></code></pre>
+        </div>
+
+        <p>JavaScript-dəki <code>document</code> obyekti bu ağacın <em>kökü</em>dür. Hər şeydən bu kökdən başlayırıq.</p>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 3: KLASSİK METODLAR ═══════════════════════ -->
+      <section class="section fade-in" id="klassik">
+        <div class="section-header">
+          <div class="section-icon icon-orange">🏛️</div>
+          <div>
+            <div class="section-title">Klassik Seçici Metodlar</div>
+            <div class="section-subtitle">getElementById, getElementsByClassName, getElementsByTagName</div>
+          </div>
+        </div>
+
+        <p>
+          Bu metodlar JavaScript-in köhnə, lakin hələ də işlək olan üsullarıdır.
+          Onları bilmək vacibdir — həm köhnə kodlarda görəcəksiniz, həm də müasir metodlarla fərqini anlamaq üçün.
+        </p>
+
+        <!-- getElementById -->
+        <h3>1. getElementById()</h3>
+        <p>HTML-dəki <code>id</code> atributuna görə <strong>tək</strong> element qaytarır. ID-lər unikal olduğu üçün bu metod həmişə ya 1 element, ya da <code>null</code> qaytarır.</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// HTML: &lt;h1 id="bashliq"&gt;Salam&lt;/h1&gt;</span>
+
+<span class="kw">const</span> <span class="var">bashliq</span> = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"bashliq"</span>);
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">bashliq</span>);
+<span class="cmt">// → &lt;h1 id="bashliq"&gt;Salam&lt;/h1&gt;</span>
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">bashliq</span>.<span class="fn">textContent</span>);
+<span class="cmt">// → "Salam"</span>
+
+<span class="cmt">// Mövcud olmayan ID-yə görə:</span>
+<span class="kw">const</span> <span class="var">yoxElement</span> = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"yoxdur"</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">yoxElement</span>); <span class="cmt">// → null</span></code></pre>
+        </div>
+
+        <!-- getElementsByClassName -->
+        <h3>2. getElementsByClassName()</h3>
+        <p>Eyni sinifə (class) sahib olan <strong>bütün elementləri</strong> qaytarır. Nəticə canlı <code>HTMLCollection</code> — massivə bənzər, lakin massiv olmayan bir kolleksiyadır.</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// HTML:
+// &lt;p class="aciq"&gt;Birinci&lt;/p&gt;
+// &lt;p class="aciq"&gt;İkinci&lt;/p&gt;
+// &lt;p class="aciq"&gt;Üçüncü&lt;/p&gt;</span>
+
+<span class="kw">const</span> <span class="var">paraqraflar</span> = <span class="fn">document</span>.<span class="fn">getElementsByClassName</span>(<span class="str">"aciq"</span>);
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">paraqraflar</span>.<span class="fn">length</span>); <span class="cmt">// → 3</span>
+
+<span class="cmt">// Index ilə müraciət</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">paraqraflar</span>[<span class="num">0</span>].<span class="fn">textContent</span>); <span class="cmt">// → "Birinci"</span>
+
+<span class="cmt">// Dövr ilə gəzmək</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var">i</span> = <span class="num">0</span>; <span class="var">i</span> &lt; <span class="var">paraqraflar</span>.<span class="fn">length</span>; <span class="var">i</span>++) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">paraqraflar</span>[<span class="var">i</span>].<span class="fn">textContent</span>);
+}</code></pre>
+        </div>
+
+        <div class="alert alert-warn">
+          <div class="alert-header">⚠️ Xəbərdarlıq: HTMLCollection massiv deyil!</div>
+          <p><code>getElementsByClassName</code> bir <code>HTMLCollection</code> qaytarır. Bu, massivin bəzi metodlarını (<code>.forEach</code>, <code>.map</code>) dəstəkləmir.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">JavaScript</span></div>
+            <pre><code><span class="cmt">// ❌ YALNIŞDIR — HTMLCollection üzərində .forEach çalışmaz</span>
+<span class="var">paraqraflar</span>.<span class="fn">forEach</span>(<span class="var">el</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>));
+
+<span class="cmt">// ✅ DOĞRUDUR — massivə çevirmək lazımdır</span>
+<span class="fn">Array</span>.<span class="fn">from</span>(<span class="var">paraqraflar</span>).<span class="fn">forEach</span>(<span class="var">el</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>));</code></pre>
+          </div>
+        </div>
+
+        <!-- getElementsByTagName -->
+        <h3>3. getElementsByTagName()</h3>
+        <p>Müəyyən teq adına sahib bütün elementləri qaytarır. Məsələn, bütün <code>&lt;li&gt;</code>-ləri, bütün <code>&lt;p&gt;</code>-ləri tapmaq üçün.</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">butunLilar</span> = <span class="fn">document</span>.<span class="fn">getElementsByTagName</span>(<span class="str">"li"</span>);
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">butunLilar</span>.<span class="fn">length</span>); <span class="cmt">// Neçə li varsa</span>
+
+<span class="cmt">// Bütün p teqlərini tap</span>
+<span class="kw">const</span> <span class="var">butunP</span> = <span class="fn">document</span>.<span class="fn">getElementsByTagName</span>(<span class="str">"p"</span>);
+
+<span class="cmt">// Bütün elementləri tap ("*" joker simvoldur)</span>
+<span class="kw">const</span> <span class="var">hamisini</span> = <span class="fn">document</span>.<span class="fn">getElementsByTagName</span>(<span class="str">"*"</span>);</code></pre>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 4: MÜASİR METODLAR ════════════════════════ -->
+      <section class="section fade-in" id="muasir">
+        <div class="section-header">
+          <div class="section-icon icon-green">⚡</div>
+          <div>
+            <div class="section-title">Müasir Seçici Metodlar</div>
+            <div class="section-subtitle">querySelector və querySelectorAll</div>
+          </div>
+        </div>
+
+        <p>
+          Müasir JavaScript-in ən güclü seçiciləri — <code>querySelector</code> və <code>querySelectorAll</code>.
+          Bu metodlar CSS seçicilərindən istifadə edir, yəni CSS-dəki hər şeyi (<code>#id</code>, <code>.class</code>, teq, atribut, nəvə seçicilər) JavaScript-də işlədə bilərsiniz.
+        </p>
+
+        <!-- querySelector -->
+        <h3>1. querySelector()</h3>
+        <p>CSS seçicinə uyğun <strong>ilk tapılan elementi</strong> qaytarır. Heç nə tapılmasa <code>null</code> qaytarır.</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// ID-yə görə seçim (#)</span>
+<span class="kw">const</span> <span class="var">bashliq</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#bashliq"</span>);
+
+<span class="cmt">// Sinfə görə seçim (.)</span>
+<span class="kw">const</span> <span class="var">ilkKart</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".kart"</span>);
+<span class="cmt">// DIQQƏT: Yalnız İLK .kart elementi qaytarır!</span>
+
+<span class="cmt">// Teq adına görə seçim</span>
+<span class="kw">const</span> <span class="var">ilkP</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"p"</span>);
+
+<span class="cmt">// Atributa görə seçim</span>
+<span class="kw">const</span> <span class="var">emailSahesi</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">'input[type="email"]'</span>);
+
+<span class="cmt">// Nəvə seçici (nested)</span>
+<span class="kw">const</span> <span class="var">navLinki</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"nav ul li a"</span>);
+
+<span class="cmt">// Birləşmiş seçici</span>
+<span class="kw">const</span> <span class="var">aktiv</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".menu .item.aktiv"</span>);</code></pre>
+        </div>
+
+        <!-- querySelectorAll -->
+        <h3>2. querySelectorAll()</h3>
+        <p>CSS seçicinə uyğun <strong>bütün elementləri</strong> <code>NodeList</code> olaraq qaytarır. Fərqli olaraq <code>NodeList</code> <code>.forEach()</code> metodunu birbaşa dəstəkləyir!</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// Bütün .kart elementlərini tap</span>
+<span class="kw">const</span> <span class="var">butunKartlar</span> = <span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">".kart"</span>);
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">butunKartlar</span>.<span class="fn">length</span>); <span class="cmt">// Elementlərin sayı</span>
+
+<span class="cmt">// ✅ NodeList forEach-i birbaşa dəstəkləyir</span>
+<span class="var">butunKartlar</span>.<span class="fn">forEach</span>(<span class="kw">function</span>(<span class="var">kart</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">kart</span>.<span class="fn">textContent</span>);
+});
+
+<span class="cmt">// Arrow function ilə daha qısa yazılışı</span>
+<span class="var">butunKartlar</span>.<span class="fn">forEach</span>(<span class="var">kart</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">kart</span>.<span class="fn">textContent</span>));
+
+<span class="cmt">// Bütün input[type="checkbox"] elementlərini tap</span>
+<span class="kw">const</span> <span class="var">checkboxlar</span> = <span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">'input[type="checkbox"]'</span>);
+
+<span class="cmt">// :nth-child, :first-child kimi CSS pseudo-seçiciləri ilə</span>
+<span class="kw">const</span> <span class="var">tekSıraLilar</span> = <span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">"li:nth-child(odd)"</span>);</code></pre>
+        </div>
+
+        <div class="alert alert-err">
+          <div class="alert-header">❌ ÇOX GENİŞ YAYILMIŞ XƏTA: CSS işarəsini unutmaq!</div>
+          <p>Bu, tələbələrin ən çox etdiyi səhvdir. <code>querySelector</code> CSS seçicisi istəyir — ID üçün <code>#</code>, sinif üçün <code>.</code> işarəsi MÜTLƏQ lazımdır!</p>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">JavaScript</span></div>
+            <pre><code><span class="cmt">// ❌ YANLIŞ — # işarəsi unudulub</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"bashliq"</span>);
+<span class="cmt">// Bu &lt;bashliq&gt; adlı HTML teqi axtarır, ID deyil → null qaytarır!</span>
+
+<span class="cmt">// ❌ YANLIŞ — . işarəsi unudulub</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"kart"</span>);
+<span class="cmt">// Bu &lt;kart&gt; adlı HTML teqi axtarır → null qaytarır!</span>
+
+<span class="cmt">// ✅ DOĞRU</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#bashliq"</span>);  <span class="cmt">// ID üçün #</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".kart"</span>);     <span class="cmt">// Sinif üçün .</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"p"</span>);         <span class="cmt">// Teq üçün işarəsiz</span></code></pre>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 5: MÜQAYİSƏ ═══════════════════════════════ -->
+      <section class="section fade-in" id="müqayisə">
+        <div class="section-header">
+          <div class="section-icon icon-purple">📊</div>
+          <div>
+            <div class="section-title">Metodları Müqayisə</div>
+            <div class="section-subtitle">Klassik vs Müasir — hansını, nə vaxt?</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Metod</th>
+                <th>Nə Qaytarır?</th>
+                <th>forEach?</th>
+                <th>CSS Seçici?</th>
+                <th>Canlı Yenilənir?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>getElementById()</code></td>
+                <td>Tək element / <code>null</code></td>
+                <td>—</td>
+                <td>❌</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><code>getElementsByClassName()</code></td>
+                <td><code>HTMLCollection</code></td>
+                <td>❌ birbaşa yox</td>
+                <td>❌</td>
+                <td>✅ Bəli</td>
+              </tr>
+              <tr>
+                <td><code>getElementsByTagName()</code></td>
+                <td><code>HTMLCollection</code></td>
+                <td>❌ birbaşa yox</td>
+                <td>❌</td>
+                <td>✅ Bəli</td>
+              </tr>
+              <tr>
+                <td><code>querySelector()</code></td>
+                <td>İlk element / <code>null</code></td>
+                <td>—</td>
+                <td>✅ Bəli</td>
+                <td>❌</td>
+              </tr>
+              <tr>
+                <td><code>querySelectorAll()</code></td>
+                <td><code>NodeList</code></td>
+                <td>✅ Bəli</td>
+                <td>✅ Bəli</td>
+                <td>❌</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="method-grid">
+          <div class="method-card">
+            <div class="method-badge badge-classic">Klassik</div>
+            <div class="method-name">getElementById()</div>
+            <div class="method-desc">Unikal ID bilindikdə ən sürətli üsul. Hələ də aktual.</div>
+          </div>
+          <div class="method-card">
+            <div class="method-badge badge-classic">Klassik</div>
+            <div class="method-name">getElementsByClassName()</div>
+            <div class="method-desc">Canlı kolleaksiya qaytarır. DOM dəyişdikcə avtomatik yenilənir.</div>
+          </div>
+          <div class="method-card">
+            <div class="method-badge badge-modern">Müasir ⚡</div>
+            <div class="method-name">querySelector()</div>
+            <div class="method-desc">İlk uyğun elementi tapır. CSS gücu ilə çox çevik.</div>
+          </div>
+          <div class="method-card">
+            <div class="method-badge badge-modern">Müasir ⚡</div>
+            <div class="method-name">querySelectorAll()</div>
+            <div class="method-desc">Bütün uyğunları qaytarır. forEach dəstəyi var. Tövsiyə olunur.</div>
+          </div>
+        </div>
+
+        <div class="alert alert-tip">
+          <div class="alert-header">✅ Praktiki Tövsiyə</div>
+          <p>Yeni layihələrdə əsasən <code>querySelector</code> və <code>querySelectorAll</code> istifadə edin. Onlar CSS sifəriciləri ilə işlədiyindən daha çevik və oxunaqlıdır.</p>
+          <p>Lakin <strong>performans kritik</strong> olduğu nadir hallarda <code>getElementById()</code> ən sürətlidir.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 6: MƏZMUN OXUMAQ ═══════════════════════════ -->
+      <section class="section fade-in" id="oxumaq">
+        <div class="section-header">
+          <div class="section-icon icon-blue">📖</div>
+          <div>
+            <div class="section-title">DOM Məzmununu Oxumaq</div>
+            <div class="section-subtitle">textContent, innerHTML, innerText</div>
+          </div>
+        </div>
+
+        <p>Element tapdıqdan sonra onun məzmununu oxumaq üçün əsasən üç xassə var:</p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// HTML: &lt;p id="nümunə"&gt;&lt;b&gt;Qalın&lt;/b&gt; və adi mətn&lt;/p&gt;</span>
+
+<span class="kw">const</span> <span class="var">el</span> = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"nümunə"</span>);
+
+<span class="cmt">// textContent — bütün mətnlər (HTML olmadan)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>.<span class="fn">textContent</span>);
+<span class="cmt">// → "Qalın və adi mətn"</span>
+
+<span class="cmt">// innerHTML — daxildəki tam HTML kodu</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>.<span class="fn">innerHTML</span>);
+<span class="cmt">// → "&lt;b&gt;Qalın&lt;/b&gt; və adi mətn"</span>
+
+<span class="cmt">// innerText — yalnız görünən mətn (CSS-ə baxır)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>.<span class="fn">innerText</span>);
+<span class="cmt">// → "Qalın və adi mətn" (display:none elementlər daxil edilmir)</span></code></pre>
+        </div>
+
+        <div class="highlight-row">
+          <div class="highlight-card hc-bad">
+            <h4>⚠️ innerHTML ilə XSS Təhlükəsi</h4>
+            <p>İstifadəçidən gələn məlumatı birbaşa <code>innerHTML</code>-ə vermək <strong>çox təhlükəlidir</strong>. Zərərli JavaScript kodu inyeksiya edilə bilər.</p>
+          </div>
+          <div class="highlight-card hc-good">
+            <h4>✅ Güvənli Alternativ</h4>
+            <p>İstifadəçi mətnini <code>textContent</code> ilə yazın — HTML teqlərini avtomatik deaktiv edir, güvənlidir.</p>
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">userMelumat</span> = <span class="str">'&lt;img src=x onerror="alert(1)"&gt;'</span>;
+
+<span class="cmt">// ❌ TEHLÜKƏLİ — XSS hücumuna açıqdır</span>
+<span class="var">element</span>.<span class="fn">innerHTML</span> = <span class="var">userMelumat</span>;
+
+<span class="cmt">// ✅ GÜVƏNLİ — Mətn olaraq yazır, HTML kimi işlətmir</span>
+<span class="var">element</span>.<span class="fn">textContent</span> = <span class="var">userMelumat</span>;
+<span class="cmt">// Nəticə: Literal olaraq &lt;img src=x ...&gt; mətnini göstərir</span></code></pre>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 7: MƏZMUN DƏYİŞMƏK ════════════════════════ -->
+      <section class="section fade-in" id="deyismek">
+        <div class="section-header">
+          <div class="section-icon icon-green">✏️</div>
+          <div>
+            <div class="section-title">DOM Məzmununu Dəyişmək</div>
+            <div class="section-subtitle">Elementlər yaratmaq, əlavə etmək, silmək</div>
+          </div>
+        </div>
+
+        <h3>Mövcud elementin məzmununu dəyişmək</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">bashliq</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#bashliq"</span>);
+
+<span class="cmt">// Mətn dəyişmək</span>
+<span class="var">bashliq</span>.<span class="fn">textContent</span> = <span class="str">"Yeni Başlıq!"</span>;
+
+<span class="cmt">// HTML əlavə etmək</span>
+<span class="var">bashliq</span>.<span class="fn">innerHTML</span> = <span class="str">"&lt;em&gt;İtalik&lt;/em&gt; Başlıq"</span>;</code></pre>
+        </div>
+
+        <h3>Yeni element yaratmaq və əlavə etmək</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// 1. Yeni element yarat</span>
+<span class="kw">const</span> <span class="var">yeniLi</span> = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"li"</span>);
+
+<span class="cmt">// 2. Məzmun ver</span>
+<span class="var">yeniLi</span>.<span class="fn">textContent</span> = <span class="str">"Yeni element"</span>;
+
+<span class="cmt">// 3. Sinfini əlavə et (könüllü)</span>
+<span class="var">yeniLi</span>.<span class="fn">className</span> = <span class="str">"siyahı-elementi"</span>;
+
+<span class="cmt">// 4. Siyahıya əlavə et</span>
+<span class="kw">const</span> <span class="var">ul</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"ul"</span>);
+<span class="var">ul</span>.<span class="fn">appendChild</span>(<span class="var">yeniLi</span>); <span class="cmt">// sona əlavə edir</span>
+
+<span class="cmt">// İlk mövqeyə əlavə etmək üçün:</span>
+<span class="var">ul</span>.<span class="fn">prepend</span>(<span class="var">yeniLi</span>);</code></pre>
+        </div>
+
+        <h3>Element silmək</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">silinecek</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".kohne"</span>);
+
+<span class="cmt">// Müasir üsul</span>
+<span class="var">silinecek</span>.<span class="fn">remove</span>();
+
+<span class="cmt">// Köhnə üsul (IE dəstəyi lazım olduqda)</span>
+<span class="var">silinecek</span>.<span class="fn">parentNode</span>.<span class="fn">removeChild</span>(<span class="var">silinecek</span>);</code></pre>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 8: STİL VƏ SİNİFLƏR ═══════════════════════ -->
+      <section class="section fade-in" id="stil">
+        <div class="section-header">
+          <div class="section-icon icon-purple">🎨</div>
+          <div>
+            <div class="section-title">Stil və Siniflər</div>
+            <div class="section-subtitle">CSS-i JavaScript ilə idarə etmək</div>
+          </div>
+        </div>
+
+        <h3>classList — sinifləri idarə etmək (tövsiyə olunan)</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">element</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".kart"</span>);
+
+<span class="cmt">// Sinif əlavə et</span>
+<span class="var">element</span>.<span class="fn">classList</span>.<span class="fn">add</span>(<span class="str">"aktiv"</span>);
+
+<span class="cmt">// Sinif sil</span>
+<span class="var">element</span>.<span class="fn">classList</span>.<span class="fn">remove</span>(<span class="str">"aktiv"</span>);
+
+<span class="cmt">// Sinif var/yox dəyiş (toggle)</span>
+<span class="var">element</span>.<span class="fn">classList</span>.<span class="fn">toggle</span>(<span class="str">"gizli"</span>);
+<span class="cmt">// "gizli" varsa silir, yoxsa əlavə edir</span>
+
+<span class="cmt">// Sinif var mı yoxla</span>
+<span class="kw">if</span> (<span class="var">element</span>.<span class="fn">classList</span>.<span class="fn">contains</span>(<span class="str">"aktiv"</span>)) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Element aktivdir"</span>);
+}
+
+<span class="cmt">// Birdən çox sinif əlavə et</span>
+<span class="var">element</span>.<span class="fn">classList</span>.<span class="fn">add</span>(<span class="str">"kart"</span>, <span class="str">"vurgulanmis"</span>, <span class="str">"gosterilen"</span>);</code></pre>
+        </div>
+
+        <h3>style xassəsi — birbaşa CSS yazmaq</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">qutu</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#qutu"</span>);
+
+<span class="cmt">// CSS xassəsi kebab-case deyil, camelCase yazılır!</span>
+<span class="var">qutu</span>.<span class="fn">style</span>.<span class="fn">backgroundColor</span> = <span class="str">"mavi"</span>;   <span class="cmt">// background-color</span>
+<span class="var">qutu</span>.<span class="fn">style</span>.<span class="fn">fontSize</span>        = <span class="str">"20px"</span>;    <span class="cmt">// font-size</span>
+<span class="var">qutu</span>.<span class="fn">style</span>.<span class="fn">display</span>         = <span class="str">"none"</span>;    <span class="cmt">// gizlət</span>
+<span class="var">qutu</span>.<span class="fn">style</span>.<span class="fn">display</span>         = <span class="str">"block"</span>;   <span class="cmt">// göstər</span>
+<span class="var">qutu</span>.<span class="fn">style</span>.<span class="fn">borderRadius</span>    = <span class="str">"8px"</span>;     <span class="cmt">// border-radius</span></code></pre>
+        </div>
+
+        <div class="alert alert-tip">
+          <div class="alert-header">✅ Tövsiyə: classList vs style</div>
+          <p>Üslub dəyişiklikləri üçün birbaşa <code>style</code> yazmaq əvəzinə CSS siniflərini əvvəlcədən CSS-də yazın, sonra <code>classList.add/remove/toggle</code> ilə tətbiq edin. Bu, kod ayrılığını (separation of concerns) qoruyur.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 9: ATRIBUTLAR ══════════════════════════════ -->
+      <section class="section fade-in" id="atributlar">
+        <div class="section-header">
+          <div class="section-icon icon-orange">🔧</div>
+          <div>
+            <div class="section-title">Atributlar ilə İşləmək</div>
+            <div class="section-subtitle">getAttribute, setAttribute, removeAttribute</div>
+          </div>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// HTML: &lt;a id="link" href="https://google.com" target="_blank"&gt;...&lt;/a&gt;</span>
+<span class="kw">const</span> <span class="var">link</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#link"</span>);
+
+<span class="cmt">// Atribut oxu</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">link</span>.<span class="fn">getAttribute</span>(<span class="str">"href"</span>));   <span class="cmt">// "https://google.com"</span>
+
+<span class="cmt">// Atribut dəyiş / əlavə et</span>
+<span class="var">link</span>.<span class="fn">setAttribute</span>(<span class="str">"href"</span>, <span class="str">"https://bing.com"</span>);
+
+<span class="cmt">// Atribut var mı?</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">link</span>.<span class="fn">hasAttribute</span>(<span class="str">"target"</span>)); <span class="cmt">// true</span>
+
+<span class="cmt">// Atribut sil</span>
+<span class="var">link</span>.<span class="fn">removeAttribute</span>(<span class="str">"target"</span>);
+
+<span class="cmt">// data-* atributları üçün dataset istifadə et</span>
+<span class="cmt">// HTML: &lt;div data-user-id="42" data-rol="admin"&gt;&lt;/div&gt;</span>
+<span class="kw">const</span> <span class="var">div</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"div"</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">div</span>.<span class="fn">dataset</span>.<span class="fn">userId</span>); <span class="cmt">// "42"  (data-user-id → userId)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">div</span>.<span class="fn">dataset</span>.<span class="fn">rol</span>);    <span class="cmt">// "admin"</span></code></pre>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 10: HADİSƏLƏR ══════════════════════════════ -->
+      <section class="section fade-in" id="events">
+        <div class="section-header">
+          <div class="section-icon icon-green">🖱️</div>
+          <div>
+            <div class="section-title">Hadisə Dinləyiciləri</div>
+            <div class="section-subtitle">addEventListener ilə istifadəçi əmələrini tutmaq</div>
+          </div>
+        </div>
+
+        <p>
+          Hadisələr (events) — klik, klaviatura basması, forma göndərilməsi kimi istifadəçi və ya brauzer hərəkətləridir.
+          <code>addEventListener</code> bu hərəkətləri tutmağa imkan verir.
+        </p>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript — Əsas istifadə</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="kw">const</span> <span class="var">duyme</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#duyme"</span>);
+
+<span class="cmt">// Sintaksis:
+// element.addEventListener("hadisəAdı", callbackFunksiya)</span>
+
+<span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="kw">function</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Düymə kliklənirldi!"</span>);
+});
+
+<span class="cmt">// Arrow function ilə daha qısa</span>
+<span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Klik!"</span>);
+});
+
+<span class="cmt">// event obyekti ilə</span>
+<span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (<span class="var">e</span>) => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Klikləndi:"</span>, <span class="var">e</span>.<span class="fn">target</span>); <span class="cmt">// kliklənən element</span>
+  <span class="var">e</span>.<span class="fn">preventDefault</span>(); <span class="cmt">// default davranışı ləğv et</span>
+});
+
+<span class="cmt">// Hadisəni silmək üçün funksiyanı çölə çıxar</span>
+<span class="kw">function</span> <span class="fn">klikHandler</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Klik!"</span>);
+}
+<span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="fn">klikHandler</span>);
+<span class="var">duyme</span>.<span class="fn">removeEventListener</span>(<span class="str">"click"</span>, <span class="fn">klikHandler</span>); <span class="cmt">// sil</span></code></pre>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 11: HADİSƏ NÖVLƏRİ ════════════════════════ -->
+      <section class="section fade-in" id="event-tipler">
+        <div class="section-header">
+          <div class="section-icon icon-blue">📋</div>
+          <div>
+            <div class="section-title">Ən Çox İstifadə Olunan Hadisə Növləri</div>
+            <div class="section-subtitle">Maus, klaviatura, forma, sənəd hadisələri</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Hadisə Adı</th>
+                <th>Nə Zaman Baş Verir?</th>
+                <th>Nümunə</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>click</code></td>
+                <td>Element klikləndikdə</td>
+                <td>Düymə, link, kart</td>
+              </tr>
+              <tr>
+                <td><code>dblclick</code></td>
+                <td>İki dəfə klik edildikdə</td>
+                <td>Redaktə açmaq</td>
+              </tr>
+              <tr>
+                <td><code>mouseover</code></td>
+                <td>Kursor element üzərinə gəldikdə</td>
+                <td>Tooltip göstərmək</td>
+              </tr>
+              <tr>
+                <td><code>mouseout</code></td>
+                <td>Kursor elementdən çıxdıqda</td>
+                <td>Tooltip gizlətmək</td>
+              </tr>
+              <tr>
+                <td><code>keydown</code></td>
+                <td>Klaviatura düyməsi basıldıqda</td>
+                <td>Klaviatura qısayolları</td>
+              </tr>
+              <tr>
+                <td><code>keyup</code></td>
+                <td>Klaviatura düyməsi buraxıldıqda</td>
+                <td>Axtarış göndərmə</td>
+              </tr>
+              <tr>
+                <td><code>input</code></td>
+                <td>Input dəyəri hər dəfişdikdə</td>
+                <td>Canlı axtarış</td>
+              </tr>
+              <tr>
+                <td><code>submit</code></td>
+                <td>Forma göndərildikdə</td>
+                <td>Forma doğrulama</td>
+              </tr>
+              <tr>
+                <td><code>change</code></td>
+                <td>Seçim/checkbox dəyişdikdə</td>
+                <td>Select, checkbox</td>
+              </tr>
+              <tr>
+                <td><code>DOMContentLoaded</code></td>
+                <td>HTML tam yükləndikdə</td>
+                <td>Başlanğıc kodu</td>
+              </tr>
+              <tr>
+                <td><code>load</code></td>
+                <td>Bütün resurslar (şəkil, CSS) yükləndikdə</td>
+                <td>Loading ekranı</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 12: TİPİK XƏTALAR ═════════════════════════ -->
+      <section class="section fade-in" id="xetalar">
+        <div class="section-header">
+          <div class="section-icon icon-red">⚠️</div>
+          <div>
+            <div class="section-title">Kritik Xətalar — Bug Kitabçası</div>
+            <div class="section-subtitle">Tələbələrin ən çox düşdüyü tələlər</div>
+          </div>
+        </div>
+
+        <!-- XƏTA 1 -->
+        <h3>🐛 Xəta #1 — Null Xətası: Element yüklənməyib</h3>
+        <p>Bu, ən geniş yayılmış xətadır. JavaScript kodu HTML elementlər yüklənməmişdən əvvəl işlədikdə baş verir.</p>
+
+        <div class="alert alert-err">
+          <div class="alert-header">❌ Xəta Mesajı</div>
+          <p><code>Cannot read properties of null (reading 'addEventListener')</code></p>
+          <p>və ya</p>
+          <p><code>Cannot set properties of null (setting 'textContent')</code></p>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// ❌ PROBLEM: script &lt;head&gt;-dədir, &lt;body&gt; hələ yüklənməyib</span>
+<span class="kw">const</span> <span class="var">duyme</span> = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"duyme"</span>); <span class="cmt">// null qaytarır!</span>
+<span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {}); <span class="cmt">// 💥 XƏTA!</span></code></pre>
+        </div>
+
+        <h3>3 Həll Yolu:</h3>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript — Həll 1: Scripti body-nin sonuna qoy</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">&lt;!-- HTML faylında &lt;/body&gt;-dən əvvəl --&gt;</span>
+<span class="htm">&lt;body&gt;</span>
+  <span class="htm">&lt;button</span> <span class="atr">id=</span><span class="val">"duyme"</span><span class="htm">&gt;</span>Klik<span class="htm">&lt;/button&gt;</span>
+
+  <span class="htm">&lt;script&gt;</span>
+    <span class="cmt">// Artıq element yüklüdür ✅</span>
+    <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"duyme"</span>).<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {});
+  <span class="htm">&lt;/script&gt;</span>
+<span class="htm">&lt;/body&gt;</span></code></pre>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript — Həll 2: DOMContentLoaded hadisəsi</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="fn">document</span>.<span class="fn">addEventListener</span>(<span class="str">"DOMContentLoaded"</span>, () => {
+  <span class="cmt">// DOM tam yükləndikdə çalışır ✅</span>
+  <span class="kw">const</span> <span class="var">duyme</span> = <span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"duyme"</span>);
+  <span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {});
+});</code></pre>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript — Həll 3: defer atributu (müasir)</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">&lt;!-- script &lt;head&gt;-dədir, amma defer ilə HTML yüklənəndən sonra çalışır --&gt;</span>
+<span class="htm">&lt;script</span> <span class="atr">src=</span><span class="val">"app.js"</span> <span class="atr">defer</span><span class="htm">&gt;&lt;/script&gt;</span>
+
+<span class="cmt">// app.js içi normal yazılır ✅</span>
+<span class="fn">document</span>.<span class="fn">getElementById</span>(<span class="str">"duyme"</span>).<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {});</code></pre>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- XƏTA 2 -->
+        <h3>🐛 Xəta #2 — querySelector-da CSS İşarəsini Unutmaq</h3>
+
+        <div class="alert alert-err">
+          <div class="alert-header">❌ Problem: querySelector null qaytarır</div>
+          <p>Bütün CSS işarələrini unutduqda metod <code>null</code> qaytarır. Sonrakı əməliyyatlar çökür.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">JavaScript</span></div>
+            <pre><code><span class="cmt">// ❌ ID seçici — # unudulub</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"bashliq"</span>);    <span class="cmt">// null!</span>
+
+<span class="cmt">// ❌ Sinif seçici — . unudulub</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"kart"</span>);        <span class="cmt">// null!</span>
+
+<span class="cmt">// ✅ Düzgün istifadə</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#bashliq"</span>);  <span class="cmt">// ID üçün #</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".kart"</span>);     <span class="cmt">// Sinif üçün .</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"p"</span>);         <span class="cmt">// Teq adı üçün işarəsiz</span></code></pre>
+          </div>
+        </div>
+
+        <div class="alert alert-tip">
+          <div class="alert-header">💡 Qızıl Qayda</div>
+          <p><code>querySelector/querySelectorAll</code> istifadə edərkən həmişə özünüzə soruşun: "Bu CSS-dəki seçici kimi yazılacaqmı?" Əgər cavab bəlidirsə, CSS sintaksisini aynen kopiyalayın.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- XƏTA 3 -->
+        <h3>🐛 Xəta #3 — NodeList / HTMLCollection üzərində .forEach() çağırmaq</h3>
+
+        <div class="alert alert-warn">
+          <div class="alert-header">⚠️ Xəbərdarlıq: forEach dəstəyi</div>
+          <p><code>getElementsByClassName()</code> və <code>getElementsByTagName()</code> <code>HTMLCollection</code> qaytarır — bu <code>.forEach()</code> dəstəkləmir!<br/>
+          <code>querySelectorAll()</code> isə <code>NodeList</code> qaytarır — bu <code>.forEach()</code>ni birbaşa dəstəkləyir.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">JavaScript</span></div>
+            <pre><code><span class="cmt">// ❌ HTMLCollection üzərində forEach — XƏTA!</span>
+<span class="kw">const</span> <span class="var">lilar</span> = <span class="fn">document</span>.<span class="fn">getElementsByTagName</span>(<span class="str">"li"</span>);
+<span class="var">lilar</span>.<span class="fn">forEach</span>(<span class="var">el</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>)); <span class="cmt">// 💥 TypeError!</span>
+
+<span class="cmt">// ✅ HƏLL 1: Array.from ilə dönüştür</span>
+<span class="fn">Array</span>.<span class="fn">from</span>(<span class="var">lilar</span>).<span class="fn">forEach</span>(<span class="var">el</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>));
+
+<span class="cmt">// ✅ HƏLL 2: Spread operator ilə</span>
+[...<span class="var">lilar</span>].<span class="fn">forEach</span>(<span class="var">el</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>));
+
+<span class="cmt">// ✅ HƏLL 3: querySelectorAll istifadə et (forEach dəstəkləyir)</span>
+<span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">"li"</span>).<span class="fn">forEach</span>(<span class="var">el</span> => <span class="fn">console</span>.<span class="fn">log</span>(<span class="var">el</span>));</code></pre>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- XƏTA 4 -->
+        <h3>🐛 Xəta #4 — id adlarında boşluq istifadə etmək</h3>
+
+        <div class="alert alert-err">
+          <div class="alert-header">❌ HTML ID-lərində boşluq olmaz!</div>
+          <p>ID-lər boşluqsuz olmalıdır. Boşluqlu ID JavaScript-in CSS seçicilərini qarışdırır.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">HTML + JavaScript</span></div>
+            <pre><code><span class="cmt">&lt;!-- ❌ YANLIŞ — ID-də boşluq --&gt;</span>
+<span class="htm">&lt;div</span> <span class="atr">id=</span><span class="val">"mənim div"</span><span class="htm">&gt;&lt;/div&gt;</span>
+
+<span class="cmt">// Bu boşluğu iki ayrı sinif kimi görür!</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#mənim div"</span>);
+<span class="cmt">// → #mənim elementinin içindəki div axtarır — xəta!</span>
+
+<span class="cmt">&lt;!-- ✅ DOĞRU — tire (-) və ya alt_xətt (_) istifadə et --&gt;</span>
+<span class="htm">&lt;div</span> <span class="atr">id=</span><span class="val">"mənim-div"</span><span class="htm">&gt;&lt;/div&gt;</span>
+<span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#mənim-div"</span>); <span class="cmt">// ✅</span></code></pre>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- XƏTA 5 -->
+        <h3>🐛 Xəta #5 — Dövrsüz NodeList üzərindən əməliyyat</h3>
+
+        <div class="alert alert-warn">
+          <div class="alert-header">⚠️ Tələ: NodeList bir element kimi davranmır</div>
+          <p><code>querySelectorAll()</code> heç vaxt tək element qaytarmır — hətta bir element tapsa belə NodeList qaytarır.</p>
+          <div class="code-wrap">
+            <div class="code-header"><span class="code-lang">JavaScript</span></div>
+            <pre><code><span class="cmt">// ❌ YANLIŞ — NodeList-i birbaşa element kimi istifadə etmək</span>
+<span class="kw">const</span> <span class="var">kartlar</span> = <span class="fn">document</span>.<span class="fn">querySelectorAll</span>(<span class="str">".kart"</span>);
+<span class="var">kartlar</span>.<span class="fn">style</span>.<span class="fn">color</span> = <span class="str">"qırmızı"</span>; <span class="cmt">// 💥 NodeList.style yoxdur!</span>
+
+<span class="cmt">// ✅ DOĞRU — hər element üçün ayrıca tətbiq et</span>
+<span class="var">kartlar</span>.<span class="fn">forEach</span>(<span class="var">kart</span> => {
+  <span class="var">kart</span>.<span class="fn">style</span>.<span class="fn">color</span> = <span class="str">"qırmızı"</span>; <span class="cmt">// ✅ Hər kart üçün</span>
+});
+
+<span class="cmt">// ✅ Tək element istəyirsinizsə querySelector istifadə edin</span>
+<span class="kw">const</span> <span class="var">ilkKart</span> = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">".kart"</span>);
+<span class="var">ilkKart</span>.<span class="fn">style</span>.<span class="fn">color</span> = <span class="str">"qırmızı"</span>; <span class="cmt">// ✅</span></code></pre>
+          </div>
+        </div>
+
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ══ BÖLMƏ 13: PRATİKİ NÜMUNƏ ════════════════════════ -->
+      <section class="section fade-in" id="praktiki">
+        <div class="section-header">
+          <div class="section-icon icon-green">🎯</div>
+          <div>
+            <div class="section-title">Praktiki Nümunə — İnteraktiv Demo</div>
+            <div class="section-subtitle">Öyrəndiklərini birbaşa sına!</div>
+          </div>
+        </div>
+
+        <p>
+          Aşağıdakı demoları sınayaraq DOM seçiciləri, məzmun dəyişiklikləri, sinif idarəsi və hadisələri canlı görə bilərsiniz.
+        </p>
+
+        <!-- DEMO 1 -->
+        <h3>🎮 Demo 1 — Seçici Metodları</h3>
+        <div class="demo-box">
+          <div class="demo-header">
+            <span class="demo-dot dot-red"></span>
+            <span class="demo-dot dot-yellow"></span>
+            <span class="demo-dot dot-green"></span>
+            Seçici Metodları
+          </div>
+          <div class="demo-body">
+            <div id="demo-hdf" class="demo-target" style="color:#dde3f0;">
+              Mən <strong>id="demo-hdf"</strong> olan elementəm
+            </div>
+            <div class="demo-target sehife-elementi" id="sinif-el1" style="color:#dde3f0;">Sinif: <code>.sehife-elementi</code> — #1</div>
+            <div class="demo-target sehife-elementi" id="sinif-el2" style="color:#dde3f0;">Sinif: <code>.sehife-elementi</code> — #2</div>
+
+            <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
+              <button class="demo-btn" onclick="demoGetById()">getElementById</button>
+              <button class="demo-btn" onclick="demoQuerySelector()">querySelector</button>
+              <button class="demo-btn" onclick="demoQuerySelectorAll()">querySelectorAll</button>
+              <button class="demo-btn warn" onclick="demoReset1()">Sıfırla</button>
+            </div>
+            <div class="demo-output" id="output1">Yuxarıdakı düymələrə klik et...</div>
+          </div>
+        </div>
+
+        <!-- DEMO 2 -->
+        <h3>🎮 Demo 2 — classList ilə Sinif İdarəsi</h3>
+        <div class="demo-box">
+          <div class="demo-header">
+            <span class="demo-dot dot-red"></span>
+            <span class="demo-dot dot-yellow"></span>
+            <span class="demo-dot dot-green"></span>
+            classList Demo
+          </div>
+          <div class="demo-body">
+            <div id="demo-qutu" class="demo-target" style="transition: all .3s; color:#dde3f0;">
+              Bu qutu üzərindəki düymələr ilə sinifləri idarə et
+            </div>
+            <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;">
+              <button class="demo-btn" onclick="addClass()">addClass("aktiv")</button>
+              <button class="demo-btn danger" onclick="removeClass()">removeClass("aktiv")</button>
+              <button class="demo-btn success" onclick="toggleClass()">toggle("aktiv")</button>
+              <button class="demo-btn" onclick="checkClass()">contains("aktiv")?</button>
+            </div>
+            <div class="demo-output" id="output2">Nəticə burada görünəcək...</div>
+          </div>
+        </div>
+
+        <!-- DEMO 3 -->
+        <h3>🎮 Demo 3 — Dinamik Element Yaratmaq</h3>
+        <div class="demo-box">
+          <div class="demo-header">
+            <span class="demo-dot dot-red"></span>
+            <span class="demo-dot dot-yellow"></span>
+            <span class="demo-dot dot-green"></span>
+            createElement Demo
+          </div>
+          <div class="demo-body">
+            <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+              <input type="text" id="yeni-metn" placeholder="Yeni elementə mətn yaz..."
+                style="flex:1; min-width:180px; padding:9px 14px; border-radius:7px; border:1px solid var(--border);
+                background:var(--code-bg); color:var(--text); font-family:var(--font-body); font-size:14px; outline:none;"
+              />
+              <button class="demo-btn success" onclick="elementElave()">Əlavə Et</button>
+            </div>
+            <ul id="demo-siyahi" style="list-style:none; padding:0; min-height:40px; border:1px dashed var(--border); border-radius:7px; padding:8px;">
+              <li style="color:var(--text-muted); font-size:13px; padding:6px 10px;">Hələ element yoxdur...</li>
+            </ul>
+            <div style="margin-top:8px;">
+              <button class="demo-btn danger" onclick="sonuSil()">Sonuncunu Sil</button>
+              <button class="demo-btn warn" onclick="hamisiniSil()">Hamısını Sil</button>
+            </div>
+            <div class="demo-output" id="output3">Siyahı boşdur.</div>
+          </div>
+        </div>
+
+        <!-- DEMO 4 -->
+        <h3>🎮 Demo 4 — Hadisə Dinləyicisi: Forma Validasiyası</h3>
+        <div class="demo-box">
+          <div class="demo-header">
+            <span class="demo-dot dot-red"></span>
+            <span class="demo-dot dot-yellow"></span>
+            <span class="demo-dot dot-green"></span>
+            addEventListener + Forma Demo
+          </div>
+          <div class="demo-body">
+            <div style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
+              <input type="text" id="ad-input" placeholder="Adınızı daxil edin..."
+                style="padding:9px 14px; border-radius:7px; border:1px solid var(--border);
+                background:var(--code-bg); color:var(--text); font-family:var(--font-body); font-size:14px; outline:none;"
+              />
+              <input type="email" id="email-input" placeholder="E-poçt ünvanı..."
+                style="padding:9px 14px; border-radius:7px; border:1px solid var(--border);
+                background:var(--code-bg); color:var(--text); font-family:var(--font-body); font-size:14px; outline:none;"
+              />
+              <div id="canli-preview" style="font-size:13px; color:var(--text-muted); padding:8px; background:var(--code-bg); border-radius:7px; border:1px solid var(--border);">
+                Canlı önizləmə burada...
+              </div>
+              <button class="demo-btn success" onclick="formaGonder()">Göndər</button>
+            </div>
+            <div class="demo-output" id="output4">Formanı doldurun...</div>
+          </div>
+        </div>
+
+        <!-- Tam kod nümunəsi -->
+        <h3>📝 Bütün Öyrəndiklərini Birləşdirən Nümunə</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">JavaScript — Tam nümunə: Todo Siyahısı</span><button class="code-copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+          <pre><code><span class="cmt">// HTML strukturu:
+// &lt;input id="yeni-tapshiriq" placeholder="Tapşırıq daxil et"&gt;
+// &lt;button id="elave-et"&gt;Əlavə Et&lt;/button&gt;
+// &lt;ul id="siyahi"&gt;&lt;/ul&gt;</span>
+
+<span class="fn">document</span>.<span class="fn">addEventListener</span>(<span class="str">"DOMContentLoaded"</span>, () => {
+  <span class="kw">const</span> <span class="var">input</span>    = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#yeni-tapshiriq"</span>);
+  <span class="kw">const</span> <span class="var">duyme</span>    = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#elave-et"</span>);
+  <span class="kw">const</span> <span class="var">siyahi</span>   = <span class="fn">document</span>.<span class="fn">querySelector</span>(<span class="str">"#siyahi"</span>);
+
+  <span class="kw">function</span> <span class="fn">tapshiriqElave</span>() {
+    <span class="kw">const</span> <span class="var">metn</span> = <span class="var">input</span>.<span class="fn">value</span>.<span class="fn">trim</span>();
+    <span class="kw">if</span> (!<span class="var">metn</span>) <span class="kw">return</span>; <span class="cmt">// boş giriş</span>
+
+    <span class="cmt">// Yeni &lt;li&gt; yarat</span>
+    <span class="kw">const</span> <span class="var">li</span> = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"li"</span>);
+    <span class="var">li</span>.<span class="fn">textContent</span> = <span class="var">metn</span>;
+    <span class="var">li</span>.<span class="fn">classList</span>.<span class="fn">add</span>(<span class="str">"tapshiriq"</span>);
+
+    <span class="cmt">// Klik ilə tamamlandı/tamamlanmadı dəyiş</span>
+    <span class="var">li</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {
+      <span class="var">li</span>.<span class="fn">classList</span>.<span class="fn">toggle</span>(<span class="str">"tamamlandi"</span>);
+    });
+
+    <span class="cmt">// Sil düyməsi yarat</span>
+    <span class="kw">const</span> <span class="var">silDuyme</span> = <span class="fn">document</span>.<span class="fn">createElement</span>(<span class="str">"button"</span>);
+    <span class="var">silDuyme</span>.<span class="fn">textContent</span> = <span class="str">"🗑"</span>;
+    <span class="var">silDuyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, (<span class="var">e</span>) => {
+      <span class="var">e</span>.<span class="fn">stopPropagation</span>(); <span class="cmt">// li-nin klik hadisəsini durdur</span>
+      <span class="var">li</span>.<span class="fn">remove</span>();
+    });
+
+    <span class="var">li</span>.<span class="fn">appendChild</span>(<span class="var">silDuyme</span>);
+    <span class="var">siyahi</span>.<span class="fn">appendChild</span>(<span class="var">li</span>);
+    <span class="var">input</span>.<span class="fn">value</span> = <span class="str">""</span>; <span class="cmt">// input-u təmizlə</span>
+    <span class="var">input</span>.<span class="fn">focus</span>(); <span class="cmt">// focusu geri ver</span>
+  }
+
+  <span class="cmt">// Düymə kliki</span>
+  <span class="var">duyme</span>.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="fn">tapshiriqElave</span>);
+
+  <span class="cmt">// Enter düyməsi ilə də əlavə etmək</span>
+  <span class="var">input</span>.<span class="fn">addEventListener</span>(<span class="str">"keydown"</span>, (<span class="var">e</span>) => {
+    <span class="kw">if</span> (<span class="var">e</span>.<span class="fn">key</span> === <span class="str">"Enter"</span>) <span class="fn">tapshiriqElave</span>();
+  });
+});</code></pre>
+        </div>
+
+      </section>
+
+      <!-- Footer -->
+      <div style="margin-top:48px; padding:28px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">🎓</div>
+        <div style="font-weight:700; font-size:16px; color:var(--text); margin-bottom:6px;">DOM & Seçicilər Dərsliyi</div>
+        <div style="font-size:13px; color:var(--text-muted);">Azərbaycan dilində JavaScript tədris materialı</div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<!-- ══ JAVASCRIPT ══════════════════════════════════════════════ -->
+<script>
+  /* ─── Progress bar ────────────────────────────────────────── */
+  window.addEventListener('scroll', () => {
+    const el = document.getElementById('progressBar');
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    el.style.width = pct + '%';
+  });
+
+  /* ─── Mobile sidebar ──────────────────────────────────────── */
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebarOverlay');
+  const navToggle = document.getElementById('navToggle');
+
+  navToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  });
+
+  /* ─── Active nav ──────────────────────────────────────────── */
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => io.observe(s));
+
+  /* ─── Fade-in ─────────────────────────────────────────────── */
+  const fadeIO = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-in').forEach(el => fadeIO.observe(el));
+
+  /* ─── Copy code ───────────────────────────────────────────── */
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = '✓ Kopyalandı';
+      setTimeout(() => btn.textContent = 'Kopyala', 1800);
+    }).catch(() => {});
+  }
+
+  /* ─── DEMO 1 ──────────────────────────────────────────────── */
+  function demoGetById() {
+    const el = document.getElementById('demo-hdf');
+    el.style.background = 'rgba(91,141,238,.2)';
+    el.style.borderColor = 'var(--accent)';
+    document.getElementById('output1').textContent =
+      '✅ getElementById("demo-hdf") → tapıldı!\n' +
+      'textContent: "' + el.textContent.replace(/\s+/g,' ').trim() + '"';
+  }
+
+  function demoQuerySelector() {
+    const el = document.querySelector('.sehife-elementi');
+    el.style.background = 'rgba(61,214,140,.2)';
+    el.style.borderColor = 'var(--green)';
+    document.getElementById('output1').textContent =
+      '✅ querySelector(".sehife-elementi") → İLK element tapıldı!\n' +
+      'id: "' + el.id + '"';
+  }
+
+  function demoQuerySelectorAll() {
+    const els = document.querySelectorAll('.sehife-elementi');
+    els.forEach((el, i) => {
+      el.style.background = 'rgba(240,140,75,.2)';
+      el.style.borderColor = 'var(--orange)';
+    });
+    document.getElementById('output1').textContent =
+      '✅ querySelectorAll(".sehife-elementi") → ' + els.length + ' element tapıldı!\n' +
+      'NodeList forEach ilə gəzilib, hamısı rəngləndi.';
+  }
+
+  function demoReset1() {
+    ['demo-hdf','sinif-el1','sinif-el2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.background = '';
+      el.style.borderColor = '';
+    });
+    document.getElementById('output1').textContent = 'Yuxarıdakı düymələrə klik et...';
+  }
+
+  /* ─── DEMO 2 ──────────────────────────────────────────────── */
+  const qutu = document.getElementById('demo-qutu');
+
+  // CSS rule for .aktiv
+  const styleTag = document.createElement('style');
+  styleTag.textContent = `
+    #demo-qutu.aktiv {
+      background: rgba(91,141,238,.2) !important;
+      border-color: var(--accent) !important;
+      border-style: solid !important;
+      color: #fff !important;
+    }
+  `;
+  document.head.appendChild(styleTag);
+
+  function addClass() {
+    qutu.classList.add('aktiv');
+    document.getElementById('output2').textContent =
+      '✅ classList.add("aktiv") — "aktiv" sinifi əlavə edildi.\n' +
+      'Cari siniflər: ' + qutu.className;
+  }
+  function removeClass() {
+    qutu.classList.remove('aktiv');
+    document.getElementById('output2').textContent =
+      '🔴 classList.remove("aktiv") — "aktiv" sinifi silindi.\n' +
+      'Cari siniflər: ' + qutu.className;
+  }
+  function toggleClass() {
+    qutu.classList.toggle('aktiv');
+    const var1 = qutu.classList.contains('aktiv') ? 'əlavə edildi' : 'silindi';
+    document.getElementById('output2').textContent =
+      '🔁 classList.toggle("aktiv") — sinif ' + var1 + '.\n' +
+      'Cari siniflər: ' + qutu.className;
+  }
+  function checkClass() {
+    const var2 = qutu.classList.contains('aktiv');
+    document.getElementById('output2').textContent =
+      '🔍 classList.contains("aktiv") → ' + var2 + '\n' +
+      (var2 ? '"aktiv" sinifi mövcuddur.' : '"aktiv" sinifi yoxdur.');
+  }
+
+  /* ─── DEMO 3 ──────────────────────────────────────────────── */
+  let elementSayı = 0;
+
+  function elementElave() {
+    const inputEl = document.getElementById('yeni-metn');
+    const metn = inputEl.value.trim();
+    if (!metn) {
+      document.getElementById('output3').textContent = '⚠️ Zəhmət olmasa mətn daxil edin!';
+      return;
+    }
+
+    const ul = document.getElementById('demo-siyahi');
+    // Boş mesajı sil
+    const boshMesaj = ul.querySelector('li[style]');
+    if (boshMesaj) boshMesaj.remove();
+
+    elementSayı++;
+    const li = document.createElement('li');
+    li.style.cssText = 'padding:8px 12px; margin:4px 0; background:var(--surface2); border-radius:6px; border:1px solid var(--border); color:var(--text); font-size:14px; display:flex; justify-content:space-between; align-items:center;';
+    li.innerHTML = '<span>' + metn.replace(/</g,'&lt;') + '</span><button onclick="buElementiSil(this)" style="background:rgba(240,96,144,.2);border:1px solid var(--red);color:var(--red);border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;font-family:inherit;">Sil</button>';
+
+    ul.appendChild(li);
+    inputEl.value = '';
+    inputEl.focus();
+
+    document.getElementById('output3').textContent =
+      '✅ createElement("li") ilə yeni element yaradıldı.\n' +
+      'Cəmi element sayı: ' + ul.querySelectorAll('li').length;
+  }
+
+  function buElementiSil(btn) {
+    btn.closest('li').remove();
+    const ul = document.getElementById('demo-siyahi');
+    const say = ul.querySelectorAll('li').length;
+    if (say === 0) {
+      const li = document.createElement('li');
+      li.style.cssText = 'color:var(--text-muted); font-size:13px; padding:6px 10px;';
+      li.textContent = 'Hələ element yoxdur...';
+      ul.appendChild(li);
+    }
+    document.getElementById('output3').textContent = 'Element silindi. Qalan: ' + say;
+  }
+
+  function sonuSil() {
+    const ul = document.getElementById('demo-siyahi');
+    const lis = ul.querySelectorAll('li:not([style*="color:var(--text-muted)"])');
+    if (lis.length === 0) {
+      document.getElementById('output3').textContent = '⚠️ Silinəcək element yoxdur.';
+      return;
+    }
+    lis[lis.length - 1].remove();
+    document.getElementById('output3').textContent = 'Son element silindi.';
+  }
+
+  function hamisiniSil() {
+    const ul = document.getElementById('demo-siyahi');
+    ul.innerHTML = '<li style="color:var(--text-muted); font-size:13px; padding:6px 10px;">Hələ element yoxdur...</li>';
+    document.getElementById('output3').textContent = 'Bütün elementlər silindi.';
+  }
+
+  /* ─── DEMO 4 ──────────────────────────────────────────────── */
+  const adInput = document.getElementById('ad-input');
+  const emailInput = document.getElementById('email-input');
+  const canliPreview = document.getElementById('canli-preview');
+
+  function yenile() {
+    const ad = adInput.value;
+    const email = emailInput.value;
+    canliPreview.textContent = (ad || email)
+      ? 'Ad: ' + (ad || '—') + ' | E-poçt: ' + (email || '—')
+      : 'Canlı önizləmə burada...';
+  }
+
+  adInput.addEventListener('input', yenile);
+  emailInput.addEventListener('input', yenile);
+
+  function formaGonder() {
+    const ad = adInput.value.trim();
+    const email = emailInput.value.trim();
+    const output = document.getElementById('output4');
+
+    if (!ad) {
+      output.style.color = 'var(--red)';
+      output.textContent = '❌ Xəta: Ad sahəsi boşdur!';
+      adInput.style.borderColor = 'var(--red)';
+      return;
+    }
+
+    if (!email || !email.includes('@')) {
+      output.style.color = 'var(--red)';
+      output.textContent = '❌ Xəta: Düzgün e-poçt ünvanı daxil edin!';
+      emailInput.style.borderColor = 'var(--red)';
+      return;
+    }
+
+    adInput.style.borderColor = '';
+    emailInput.style.borderColor = '';
+    output.style.color = 'var(--green)';
+    output.textContent = '✅ Forma uğurla göndərildi!\nAd: ' + ad + ' | E-poçt: ' + email;
+  }
+</script>
+</body>
+</html>

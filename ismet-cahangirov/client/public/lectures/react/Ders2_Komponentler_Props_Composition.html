@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 2 — Komponentlər, Props və Composition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+<style>
+  :root{
+    --bg:#0A2138;
+    --bg-deep:#071827;
+    --sheet:#0E3357;
+    --sheet-soft:#123f68;
+    --grid-line: rgba(210,230,255,0.055);
+    --grid-line-strong: rgba(210,230,255,0.11);
+    --ink:#EAF3FF;
+    --ink-dim:#8FB4D9;
+    --ink-faint:#5C87AC;
+    --cyan:#5FD8EE;
+    --cyan-soft:rgba(95,216,238,0.14);
+    --amber:#FFB454;
+    --amber-soft:rgba(255,180,84,0.14);
+    --violet:#C9A6FF;
+    --green:#7EE7A8;
+    --green-soft:rgba(126,231,168,0.14);
+    --red:#FF8A80;
+    --border:#1E4A73;
+    --radius:3px;
+    --sans:'IBM Plex Sans', 'Segoe UI', sans-serif;
+    --display:'Space Grotesk', var(--sans);
+    --mono:'IBM Plex Mono', 'Consolas', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:var(--cyan);}
+  ::selection{background:var(--cyan); color:var(--bg-deep);}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ============ TITLE BLOCK (HERO) ============ */
+  .titleblock{
+    border-bottom:2px solid var(--border);
+    padding:38px 0 0 0;
+    position:relative;
+  }
+  .tb-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    flex-wrap:wrap; gap:18px; margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.14em;
+    color:var(--cyan); text-transform:uppercase; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:"◆"; color:var(--amber); font-size:10px;}
+  .sheet-id{
+    font-family:var(--mono); font-size:12.5px; color:var(--ink-faint);
+    text-align:right; letter-spacing:.06em;
+  }
+  h1.title{
+    font-family:var(--display); font-weight:700;
+    font-size:clamp(30px, 5vw, 54px);
+    line-height:1.08; margin:0 0 14px 0; letter-spacing:-0.01em;
+    max-width:16ch;
+  }
+  h1.title .line2{color:var(--cyan);}
+  .subtitle{
+    color:var(--ink-dim); font-size:clamp(15px,2vw,18px); max-width:60ch; margin:0 0 26px 0;
+  }
+  .tb-meta{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+    border-top:1px solid var(--border); border-left:1px solid var(--border);
+  }
+  .tb-meta div{
+    border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding:12px 16px;
+  }
+  .tb-meta .label{font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px;}
+  .tb-meta .value{font-family:var(--display); font-size:16px; font-weight:600; color:var(--ink);}
+
+  /* ============ LAYOUT: SIDE NAV + CONTENT ============ */
+  .layout{display:flex; gap:0; align-items:flex-start;}
+  nav.railnav{
+    position:sticky; top:0; width:230px; flex-shrink:0;
+    padding:32px 18px 40px 0; align-self:flex-start;
+    max-height:100vh; overflow-y:auto;
+  }
+  nav.railnav .rail-title{
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-faint);
+    text-transform:uppercase; letter-spacing:.12em; margin:0 0 12px 4px;
+  }
+  nav.railnav ol{list-style:none; margin:0; padding:0; counter-reset:navsec;}
+  nav.railnav li{counter-increment:navsec;}
+  nav.railnav a{
+    display:flex; gap:10px; align-items:baseline;
+    text-decoration:none; color:var(--ink-dim);
+    font-size:13.5px; padding:7px 4px; border-left:2px solid transparent;
+    transition:color .15s, border-color .15s;
+  }
+  nav.railnav a::before{
+    content:counter(navsec,decimal-leading-zero);
+    font-family:var(--mono); font-size:11px; color:var(--ink-faint); flex-shrink:0;
+  }
+  nav.railnav a:hover{color:var(--ink);}
+  nav.railnav a.active{color:var(--cyan); border-left-color:var(--cyan);}
+
+  main.content{flex:1; min-width:0; padding:32px 0 80px 32px; border-left:1px solid var(--border);}
+
+  section{margin-bottom:64px; scroll-margin-top:24px;}
+  section:last-child{margin-bottom:24px;}
+
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:22px;}
+  .sec-num{font-family:var(--mono); font-size:14px; color:var(--amber); border:1px solid var(--amber); border-radius:2px; padding:2px 8px; flex-shrink:0;}
+  h2{
+    font-family:var(--display); font-size:clamp(21px,3vw,28px); font-weight:600;
+    margin:0; letter-spacing:-.01em;
+  }
+  h3{font-family:var(--display); font-size:18px; font-weight:600; color:var(--ink); margin:28px 0 10px 0;}
+  h4{font-family:var(--mono); font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); margin:22px 0 8px 0;}
+  p{color:var(--ink-dim); margin:0 0 14px 0; max-width:76ch;}
+  strong{color:var(--ink); font-weight:600;}
+  ul, ol{color:var(--ink-dim); max-width:74ch; padding-left:22px; margin:0 0 16px 0;}
+  li{margin-bottom:7px;}
+  li::marker{color:var(--cyan);}
+  code.inline{
+    font-family:var(--mono); background:var(--sheet-soft); color:var(--cyan);
+    padding:1.5px 6px; border-radius:3px; font-size:.87em; border:1px solid var(--border);
+  }
+
+  /* ============ THEORY CARDS ============ */
+  .theory-block{
+    background:var(--sheet); border:1px solid var(--border); border-radius:var(--radius);
+    padding:22px 24px; margin:18px 0;
+  }
+  .theory-block.compare{padding:0; overflow:hidden;}
+  .compare-grid{display:grid; grid-template-columns:1fr 1fr;}
+  .compare-col{padding:20px 22px;}
+  .compare-col:first-child{border-right:1px solid var(--border); background:rgba(255,255,255,.015);}
+  .compare-col h4{margin-top:0;}
+  .compare-col.legacy h4{color:var(--violet);}
+  .compare-col.modern h4{color:var(--green);}
+  .timeline-note{
+    font-family:var(--mono); font-size:12.5px; color:var(--ink-faint);
+    border-top:1px dashed var(--border); padding:12px 22px; background:rgba(0,0,0,.12);
+  }
+
+  /* ============ DIAGRAMS ============ */
+  .diagram{
+    background:var(--sheet); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; margin:20px 0; overflow-x:auto;
+  }
+  .diagram svg{display:block; width:100%; height:auto; min-width:520px;}
+  .diagram-caption{
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    text-align:center; margin-top:10px; letter-spacing:.03em;
+  }
+
+  /* ============ CODE BLOCKS ============ */
+  .code-window{
+    background:var(--bg-deep); border:1px solid var(--border); border-radius:var(--radius);
+    margin:18px 0; overflow:hidden;
+  }
+  .code-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 14px; background:var(--sheet); border-bottom:1px solid var(--border);
+  }
+  .code-bar .fname{font-family:var(--mono); font-size:12.5px; color:var(--ink-dim);}
+  .code-bar .dots{display:flex; gap:6px;}
+  .code-bar .dots span{width:8px; height:8px; border-radius:50%; background:var(--border);}
+  pre[class*="language-"]{
+    margin:0 !important; padding:18px !important; background:transparent !important;
+    font-family:var(--mono) !important; font-size:13.3px !important; line-height:1.62 !important;
+    overflow-x:auto;
+  }
+  code[class*="language-"]{font-family:var(--mono) !important; text-shadow:none !important;}
+  .token.keyword{color:var(--cyan);}
+  .token.string{color:var(--green);}
+  .token.function{color:var(--amber);}
+  .token.comment{color:var(--ink-faint); font-style:italic;}
+  .token.punctuation{color:var(--ink-faint);}
+  .token.tag,.token.class-name{color:#FFD479;}
+  .token.attr-name{color:var(--violet);}
+  .token.attr-value{color:var(--green);}
+  .token.plain-text{color:var(--ink);}
+  .token.operator,.token.number,.token.boolean{color:var(--amber);}
+  .token.script-punctuation{color:var(--ink-faint);}
+
+  /* ============ ERROR / GOOD PAIRS ============ */
+  .bad-good{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0;}
+  .bg-block{border-radius:var(--radius); overflow:hidden; border:1px solid var(--border);}
+  .bg-head{
+    font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.05em;
+    padding:8px 14px; text-transform:uppercase;
+  }
+  .bg-block.bad .bg-head{background:rgba(255,138,128,.14); color:var(--red);}
+  .bg-block.good .bg-head{background:var(--green-soft); color:var(--green);}
+  .bg-block pre{margin:0 !important; padding:14px !important; background:var(--bg-deep) !important; font-size:12.6px !important;}
+
+  /* ============ BUG CARDS ============ */
+  .bug-card{
+    border:1px solid var(--border); border-left:3px solid var(--amber);
+    border-radius:var(--radius); background:var(--sheet);
+    padding:18px 22px; margin:16px 0;
+  }
+  .bug-card .bug-head{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .bug-num{
+    font-family:var(--mono); font-size:12px; color:var(--bg-deep); background:var(--amber);
+    width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; font-weight:700;
+  }
+  .bug-card h4{margin:0; color:var(--ink); font-size:15px; text-transform:none; letter-spacing:0; font-family:var(--sans); font-weight:600;}
+
+  /* ============ BEST PRACTICE LIST ============ */
+  .practice-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:14px; margin:18px 0;}
+  .practice-card{
+    border:1px solid var(--border); border-radius:var(--radius); background:var(--sheet);
+    padding:16px 18px; border-top:2px solid var(--green);
+  }
+  .practice-card .pnum{font-family:var(--mono); font-size:11px; color:var(--green); letter-spacing:.1em;}
+  .practice-card p{margin:6px 0 0 0; font-size:14px; color:var(--ink-dim);}
+  .practice-card strong{display:block; margin-top:2px; color:var(--ink); font-size:14.5px;}
+
+  /* ============ TASK SECTION ============ */
+  .task-box{
+    border:1px solid var(--cyan); border-radius:var(--radius);
+    background:linear-gradient(180deg, var(--cyan-soft), transparent 40%), var(--sheet);
+    padding:26px 26px 20px;
+  }
+  .task-box .task-label{
+    font-family:var(--mono); font-size:11px; color:var(--cyan); letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .task-label::before{content:"▣";}
+  .checklist{list-style:none; padding:0; margin:18px 0;}
+  .checklist li{
+    display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; color:var(--ink-dim); font-size:14.5px;
+  }
+  .checklist li::before{
+    content:""; width:15px; height:15px; margin-top:3px; flex-shrink:0;
+    border:1.5px solid var(--cyan); border-radius:3px;
+  }
+
+  .preview-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:16px 0;}
+  .preview-card{
+    border:1px solid var(--border); border-radius:var(--radius); background:var(--bg-deep); padding:14px; text-align:center;
+  }
+  .preview-avatar{
+    width:56px; height:56px; border-radius:50%; margin:0 auto 10px;
+    background:linear-gradient(135deg, var(--cyan), var(--violet)); opacity:.85;
+  }
+  .preview-card .pname{font-weight:600; font-size:14px; color:var(--ink);}
+  .preview-card .pbio{font-size:12px; color:var(--ink-faint); margin:4px 0 12px;}
+  .preview-btn{
+    display:inline-block; font-family:var(--mono); font-size:11.5px; padding:6px 14px;
+    border:1px solid var(--cyan); color:var(--cyan); border-radius:3px;
+  }
+
+  /* ============ FAQ ============ */
+  .faq-item{border-bottom:1px solid var(--border); padding:20px 0;}
+  .faq-item:first-child{padding-top:0;}
+  .faq-q{
+    display:flex; gap:12px; align-items:baseline; font-family:var(--display); font-size:16.5px;
+    font-weight:600; color:var(--ink); margin-bottom:10px;
+  }
+  .faq-q::before{content:"Q"; color:var(--bg-deep); background:var(--cyan); font-family:var(--mono); font-size:12px; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .faq-a{padding-left:32px;}
+  .faq-a p{font-size:14.5px;}
+
+  /* ============ MISC ============ */
+  .callout{
+    border:1px dashed var(--amber); border-radius:var(--radius); background:var(--amber-soft);
+    padding:14px 18px; margin:16px 0; font-size:14px; color:var(--ink);
+  }
+  .callout strong{color:var(--amber);}
+  .divider{
+    height:1px; background:repeating-linear-gradient(90deg, var(--border) 0 6px, transparent 6px 12px);
+    margin:40px 0;
+  }
+  footer{
+    border-top:1px solid var(--border); padding:26px 0 50px; text-align:center;
+    color:var(--ink-faint); font-family:var(--mono); font-size:12px;
+  }
+  .next-lesson{
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+    border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; background:var(--sheet);
+  }
+  .next-lesson .nl-label{font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.1em;}
+  .next-lesson .nl-title{font-family:var(--display); font-size:17px; font-weight:600; margin-top:4px;}
+  .arrow{color:var(--cyan); font-size:22px;}
+
+  /* ============ MOBILE ============ */
+  .mobile-toggle{display:none;}
+  @media (max-width:880px){
+    .wrap{padding:0 16px;}
+    .layout{flex-direction:column;}
+    nav.railnav{
+      position:sticky; top:0; z-index:10; width:100%; max-height:none;
+      background:var(--bg-deep); border-bottom:1px solid var(--border);
+      padding:10px 0; margin-bottom:8px;
+    }
+    nav.railnav .rail-title{display:none;}
+    nav.railnav ol{display:flex; overflow-x:auto; gap:2px; padding:0 4px;}
+    nav.railnav li{flex-shrink:0;}
+    nav.railnav a{border-left:none; border-bottom:2px solid transparent; white-space:nowrap; padding:8px 10px;}
+    nav.railnav a.active{border-bottom-color:var(--cyan);}
+    main.content{padding:20px 0 60px 0; border-left:none;}
+    .compare-grid{grid-template-columns:1fr;}
+    .compare-col:first-child{border-right:none; border-bottom:1px solid var(--border);}
+    .bad-good{grid-template-columns:1fr;}
+    .tb-top{flex-direction:column;}
+    .sheet-id{text-align:left;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="titleblock">
+    <div class="tb-top">
+      <span class="eyebrow">React Dərsliyi — Modul 1</span>
+      <span class="sheet-id">SHEET&nbsp;02&nbsp;/&nbsp;07<br>SCALE — PROPS&nbsp;FLOW&nbsp;1:1</span>
+    </div>
+    <h1 class="title">Komponentlər, Props<br><span class="line2">və Composition</span></h1>
+    <p class="subtitle">React tətbiqinin əsas tikinti daşları: kiçik, təkrar istifadə oluna bilən komponentlər necə qurulur, aralarında məlumat (props) necə ötürülür və bunlar necə bir-birinə "yığılaraq" (composition) böyük interfeyslər əmələ gətirir.</p>
+    <div class="tb-meta">
+      <div><div class="label">Dərs</div><div class="value">№ 2</div></div>
+      <div><div class="label">Müddət</div><div class="value">≈ 2 saat</div></div>
+      <div><div class="label">Səviyyə</div><div class="value">Başlanğıc</div></div>
+      <div><div class="label">Tələb olunur</div><div class="value">Dərs 1 — JSX</div></div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="railnav">
+      <div class="rail-title">Mündəricat</div>
+      <ol>
+        <li><a href="#nezeri">Nəzəri hissə</a></li>
+        <li><a href="#props">Props nədir</a></li>
+        <li><a href="#immutable">Immutability</a></li>
+        <li><a href="#children">Children props</a></li>
+        <li><a href="#composition">Composition</a></li>
+        <li><a href="#praktika">Praktiki hissə</a></li>
+        <li><a href="#tapshiriq">Tapşırıq</a></li>
+        <li><a href="#xetalar">Xətalar &amp; buglar</a></li>
+        <li><a href="#tovsiyeler">Tövsiyələr</a></li>
+        <li><a href="#faq">Tez-tez suallar</a></li>
+      </ol>
+    </nav>
+
+    <main class="content">
+
+      <!-- ===================== NƏZƏRİ HİSSƏ ===================== -->
+      <section id="nezeri">
+        <div class="sec-head"><span class="sec-num">01</span><h2>Funksional vs Class komponentlər</h2></div>
+
+        <p>React-də komponent yazmağın tarixən iki yolu olub. Bu gün demək olar ki, yalnız birindən istifadə olunur, amma ikincisini tanımaq vacibdir — çünki köhnə layihələrdə, kitabxanalarda və müsahibə suallarında hələ də qarşınıza çıxa bilər.</p>
+
+        <div class="theory-block compare">
+          <div class="compare-grid">
+            <div class="compare-col legacy">
+              <h4>Class komponentlər (2013–2019)</h4>
+              <p style="font-size:14px">React-in ilk illərində state və lifecycle metodları (<code class="inline">componentDidMount</code> və s.) yalnız <code class="inline">class</code> sintaksisi ilə yazılan komponentlərdə mümkün idi.</p>
+              <p style="font-size:14px">Daha çox boilerplate kod, <code class="inline">this</code> açar sözü ilə bağlı çaşqınlıq, mürəkkəb sintaksis.</p>
+            </div>
+            <div class="compare-col modern">
+              <h4>Funksional komponentlər (2019 →)</h4>
+              <p style="font-size:14px">React 16.8 (fevral 2019) <strong>Hooks</strong>-u (<code class="inline">useState</code>, <code class="inline">useEffect</code> və s.) təqdim etdi. Bundan sonra adi funksiyalar da state və lifecycle idarə edə bildi.</p>
+              <p style="font-size:14px">Daha az kod, oxunması asan, bugünkü standart yanaşma. <strong>Bu kursda yalnız funksional komponentlərdən istifadə edəcəyik.</strong></p>
+            </div>
+          </div>
+          <div class="timeline-note">2013 — React elan olundu (yalnız class) → 2015 — funksional "stateless" komponentlər (yalnız props üçün) → 2019 — Hooks: funksional komponentlər state ala bilir → bu gün — sənaye standartı funksional komponentlərdir</div>
+        </div>
+
+        <p>Funksional komponent, sadəcə JSX qaytaran adi bir JavaScript funksiyasıdır:</p>
+
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">Greeting.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">function Greeting() {
+  return &lt;h1&gt;Salam, dünya!&lt;/h1&gt;;
+}
+
+export default Greeting;</code></pre>
+        </div>
+      </section>
+
+      <!-- ===================== PROPS ===================== -->
+      <section id="props">
+        <div class="sec-head"><span class="sec-num">02</span><h2>Props nədir və necə ötürülür?</h2></div>
+
+        <p><strong>Props</strong> ("properties" sözünün qısaldılmışı) — valideyn komponentin uşaq komponentə ötürdüyü məlumatdır. Onları HTML atributlarına bənzədə bilərsiniz, fərq ondadır ki, props vasitəsilə istənilən JavaScript dəyərini (mətn, rəqəm, obyekt, massiv, funksiya, hətta başqa komponent) ötürmək mümkündür.</p>
+
+        <p>Düşünün ki, komponent bir <strong>funksiyadır</strong>, props isə onun <strong>parametrləridir</strong>. Eyni funksiyanı fərqli arqumentlərlə çağırdığınız kimi, eyni komponenti fərqli props dəyərləri ilə dəfələrlə istifadə edə bilərsiniz.</p>
+
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">App.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">// Props ötürülməsi — adi HTML atributu kimi görünür
+&lt;UserCard name="Aygün Məmmədova" age={24} isOnline={true} /&gt;
+
+// Komponent daxilində qəbul edilməsi
+function UserCard(props) {
+  return (
+    &lt;div&gt;
+      &lt;h3&gt;{props.name}&lt;/h3&gt;
+      &lt;p&gt;Yaş: {props.age}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+
+        <p>Praktikada <strong>destructuring</strong> ilə yazmaq daha təmiz və oxunaqlıdır — hansı props-ların gözlənildiyi funksiyanın imzasından dərhal görünür:</p>
+
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">UserCard.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">function UserCard({ name, age, isOnline }) {
+  return (
+    &lt;div className="user-card"&gt;
+      &lt;h3&gt;{name}&lt;/h3&gt;
+      &lt;p&gt;Yaş: {age}&lt;/p&gt;
+      &lt;span&gt;{isOnline ? "🟢 Online" : "⚪ Offline"}&lt;/span&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+
+        <div class="callout"><strong>Diqqət:</strong> Dinamik JavaScript dəyərləri JSX daxilində həmişə fiqurlu mötərizə <code class="inline">{ }</code> içində yazılır. Sabit mətn üçün isə adi dırnaq işarələri (<code class="inline">"..."</code>) kifayətdir.</div>
+      </section>
+
+      <!-- ===================== IMMUTABILITY ===================== -->
+      <section id="immutable">
+        <div class="sec-head"><span class="sec-num">03</span><h2>Props immutable-dır (dəyişməzdir)</h2></div>
+
+        <p>Bu, React-in ən vacib qaydalarından biridir: <strong>uşaq komponent özünə ötürülən props-u heç vaxt birbaşa dəyişə bilməz.</strong> Props yalnız <em>oxumaq</em> üçündür — "yuxarıdan aşağı" axan, bir istiqamətli (one-way) məlumat axınıdır.</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 620 190" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="20" width="200" height="64" rx="3" fill="none" stroke="#5FD8EE" stroke-width="1.5"/>
+            <text x="140" y="47" text-anchor="middle" fill="#EAF3FF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="600">Parent</text>
+            <text x="140" y="66" text-anchor="middle" fill="#8FB4D9" font-family="IBM Plex Mono, monospace" font-size="10.5">name = "Aygün"</text>
+
+            <rect x="380" y="20" width="200" height="64" rx="3" fill="none" stroke="#7EE7A8" stroke-width="1.5"/>
+            <text x="480" y="47" text-anchor="middle" fill="#EAF3FF" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="600">Child</text>
+            <text x="480" y="66" text-anchor="middle" fill="#8FB4D9" font-family="IBM Plex Mono, monospace" font-size="10.5">props.name (read-only)</text>
+
+            <line x1="240" y1="44" x2="376" y2="44" stroke="#5FD8EE" stroke-width="1.5" marker-end="url(#arrowCyan)"/>
+            <text x="308" y="34" text-anchor="middle" fill="#5FD8EE" font-family="IBM Plex Mono, monospace" font-size="11">props →</text>
+
+            <line x1="376" y1="112" x2="240" y2="112" stroke="#FF8A80" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text x="308" y="130" text-anchor="middle" fill="#FF8A80" font-family="IBM Plex Mono, monospace" font-size="11">✕ geri dəyişdirmə yoxdur</text>
+            <line x1="300" y1="105" x2="316" y2="119" stroke="#FF8A80" stroke-width="1.5"/>
+            <line x1="316" y1="105" x2="300" y2="119" stroke="#FF8A80" stroke-width="1.5"/>
+
+            <text x="310" y="170" text-anchor="middle" fill="#5C87AC" font-family="IBM Plex Mono, monospace" font-size="10.5">Yenidən render tələb olunursa → valideyn öz state-ini dəyişir, yeni props göndərir</text>
+
+            <defs>
+              <marker id="arrowCyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#5FD8EE"/>
+              </marker>
+            </defs>
+          </svg>
+          <div class="diagram-caption">Props bir istiqamətli axındır: Parent → Child. Uşaq props-u dəyişə bilməz, yalnız oxuya bilər.</div>
+        </div>
+
+        <div class="bad-good">
+          <div class="bg-block bad">
+            <div class="bg-head">✕ Səhv — props mutasiya edilir</div>
+            <pre class="language-jsx"><code class="language-jsx">function UserCard(props) {
+  props.name = props.name.toUpperCase();
+  // ⚠️ Runtime xəta / React xəbərdarlığı
+  return &lt;h3&gt;{props.name}&lt;/h3&gt;;
+}</code></pre>
+          </div>
+          <div class="bg-block good">
+            <div class="bg-head">✓ Düzgün — yeni dəyişən yaradılır</div>
+            <pre class="language-jsx"><code class="language-jsx">function UserCard({ name }) {
+  const displayName = name.toUpperCase();
+  return &lt;h3&gt;{displayName}&lt;/h3&gt;;
+}</code></pre>
+          </div>
+        </div>
+
+        <p>Niyə belədir? Çünki React-in "unudulmaz" qaydası <strong>"proqnozlaşdırıla bilən data axını"</strong>dır (predictable data flow). Əgər hər komponent özünə gələn props-u istədiyi kimi dəyişə bilsəydi, tətbiqin hansı anda hansı məlumatı göstərdiyini izləmək mümkün olmazdı.</p>
+      </section>
+
+      <!-- ===================== CHILDREN ===================== -->
+      <section id="children">
+        <div class="sec-head"><span class="sec-num">04</span><h2>children props</h2></div>
+
+        <p><code class="inline">children</code> — komponentin açılış və bağlanış teqləri arasına yerləşdirilən istənilən JSX-i təmsil edən xüsusi propdur. Bu, komponentə "içini kənardan doldurmaq" imkanı verir.</p>
+
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">Panel.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">function Panel({ title, children }) {
+  return (
+    &lt;div className="panel"&gt;
+      &lt;h3&gt;{title}&lt;/h3&gt;
+      &lt;div className="panel__body"&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+// İstifadəsi — Panel öz daxilini bilmir, valideyn ötürür:
+&lt;Panel title="Diqqət"&gt;
+  &lt;p&gt;Bu əməliyyatı geri qaytarmaq mümkün deyil.&lt;/p&gt;
+  &lt;button&gt;Bağla&lt;/button&gt;
+&lt;/Panel&gt;</code></pre>
+        </div>
+
+        <p><strong>Nə vaxt lazımdır?</strong> Konteyner/wrapper xarakterli komponentlərdə — Modal, Card, Layout, Panel, Button kimi — burada komponent özü strukturu (çərçivəni) təmin edir, məzmunu isə valideyn müəyyən edir. Bu, komponenti həddindən artıq çox prop qəbul etməkdən (məsələn <code class="inline">bodyText</code>, <code class="inline">bodyIcon</code>, <code class="inline">bodyButton</code>...) xilas edir və onu daha çevik edir.</p>
+      </section>
+
+      <!-- ===================== COMPOSITION ===================== -->
+      <section id="composition">
+        <div class="sec-head"><span class="sec-num">05</span><h2>Composition və Reusability</h2></div>
+
+        <p><strong>Composition</strong> — kiçik komponentlərin bir-birinin içinə yerləşdirilərək daha böyük, mürəkkəb interfeyslər qurulması prinsipidir. Necə ki Lego bloklarından böyük bir konstruksiya yığılır, React tətbiqi də kiçik komponentlərdən yığılır.</p>
+
+        <div class="diagram">
+          <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="16" width="680" height="288" rx="3" fill="none" stroke="#1E4A73" stroke-width="1.2" stroke-dasharray="3 4"/>
+            <text x="36" y="34" fill="#5FD8EE" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700">App</text>
+
+            <rect x="40" y="46" width="640" height="46" rx="3" fill="none" stroke="#5FD8EE" stroke-width="1.4"/>
+            <text x="360" y="74" text-anchor="middle" fill="#EAF3FF" font-family="IBM Plex Mono, monospace" font-size="12">&lt;Header title="Komandamız" /&gt;</text>
+
+            <rect x="40" y="104" width="640" height="184" rx="3" fill="none" stroke="#C9A6FF" stroke-width="1.2" stroke-dasharray="2 3"/>
+            <text x="56" y="122" fill="#C9A6FF" font-family="IBM Plex Mono, monospace" font-size="10.5">grid — .map()</text>
+
+            <g>
+              <rect x="58" y="134" width="188" height="136" rx="3" fill="none" stroke="#7EE7A8" stroke-width="1.3"/>
+              <text x="152" y="154" text-anchor="middle" fill="#EAF3FF" font-family="IBM Plex Mono, monospace" font-size="11">&lt;Card name image .../&gt;</text>
+              <rect x="76" y="220" width="152" height="32" rx="3" fill="none" stroke="#FFB454" stroke-width="1.2"/>
+              <text x="152" y="240" text-anchor="middle" fill="#FFB454" font-family="IBM Plex Mono, monospace" font-size="10">&lt;Button&gt;children&lt;/Button&gt;</text>
+            </g>
+            <g>
+              <rect x="266" y="134" width="188" height="136" rx="3" fill="none" stroke="#7EE7A8" stroke-width="1.3"/>
+              <text x="360" y="154" text-anchor="middle" fill="#EAF3FF" font-family="IBM Plex Mono, monospace" font-size="11">&lt;Card name image .../&gt;</text>
+              <rect x="284" y="220" width="152" height="32" rx="3" fill="none" stroke="#FFB454" stroke-width="1.2"/>
+              <text x="360" y="240" text-anchor="middle" fill="#FFB454" font-family="IBM Plex Mono, monospace" font-size="10">&lt;Button&gt;children&lt;/Button&gt;</text>
+            </g>
+            <g>
+              <rect x="474" y="134" width="188" height="136" rx="3" fill="none" stroke="#7EE7A8" stroke-width="1.3"/>
+              <text x="568" y="154" text-anchor="middle" fill="#EAF3FF" font-family="IBM Plex Mono, monospace" font-size="11">&lt;Card name image .../&gt;</text>
+              <rect x="492" y="220" width="152" height="32" rx="3" fill="none" stroke="#FFB454" stroke-width="1.2"/>
+              <text x="568" y="240" text-anchor="middle" fill="#FFB454" font-family="IBM Plex Mono, monospace" font-size="10">&lt;Button&gt;children&lt;/Button&gt;</text>
+            </g>
+          </svg>
+          <div class="diagram-caption">App komponenti Header-i və 3 ədəd Card-ı (hər biri öz Button-u ilə) tərtib edir — eyni Card və Button hər dəfə fərqli props ilə təkrar istifadə olunur.</div>
+        </div>
+
+        <p>Bu diaqramda diqqət edin: <strong>Card</strong> və <strong>Button</strong> yalnız <em>bir dəfə</em> yazılıb, amma <em>üç dəfə</em> fərqli props ilə istifadə olunur. Bu, <strong>reusability</strong> (təkrar istifadəlilik) prinsipidir — eyni kodu köçürüb-yapışdırmaq (copy-paste) əvəzinə, bir komponenti fərqli data ilə çağırırıq.</p>
+
+        <h3>Nə üçün bu vacibdir?</h3>
+        <ul>
+          <li><strong>DRY prinsipi</strong> (Don't Repeat Yourself) — dizayn dəyişəndə (məsələn, kartın kənar radiusu) yalnız bir yerdə — <code class="inline">Card.jsx</code>-də — düzəliş etmək kifayətdir.</li>
+          <li><strong>Test etmək asanlaşır</strong> — kiçik komponenti təcrid olunmuş şəkildə test etmək, 500 sətirlik bir komponenti test etməkdən qat-qat sadədir.</li>
+          <li><strong>Komanda işi rahatlaşır</strong> — bir developer Header üzərində, digəri Card üzərində paralel işləyə bilər.</li>
+        </ul>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ===================== PRAKTIKA ===================== -->
+      <section id="praktika">
+        <div class="sec-head"><span class="sec-num">06</span><h2>Praktiki hissə — Card, Button, Header</h2></div>
+
+        <p>İndi nəzəriyyəni real komponentlərə çevirək. Üç kiçik, təkrar istifadə oluna bilən komponent yaradacağıq: <code class="inline">Header</code>, <code class="inline">Button</code> və <code class="inline">Card</code>.</p>
+
+        <h3>1) Header komponenti</h3>
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">components/Header.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">function Header({ title, subtitle }) {
+  return (
+    &lt;header className="app-header"&gt;
+      &lt;h1&gt;{title}&lt;/h1&gt;
+      {subtitle &amp;&amp; &lt;p&gt;{subtitle}&lt;/p&gt;}
+    &lt;/header&gt;
+  );
+}
+
+export default Header;</code></pre>
+        </div>
+        <p style="font-size:14px">Qeyd: <code class="inline">{subtitle &amp;&amp; ...}</code> qısa qapanma (short-circuit) texnikasıdır — <code class="inline">subtitle</code> ötürülməyibsə, heç nə render olunmur.</p>
+
+        <h3>2) Button komponenti</h3>
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">components/Button.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">function Button({ children, onClick, variant = "primary" }) {
+  return (
+    &lt;button className={`btn btn--${variant}`} onClick={onClick}&gt;
+      {children}
+    &lt;/button&gt;
+  );
+}
+
+export default Button;</code></pre>
+        </div>
+        <p style="font-size:14px">Diqqət: <code class="inline">variant = "primary"</code> — bu, funksiyanın <strong>default parametr</strong> sintaksisidir. Əgər <code class="inline">variant</code> propu ötürülməzsə, avtomatik <code class="inline">"primary"</code> istifadə olunur.</p>
+
+        <h3>3) Card komponenti</h3>
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">components/Card.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">function Card({ name, image, description, children }) {
+  return (
+    &lt;div className="card"&gt;
+      &lt;img src={image} alt={name} className="card__image" /&gt;
+      &lt;h3 className="card__title"&gt;{name}&lt;/h3&gt;
+      &lt;p className="card__description"&gt;{description}&lt;/p&gt;
+      {children}
+    &lt;/div&gt;
+  );
+}
+
+export default Card;</code></pre>
+        </div>
+
+        <h3>4) Hamısını birləşdirmək (composition)</h3>
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">App.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">import Header from "./components/Header";
+import Card from "./components/Card";
+import Button from "./components/Button";
+
+function App() {
+  return (
+    &lt;div className="app"&gt;
+      &lt;Header title="Komandamız" subtitle="Bizim inkişaf komandası" /&gt;
+
+      &lt;main className="grid"&gt;
+        &lt;Card
+          name="Aygün Məmmədova"
+          image="/avatars/aygun.jpg"
+          description="Frontend developer, React həvəskarı"
+        &gt;
+          &lt;Button onClick={() =&gt; alert("Profilə keçid")}&gt;
+            Profilə bax
+          &lt;/Button&gt;
+        &lt;/Card&gt;
+
+        {/* Digər Card komponentləri eyni qaydada... */}
+      &lt;/main&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+
+        <h3>PropTypes və default props ilə tanışlıq</h3>
+        <p>JavaScript tip yoxlaması etmədiyi üçün, prop-a səhv tipli dəyər (məsələn, rəqəm əvəzinə mətn) ötürmək asanca bugə səbəb ola bilər. <code class="inline">prop-types</code> kitabxanası inkişaf zamanı (development-də) konsola xəbərdarlıq çıxararaq bunun qarşısını almağa kömək edir.</p>
+
+        <div class="code-window">
+          <div class="code-bar"><span class="fname">components/Card.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+          <pre class="language-jsx"><code class="language-jsx">import PropTypes from "prop-types";
+
+function Card({ name, image, description }) {
+  // ...komponentin gövdəsi
+}
+
+Card.propTypes = {
+  name: PropTypes.string.isRequired,
+  image: PropTypes.string,
+  description: PropTypes.string,
+};
+
+export default Card;</code></pre>
+        </div>
+
+        <div class="callout">
+          <strong>Vacib qeyd:</strong> Köhnə tədris materiallarında tez-tez <code class="inline">Card.defaultProps = {'{'} image: "/default.png" {'}'}</code> formasını görəcəksiniz. Bu üsul funksional komponentlərdə <strong>deprecated</strong> (React 19-dan etibarən dəstəklənmir) elan olunub. Bunun əvəzinə birbaşa funksiya parametrlərində default dəyər verin: <code class="inline">function Card({ image = "/default.png" })</code>.
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ===================== TAPŞIRIQ ===================== -->
+      <section id="tapshiriq">
+        <div class="sec-head"><span class="sec-num">07</span><h2>Tapşırıq — Profil kartları siyahısı</h2></div>
+
+        <div class="task-box">
+          <span class="task-label">Praktiki tapşırıq</span>
+          <p>Bir massiv daxilində saxlanılan istifadəçi məlumatlarını (<strong>ad</strong>, <strong>şəkil</strong>, <strong>təsvir</strong>) yuxarıda yaratdığınız <code class="inline">Card</code> komponenti vasitəsilə ekrana çıxaran bir siyahı qurun.</p>
+
+          <div class="code-window">
+            <div class="code-bar"><span class="fname">data/users.js</span><div class="dots"><span></span><span></span><span></span></div></div>
+            <pre class="language-jsx"><code class="language-jsx">export const users = [
+  { id: 1, name: "Aygün Məmmədova", image: "/avatars/aygun.jpg", bio: "Frontend developer" },
+  { id: 2, name: "Elvin Həsənov",    image: "/avatars/elvin.jpg",  bio: "Backend developer" },
+  { id: 3, name: "Nərmin Əliyeva",   image: "/avatars/nermin.jpg", bio: "UI/UX dizayner" },
+];</code></pre>
+          </div>
+
+          <div class="code-window">
+            <div class="code-bar"><span class="fname">ProfileList.jsx</span><div class="dots"><span></span><span></span><span></span></div></div>
+            <pre class="language-jsx"><code class="language-jsx">import { users } from "./data/users";
+import Card from "./components/Card";
+import Button from "./components/Button";
+
+function ProfileList() {
+  return (
+    &lt;div className="grid"&gt;
+      {users.map((user) =&gt; (
+        &lt;Card
+          key={user.id}
+          name={user.name}
+          image={user.image}
+          description={user.bio}
+        &gt;
+          &lt;Button variant="secondary"&gt;Əlaqə saxla&lt;/Button&gt;
+        &lt;/Card&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+export default ProfileList;</code></pre>
+          </div>
+
+          <h4 style="margin-top:24px">Gözlənilən nəticə</h4>
+          <div class="preview-cards">
+            <div class="preview-card"><div class="preview-avatar"></div><div class="pname">Aygün Məmmədova</div><div class="pbio">Frontend developer</div><span class="preview-btn">Əlaqə saxla</span></div>
+            <div class="preview-card"><div class="preview-avatar"></div><div class="pname">Elvin Həsənov</div><div class="pbio">Backend developer</div><span class="preview-btn">Əlaqə saxla</span></div>
+            <div class="preview-card"><div class="preview-avatar"></div><div class="pname">Nərmin Əliyeva</div><div class="pbio">UI/UX dizayner</div><span class="preview-btn">Əlaqə saxla</span></div>
+          </div>
+
+          <h4>Yoxlama siyahısı (checklist)</h4>
+          <ul class="checklist">
+            <li>Məlumatlar (ad, şəkil, təsvir) komponentə <strong>props vasitəsilə</strong> ötürülür, komponent daxilində sabit (hardcoded) yazılmayıb.</li>
+            <li>Siyahı <code class="inline">.map()</code> ilə render olunur və hər elementə unikal, sabit <code class="inline">key</code> (id) verilib — <strong>indeks deyil</strong>.</li>
+            <li><code class="inline">Card</code> komponenti həm öz props-larını, həm də <code class="inline">children</code> (Button) qəbul edir.</li>
+            <li>Komponent adları böyük hərflə başlayır: <code class="inline">Card</code>, <code class="inline">Button</code>, <code class="inline">ProfileList</code>.</li>
+            <li><strong>Bonus:</strong> <code class="inline">PropTypes</code> əlavə edərək <code class="inline">name</code> propunu məcburi (<code class="inline">isRequired</code>) edin.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ===================== XƏTALAR ===================== -->
+      <section id="xetalar">
+        <div class="sec-head"><span class="sec-num">08</span><h2>Ola biləcək xətalar və buglar</h2></div>
+        <p>Bu bölmədə başlanğıc React öyrənənlərin ən çox rastlaşdığı problemlər toplanıb — hər birinin necə tanınacağı və düzəldiləcəyi ilə birlikdə.</p>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">1</span><h4>Siyahıda <code class="inline">key</code> propunu unutmaq</h4></div>
+          <p style="font-size:14px">Konsolda <code class="inline">Warning: Each child in a list should have a unique "key" prop</code> xəbərdarlığı görünür. Nəticədə React siyahını yenidən render edərkən elementləri düzgün izləyə bilmir, animasiya/state qarışıqlığı yarana bilər.</p>
+          <div class="code-window"><pre class="language-jsx"><code class="language-jsx">// ✕ key yoxdur
+{users.map(user =&gt; &lt;Card name={user.name} /&gt;)}
+
+// ✓ unikal, sabit id istifadə olunur (massivdəki indeks yox!)
+{users.map(user =&gt; &lt;Card key={user.id} name={user.name} /&gt;)}</code></pre></div>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">2</span><h4>Komponent adının kiçik hərflə başlaması</h4></div>
+          <p style="font-size:14px">React JSX-də böyük/kiçik hərfə görə fərq qoyur: kiçik hərflə başlayan teqlər (<code class="inline">&lt;card /&gt;</code>) adi HTML elementi kimi qəbul olunur, sizin komponentiniz kimi <strong>yox</strong>.</p>
+          <div class="bad-good">
+            <div class="bg-block bad"><div class="bg-head">✕ Səhv</div><pre class="language-jsx"><code class="language-jsx">function card() { return &lt;div /&gt;; }
+&lt;card /&gt; {/* tanınmır */}</code></pre></div>
+            <div class="bg-block good"><div class="bg-head">✓ Düzgün</div><pre class="language-jsx"><code class="language-jsx">function Card() { return &lt;div /&gt;; }
+&lt;Card /&gt; {/* düzgün */}</code></pre></div>
+          </div>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">3</span><h4>children-i render etməyi unutmaq</h4></div>
+          <p style="font-size:14px">Komponent <code class="inline">children</code> propunu qəbul edir, amma <code class="inline">{'{children}'}</code>-i JSX-də yazmağı unudur. Nəticədə valideyndən ötürülən bütün daxili elementlər "yoxa çıxır" — heç bir xəta mesajı da olmadan.</p>
+          <div class="bad-good">
+            <div class="bg-block bad"><div class="bg-head">✕ children itir</div><pre class="language-jsx"><code class="language-jsx">function Card({ name }) {
+  return &lt;div className="card"&gt;
+    &lt;h3&gt;{name}&lt;/h3&gt;
+  &lt;/div&gt;;
+}</code></pre></div>
+            <div class="bg-block good"><div class="bg-head">✓ children göstərilir</div><pre class="language-jsx"><code class="language-jsx">function Card({ name, children }) {
+  return &lt;div className="card"&gt;
+    &lt;h3&gt;{name}&lt;/h3&gt;
+    {children}
+  &lt;/div&gt;;
+}</code></pre></div>
+          </div>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">4</span><h4>Props-u birbaşa dəyişmək (mutasiya)</h4></div>
+          <p style="font-size:14px">Bax: yuxarıdakı <a href="#immutable">Immutability</a> bölməsi. Bu, ən çox rast gəlinən konseptual səhvdir və gələcəkdə React-in state idarəetməsini başa düşməyi çətinləşdirir.</p>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">5</span><h4>defaultProps-un funksional komponentlərdə istifadəsi (deprecated)</h4></div>
+          <p style="font-size:14px">React 19-dan başlayaraq <code class="inline">Component.defaultProps</code> funksional komponentlər üçün konsolda xəbərdarlıq verir. Bunun əvəzinə default parametrlərdən istifadə edin: <code class="inline">function Card({ image = "/default.png" })</code>.</p>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">6</span><h4>Props və state-in qarışdırılması</h4></div>
+          <p style="font-size:14px">Yeni başlayanlar tez-tez props-u dəyişərək komponenti "interaktiv" etməyə cəhd edir. Amma props yalnız valideyndən gəlir və oxunur. Əgər komponentin öz daxili, dəyişə bilən məlumatı lazımdırsa (məsələn, checkbox-un işarələnib-işarələnməməsi), bu <code class="inline">useState</code> hook-u ilə idarə olunan <strong>state</strong>-dir — bunu növbəti dərsdə ətraflı öyrənəcəyik.</p>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">7</span><h4>Hər renderdə yeni obyekt/massiv yaratmaq</h4></div>
+          <p style="font-size:14px">Məsələn <code class="inline">&lt;Card style={'{{'}color: "red"{'}}'} /&gt;</code> hər render zamanı təzə bir obyekt yaradır. Kiçik tətbiqlərdə problem yaratmasa da, performans optimallaşdırması (<code class="inline">React.memo</code>) tətbiq olunan komponentlərdə lazımsız yenidən renderlərə səbəb ola bilər. Bu mövzuya performans dərsində geri qayıdacağıq.</p>
+        </div>
+
+        <div class="bug-card">
+          <div class="bug-head"><span class="bug-num">8</span><h4>"Prop drilling" — propların çox səviyyədən ötürülməsi</h4></div>
+          <p style="font-size:14px">Komponent ağacı böyüdükcə, bir propu 4-5 səviyyə aşağı ötürmək lazım gələ bilər, halbuki yalnız ən aşağıdakı komponentə lazımdır. Bu, kodu çirkli edir. Həll yolu (Context API) irəliləyən dərslərdə ələ alınacaq — hələlik bunun mövcud olduğunu bilmək kifayətdir.</p>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ===================== TÖVSİYƏLƏR ===================== -->
+      <section id="tovsiyeler">
+        <div class="sec-head"><span class="sec-num">09</span><h2>Nələri etsək daha yaxşı olar</h2></div>
+        <p>Kodu yazmaq bir şeydir, onu <strong>sürdürülə bilən</strong> etmək başqa. Aşağıdakı tövsiyələr komponentlərinizi daha etibarlı, oxunaqlı və komanda ilə işləmək üçün rahat edəcək.</p>
+
+        <div class="practice-grid">
+          <div class="practice-card"><span class="pnum">01</span><strong>Tək məsuliyyət prinsipi</strong><p>Hər komponent bir işi görsün. Əgər komponent 150+ sətir olub çoxlu iş görürsə, onu kiçik alt-komponentlərə bölün.</p></div>
+          <div class="practice-card"><span class="pnum">02</span><strong>Həmişə destructuring</strong><p><code class="inline">props.name</code> əvəzinə <code class="inline">{ name }</code> yazın — hansı props-ların istifadə olunduğu funksiyanın imzasından dərhal görünür.</p></div>
+          <div class="practice-card"><span class="pnum">03</span><strong>Tip təhlükəsizliyi</strong><p>Kiçik layihələrdə <code class="inline">prop-types</code>, böyüyəndə isə TypeScript-ə keçməyi düşünün — bu, bugləri kodu işə salmazdan əvvəl tutur.</p></div>
+          <div class="practice-card"><span class="pnum">04</span><strong>Sabit, unikal key</strong><p>Siyahılarda massivin <code class="inline">index</code>-i deyil, məlumatın öz unikal <code class="inline">id</code>-si <code class="inline">key</code> kimi istifadə olunmalıdır.</p></div>
+          <div class="practice-card"><span class="pnum">05</span><strong>Məntiqi qovluq strukturu</strong><p><code class="inline">components/Card/Card.jsx</code> + öz stili — hər komponentin öz qovluğu, tapılması asan olsun.</p></div>
+          <div class="practice-card"><span class="pnum">06</span><strong>Configuration əvəzinə Composition</strong><p>Komponentə 10 fərqli boolean prop (<code class="inline">showIcon</code>, <code class="inline">showFooter</code>...) əlavə etmək əvəzinə, <code class="inline">children</code> ilə çevik struktur qurun.</p></div>
+          <div class="practice-card"><span class="pnum">07</span><strong>ESLint + Prettier</strong><p>Bu alətlər <code class="inline">key</code> unudulması, istifadə olunmayan props kimi səhvləri kodu çalışdırmazdan əvvəl aşkarlayır.</p></div>
+          <div class="practice-card"><span class="pnum">08</span><strong>Adlandırma konvensiyası</strong><p>Komponent adları — <code class="inline">PascalCase</code> (<code class="inline">UserCard</code>), props/dəyişənlər — <code class="inline">camelCase</code> (<code class="inline">isOnline</code>).</p></div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- ===================== FAQ ===================== -->
+      <section id="faq">
+        <div class="sec-head"><span class="sec-num">10</span><h2>Tez-tez verilən suallar</h2></div>
+
+        <div class="faq-item">
+          <div class="faq-q">Props ilə state arasında əsas fərq nədir?</div>
+          <div class="faq-a">
+            <p><strong>Props</strong> — valideyn komponentdən gələn, uşaq komponentin dəyişə bilmədiyi (read-only) məlumatdır. Komponentin "girişi" (input) kimi düşünün — funksiyanın parametrləri kimi.</p>
+            <p><strong>State</strong> — komponentin öz daxili yaddaşıdır, <code class="inline">useState</code> hook-u ilə idarə olunur və komponentin özü onu dəyişə bilər. State dəyişəndə komponent avtomatik yenidən render olunur.</p>
+            <p>Sadə formula: <strong>props = kənardan gələn</strong>, <strong>state = daxildə yaşayan</strong>. <code class="inline">useState</code>-i növbəti dərsdə ətraflı öyrənəcəyik.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Komponentləri nə vaxt ayırmaq lazımdır, nə vaxt bir yerdə saxlamaq olar?</div>
+          <div class="faq-a">
+            <p><strong>Ayırın</strong>, əgər: komponent bir neçə yerdə təkrar istifadə olunacaq; komponent artıq böyüyür (100-150+ sətir) və içində bir neçə fərqli məntiq var; UI-də aydın, adlandırıla bilən bir bölmə mövcuddur (Header, Sidebar, Footer).</p>
+            <p><strong>Bir yerdə saxlayın</strong>, əgər: komponentlər bir-biri ilə sıx bağlıdır və heç vaxt ayrı istifadə olunmayacaq; ayırma süni mürəkkəblik yaradır (over-engineering) — məsələn, 3 sətirlik bir <code class="inline">&lt;span&gt;</code>-i ayrıca komponentə çıxarmaq adətən mənasızdır.</p>
+            <p>Qızıl qayda yoxdur, amma yaxşı bir test: <em>"Bu hissəni başqa bir yerdə təkrar istifadə edə bilərəmmi, yoxsa onu izah etmək üçün ayrıca ad lazımdırmı?"</em> Cavab "bəli"dirsə — ayırın.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">children props nə vaxt lazım olur?</div>
+          <div class="faq-a">
+            <p><strong>Lazımdır</strong>: komponent bir "konteyner" və ya "wrapper" rolunu oynayanda — Modal, Card, Panel, Layout kimi — burada məzmun əvvəlcədən bilinmir və hər çağırışda fərqli ola bilər.</p>
+            <p><strong>Lazım deyil</strong>: komponentin strukturu həmişə sabitdirsə (məsələn, sadə bir "Avatar" komponenti yalnız şəkil göstərir) — belə hallarda adi props (<code class="inline">image</code>, <code class="inline">alt</code>) kifayət edir və <code class="inline">children</code> əlavə mürəkkəblik yaradar.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="next-lesson">
+          <div>
+            <div class="nl-label">Növbəti dərs</div>
+            <div class="nl-title">Dərs 3 — State və useState Hook</div>
+          </div>
+          <div class="arrow">→</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<footer>
+  REACT DƏRSLİYİ · MODUL 1 · DƏRS 02 / 07
+</footer>
+
+<script>
+  // Aktiv bölmənin naviqasiyada işıqlandırılması
+  const sections = document.querySelectorAll('main section[id]');
+  const navLinks = document.querySelectorAll('.railnav a');
+  const linkMap = {};
+  navLinks.forEach(l => linkMap[l.getAttribute('href').slice(1)] = l);
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const id = entry.target.getAttribute('id');
+      if (entry.isIntersecting && linkMap[id]) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        linkMap[id].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

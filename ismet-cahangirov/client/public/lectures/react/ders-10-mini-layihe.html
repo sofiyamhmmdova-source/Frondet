@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 10 — Mini Layihə, Best Practices və Növbəti Addımlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F1219;
+    --surface:#171C28;
+    --surface-2:#1E2532;
+    --surface-3:#252D3D;
+    --paper:#ECE8DF;
+    --muted:#93A0B7;
+    --muted-2:#5C6780;
+    --amber:#FFB454;
+    --amber-dim:rgba(255,180,84,.14);
+    --teal:#6EE7C4;
+    --teal-dim:rgba(110,231,196,.14);
+    --coral:#F2665E;
+    --coral-dim:rgba(242,102,94,.14);
+    --peri:#8AA0FF;
+    --peri-dim:rgba(138,160,255,.14);
+    --rule:rgba(236,232,223,.10);
+    --rule-strong:rgba(236,232,223,.20);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,.mono{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    letter-spacing:-0.01em;
+  }
+  a{color:var(--peri);}
+  ::selection{background:var(--amber-dim); color:var(--paper);}
+
+  /* progress bar */
+  .progress-bar{position:fixed; top:0; left:0; height:3px; width:0%; background:linear-gradient(90deg,var(--amber),var(--coral)); z-index:999; transition:width .1s linear;}
+
+  /* topbar */
+  .topbar{
+    position:sticky; top:0; z-index:90;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px;
+    background:rgba(15,18,25,.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule);
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono'; font-weight:600; font-size:14px;}
+  .brand-mark{
+    width:30px; height:30px; border-radius:8px;
+    background:var(--surface-2); border:1px solid var(--rule-strong);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--amber); font-size:13px;
+  }
+  .crumb{color:var(--muted); font-weight:400;}
+  .crumb strong{color:var(--paper); font-weight:600;}
+  .menu-btn{
+    display:none;
+    background:var(--surface-2); border:1px solid var(--rule-strong); color:var(--paper);
+    border-radius:8px; padding:8px 12px; font-family:'IBM Plex Mono'; font-size:13px; cursor:pointer;
+  }
+
+  /* shell layout */
+  .shell{display:grid; grid-template-columns:270px 1fr; max-width:1280px; margin:0 auto;}
+  .toc{
+    position:sticky; top:57px; align-self:start;
+    height:calc(100vh - 57px); overflow-y:auto;
+    padding:28px 18px 40px 24px;
+    border-left:1px solid var(--rule);
+  }
+  .toc-title{font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted-2); margin:0 0 14px 4px;}
+  .toc ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;}
+  .toc a{
+    display:flex; gap:10px; align-items:baseline;
+    text-decoration:none; color:var(--muted); font-size:13.5px;
+    padding:8px 10px; border-radius:8px; transition:background .15s,color .15s;
+  }
+  .toc a:hover{background:var(--surface-2); color:var(--paper);}
+  .toc a.active{background:var(--amber-dim); color:var(--amber);}
+  .toc .num{font-family:'IBM Plex Mono'; font-size:11px; opacity:.7; min-width:18px;}
+
+  main{padding:0 32px 100px; min-width:0; border-right:1px solid var(--rule);}
+
+  /* hero */
+  .hero{padding:64px 0 40px; border-bottom:1px solid var(--rule);}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:.08em;
+    color:var(--amber); background:var(--amber-dim);
+    padding:6px 12px; border-radius:999px; margin-bottom:22px;
+  }
+  .eyebrow::before{content:'●'; font-size:8px;}
+  .hero h1{font-size:clamp(30px,4.6vw,46px); line-height:1.12; margin:0 0 18px; font-weight:600;}
+  .hero p.lead{font-size:17px; color:var(--muted); max-width:640px; margin:0 0 30px;}
+  .hero-stats{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:36px;}
+  .stat-chip{
+    font-family:'IBM Plex Mono'; font-size:12.5px; color:var(--paper);
+    background:var(--surface); border:1px solid var(--rule-strong);
+    padding:8px 14px; border-radius:999px;
+  }
+  .stat-chip b{color:var(--teal);}
+
+  .term{
+    background:var(--surface); border:1px solid var(--rule-strong); border-radius:var(--radius);
+    overflow:hidden; box-shadow:0 20px 50px -20px rgba(0,0,0,.6);
+  }
+  .term-head{display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--surface-2); border-bottom:1px solid var(--rule);}
+  .dot{width:9px; height:9px; border-radius:50%;}
+  .dot.r{background:#F2665E;} .dot.y{background:#FFB454;} .dot.g{background:#6EE7C4;}
+  .term-title{margin-left:8px; font-family:'IBM Plex Mono'; font-size:12px; color:var(--muted);}
+  .term pre{margin:0; padding:18px 20px; overflow-x:auto; font-family:'IBM Plex Mono'; font-size:13px; line-height:1.8;}
+  .term code{color:var(--paper);}
+  .c-muted{color:var(--muted-2);}
+  .c-amber{color:var(--amber);}
+  .c-teal{color:var(--teal);}
+  .c-peri{color:var(--peri);}
+  .c-coral{color:var(--coral);}
+
+  /* sections */
+  section.block{padding:56px 0; border-bottom:1px solid var(--rule);}
+  section.block:last-of-type{border-bottom:none;}
+  .kicker{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+  .kicker .num{
+    font-family:'IBM Plex Mono'; font-size:13px; color:var(--ink); background:var(--amber);
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; flex:none;
+  }
+  .kicker h2{font-size:clamp(21px,3vw,27px); margin:0; font-weight:600;}
+  .block > p.intro{color:var(--muted); max-width:720px; margin:0 0 26px; font-size:15.5px;}
+  h3.sub{font-size:16.5px; margin:32px 0 12px; font-weight:600; color:var(--paper);}
+  h3.sub .tag{font-family:'IBM Plex Mono'; font-size:11px; color:var(--muted-2); font-weight:400; margin-right:8px;}
+  p{margin:0 0 14px;}
+  ul.plain{margin:0 0 16px; padding-left:20px;}
+  ul.plain li{margin-bottom:8px; color:var(--paper);}
+
+  /* card grids */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:18px 0 8px;}
+  .card{
+    background:var(--surface); border:1px solid var(--rule-strong); border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .card h4{margin:0 0 8px; font-size:14.5px; display:flex; align-items:center; gap:8px;}
+  .card p{margin:0; font-size:13.8px; color:var(--muted); line-height:1.6;}
+  .card .label{
+    font-family:'IBM Plex Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+    display:inline-block; padding:3px 8px; border-radius:6px; margin-bottom:10px;
+  }
+  .label.err{background:var(--coral-dim); color:var(--coral);}
+  .label.ok{background:var(--teal-dim); color:var(--teal);}
+  .label.tip{background:var(--peri-dim); color:var(--peri);}
+
+  /* bug cards specific */
+  .bug-card{border-left:3px solid var(--coral);}
+  .bug-card .row{display:flex; gap:8px; font-size:13.4px; margin-top:8px;}
+  .bug-card .row b{color:var(--paper); min-width:64px; flex:none; font-weight:600; font-family:'IBM Plex Mono'; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; padding-top:1px;}
+  .bug-card .row span{color:var(--muted);}
+
+  /* table */
+  table{width:100%; border-collapse:collapse; margin:18px 0 8px; font-size:14px;}
+  th,td{text-align:left; padding:12px 14px; border-bottom:1px solid var(--rule);}
+  th{font-family:'IBM Plex Mono'; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted-2); font-weight:500;}
+  td{color:var(--paper);}
+  td.muted{color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+
+  /* filetree */
+  .filetree{font-family:'IBM Plex Mono'; font-size:13.2px; line-height:1.9; color:var(--muted);}
+  .filetree .d{color:var(--peri);}
+  .filetree .f{color:var(--paper);}
+  .filetree .c{color:var(--muted-2);}
+
+  /* callout */
+  .callout{
+    border-radius:var(--radius); padding:22px 24px; margin:22px 0;
+    background:var(--surface-2); border:1px solid var(--rule-strong); border-left:3px solid var(--amber);
+  }
+  .callout h4{margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:8px;}
+  .callout ul.check{list-style:none; margin:10px 0 0; padding:0;}
+  .callout ul.check li{margin-bottom:9px; padding-left:26px; position:relative; font-size:14.2px;}
+  .callout ul.check li::before{content:'☐'; position:absolute; left:0; color:var(--amber); font-size:15px;}
+
+  /* faq */
+  .faq-item{border:1px solid var(--rule-strong); border-radius:var(--radius); background:var(--surface); margin-bottom:12px; overflow:hidden;}
+  .faq-q{padding:18px 20px; font-weight:600; font-size:15.2px; display:flex; gap:12px; align-items:baseline; cursor:default;}
+  .faq-q .qm{font-family:'IBM Plex Mono'; color:var(--amber); flex:none;}
+  .faq-a{padding:0 20px 20px 20px; color:var(--muted); font-size:14.3px;}
+  .faq-a p{margin:0 0 12px;}
+  .faq-a strong{color:var(--paper);}
+
+  /* roadmap */
+  .roadmap{margin:36px 0 8px;}
+  .rm-trunk{
+    background:var(--surface); border:1px solid var(--amber); border-radius:var(--radius);
+    padding:20px 22px; max-width:480px; margin:0 auto 0; position:relative;
+    box-shadow:0 0 0 4px var(--amber-dim);
+  }
+  .rm-trunk h4{margin:0 0 6px; font-size:15px; color:var(--amber);}
+  .rm-trunk p{margin:0; font-size:13.5px; color:var(--muted);}
+  .rm-branches{display:flex; gap:18px; padding-top:46px; position:relative; margin-top:6px;}
+  .rm-branches::before{content:''; position:absolute; top:0; left:16.6%; right:16.6%; height:2px; background:var(--rule-strong);}
+  .branch{
+    flex:1; position:relative; padding-top:0;
+    background:var(--surface); border:1px solid var(--rule-strong); border-radius:var(--radius);
+    padding:18px 18px 20px;
+  }
+  .branch::before{content:''; position:absolute; top:-46px; left:50%; width:2px; height:46px; background:var(--rule-strong);}
+  .branch::after{content:''; position:absolute; top:-46px; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%;}
+  .branch.peri::after{background:var(--peri);} .branch.teal::after{background:var(--teal);} .branch.amber::after{background:var(--amber);}
+  .branch.peri{border-top:3px solid var(--peri);}
+  .branch.teal{border-top:3px solid var(--teal);}
+  .branch.amber{border-top:3px solid var(--amber);}
+  .branch h4{margin:0 0 6px; font-size:14.5px;}
+  .branch .who{font-family:'IBM Plex Mono'; font-size:11px; color:var(--muted-2); margin-bottom:10px; display:block;}
+  .branch p{margin:0; font-size:13.2px; color:var(--muted);}
+
+  footer{padding:50px 0 20px; color:var(--muted-2); font-size:13.5px;}
+  footer .sign{font-family:'IBM Plex Mono'; color:var(--muted); margin-bottom:6px;}
+
+  .reveal{opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease;}
+  .reveal.show{opacity:1; transform:none;}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .reveal{opacity:1; transform:none; transition:none;}
+  }
+
+  /* responsive */
+  @media (max-width:960px){
+    .shell{grid-template-columns:1fr;}
+    .toc{
+      position:fixed; top:57px; left:0; right:0; height:auto; max-height:70vh;
+      background:var(--ink); border-left:none; border-bottom:1px solid var(--rule-strong);
+      padding:16px; display:none; z-index:80;
+    }
+    .toc.open{display:block;}
+    .menu-btn{display:inline-flex;}
+    main{border-right:none; padding:0 20px 80px;}
+  }
+  @media (max-width:640px){
+    .hero{padding:40px 0 30px;}
+    .rm-branches{flex-direction:column; padding-top:0; gap:36px;}
+    .rm-branches::before{display:none;}
+    .branch::before{top:-22px; height:22px;}
+    .branch::after{top:-22px;}
+    .term pre{font-size:12px;}
+    section.block{padding:40px 0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">&lt;/&gt;</span>
+    <span class="crumb">React Kursu <span class="c-muted">/</span> <strong>Dərs 10</strong></span>
+  </div>
+  <button class="menu-btn" id="menuBtn">☰ Mündəricat</button>
+</header>
+
+<div class="shell">
+  <aside class="toc" id="tocPanel">
+    <p class="toc-title">Dərsin planı</p>
+    <ol>
+      <li><a href="#kod-teskili"><span class="num">01</span> Kod təşkili</a></li>
+      <li><a href="#sehvler"><span class="num">02</span> Tez-tez rast gəlinən səhvlər</a></li>
+      <li><a href="#state-management"><span class="num">03</span> State idarəetmə: növbəti addım</a></li>
+      <li><a href="#nextjs"><span class="num">04</span> Next.js-ə giriş</a></li>
+      <li><a href="#miniloyihe"><span class="num">05</span> Mini-layihə (praktiki)</a></li>
+      <li><a href="#tapshiriq"><span class="num">06</span> Tapşırıq</a></li>
+      <li><a href="#buglar"><span class="num">07</span> Xəta və bug bələdçisi</a></li>
+      <li><a href="#best-practices"><span class="num">08</span> Daha yaxşı etmək üçün</a></li>
+      <li><a href="#faq"><span class="num">09</span> Tez-tez verilən suallar</a></li>
+      <li><a href="#yol-xeritesi"><span class="num">10</span> Növbəti addımlar</a></li>
+    </ol>
+  </aside>
+
+  <main>
+
+    <section class="hero">
+      <span class="eyebrow">DƏRS 10 / 10 · ≈3 SAAT · KURSUN SON DƏRSİ</span>
+      <h1>Mini Layihə, Best Practices və Növbəti Addımlar</h1>
+      <p class="lead">Bu, kursun yekun dərsidir. Buraya qədər öyrəndiyiniz komponentlər, state, props, hook-lar, routing və API inteqrasiyasını bir yerə — tam işlək bir tətbiqə — çevirəcəyik. Bundan əlavə, kodunuzu peşəkar səviyyəyə qaldıracaq təşkilat qaydalarını, tez-tez buraxılan səhvləri və React-dan sonra hansı istiqamətə getməli olduğunuzu addım-addım izah edəcəyik.</p>
+      <div class="hero-stats">
+        <span class="stat-chip">📁 Mövzu: <b>Kod təşkili + Next.js girişi</b></span>
+        <span class="stat-chip">🛠️ Praktika: <b>To-Do + API + Routing + Context</b></span>
+        <span class="stat-chip">🎯 Tapşırıq: <b>GitHub-a tam layihə</b></span>
+      </div>
+
+      <div class="term">
+        <div class="term-head">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="term-title">react-kursu — git log --oneline</span>
+        </div>
+        <pre><code><span class="c-muted">$</span> git log --oneline
+<span class="c-amber">a10f2c9</span> (HEAD -&gt; main) <span class="c-teal">dərs-10:</span> mini-layihə, best practices, növbəti addımlar
+<span class="c-muted">7b3e451</span> dərs-09: testing əsasları, deployment
+<span class="c-muted">5d9a02c</span> dərs-08: Context API, custom hook-lar
+<span class="c-muted">c4e7f18</span> dərs-07: React Router, API inteqrasiyası
+<span class="c-muted">9a1b3d0</span> dərs-06: useEffect, side effect-lər
+<span class="c-muted">e2f4a67</span> dərs-05: useState, formalar
+<span class="c-muted">1c8b9e3</span> dərs-04: props, komponent kompozisiyası
+<span class="c-muted">6f0d2a4</span> dərs-03: JSX, şərti render
+<span class="c-muted">b3a5c19</span> dərs-02: komponentlər əsasları
+<span class="c-muted">4e1f8d2</span> dərs-01: React-a giriş</code></pre>
+      </div>
+    </section>
+
+    <!-- 01 KOD TƏŞKİLİ -->
+    <section class="block reveal" id="kod-teskili">
+      <div class="kicker"><span class="num">01</span><h2>Kod təşkili: qovluq strukturu və adlandırma</h2></div>
+      <p class="intro">Layihə böyüdükcə, "hər şeyi <code>src</code>-in içinə atmaq" strategiyası tez bir zamanda xaosa çevrilir. Yaxşı qovluq strukturu — sadəcə səliqə üçün deyil, komandada işləyərkən başqasının (və ya 3 ay sonra özünüzün) kodu tez tapa bilməsi üçündür.</p>
+
+      <h3 class="sub"><span class="tag">01.1</span>Tövsiyə olunan qovluq strukturu</h3>
+      <p>Kiçik-orta ölçülü layihələr üçün "növə görə" (type-based) struktur ən başa düşülən variantdır:</p>
+      <div class="term">
+        <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">src/</span></div>
+        <pre class="filetree"><code><span class="d">src/</span>
+├── <span class="d">components/</span>       <span class="c">// yenidən istifadə olunan UI hissələri</span>
+│   ├── <span class="f">Button.jsx</span>
+│   ├── <span class="f">TaskCard.jsx</span>
+│   └── <span class="f">Navbar.jsx</span>
+├── <span class="d">pages/</span>            <span class="c">// marşrutlara uyğun tam səhifələr</span>
+│   ├── <span class="f">HomePage.jsx</span>
+│   ├── <span class="f">TaskDetailPage.jsx</span>
+│   └── <span class="f">NotFoundPage.jsx</span>
+├── <span class="d">hooks/</span>            <span class="c">// öz custom hook-larınız</span>
+│   ├── <span class="f">useFetch.js</span>
+│   └── <span class="f">useLocalStorage.js</span>
+├── <span class="d">context/</span>          <span class="c">// Context provider-lər</span>
+│   └── <span class="f">ThemeContext.jsx</span>
+├── <span class="d">services/</span>         <span class="c">// API çağırışları bir yerdə</span>
+│   └── <span class="f">taskApi.js</span>
+├── <span class="d">utils/</span>            <span class="c">// köməkçi funksiyalar (formatDate və s.)</span>
+├── <span class="d">styles/</span>
+├── <span class="f">App.jsx</span>
+└── <span class="f">main.jsx</span></code></pre>
+      </div>
+      <p>Layihə daha da böyüyəndə (10+ səhifə, bir neçə komanda üzvü) "feature-based" struktura keçmək məntiqlidir — yəni <code>src/features/tasks/</code>, <code>src/features/auth/</code> kimi, hər xüsusiyyətin öz komponenti, hook-u və API çağırışı bir qovluqda yaşayır. Kursu bitirən kimi buna ehtiyacınız olmayacaq, amma bunun mövcud olduğunu bilmək vacibdir.</p>
+
+      <h3 class="sub"><span class="tag">01.2</span>Adlandırma qaydaları</h3>
+      <div class="grid">
+        <div class="card"><span class="label ok">Komponentlər</span><h4>PascalCase</h4><p><code>TaskCard.jsx</code>, <code>UserProfile.jsx</code>. Fayl adı komponentin adı ilə tam üst-üstə düşməlidir — axtaranda dərhal tapılsın.</p></div>
+        <div class="card"><span class="label ok">Custom hook-lar</span><h4>camelCase, "use" ilə başlayır</h4><p><code>useFetch.js</code>, <code>useTheme.js</code>. "use" prefiksi React-a bu funksiyanın hook qaydalarına tabe olduğunu bildirir.</p></div>
+        <div class="card"><span class="label ok">Adi funksiyalar/dəyişənlər</span><h4>camelCase</h4><p><code>formatDate()</code>, <code>taskList</code>. Sabitlər üçün (dəyişməyən konfiqurasiya dəyərləri) <code>UPPER_SNAKE_CASE</code> istifadə olunur.</p></div>
+        <div class="card"><span class="label tip">index.js barrel fayllar</span><h4>Ehtiyatla istifadə edin</h4><p>Hər qovluqda <code>index.js</code> ilə re-export etmək rahatdır, amma həddindən artıq istifadə edildikdə "hansı fayl haradan gəlir" izləmək çətinləşir.</p></div>
+      </div>
+    </section>
+
+    <!-- 02 SƏHVLƏR -->
+    <section class="block reveal" id="sehvler">
+      <div class="kicker"><span class="num">02</span><h2>Ümumi başlanğıc səhvlərinin təkrarı</h2></div>
+      <p class="intro">Kurs boyu keçdiyimiz 10 dərsin ən çox rastlanan səhvlərini bir yerə topladıq. Bunları tanımaq, onlardan qaçmaqdan daha vacibdir — çünki hər developer bunları edir, önəmli olan tez tanıyıb düzəltməkdir.</p>
+      <div class="grid">
+        <div class="card"><span class="label err">Dərs 3-4</span><h4>Siyahıda <code>key</code> unudulması</h4><p><code>.map()</code> ilə render edərkən <code>key</code> prop-unu buraxmaq — React-ın hansı elementin dəyişdiyini izləməsini pozur, silmə/sıralama zamanı qəribə UI xətalarına səbəb olur.</p></div>
+        <div class="card"><span class="label err">Dərs 5</span><h4>State-i birbaşa mutasiya etmək</h4><p><code>state.push(item)</code> əvəzinə həmişə yeni massiv/obyekt qaytarın: <code>setState([...state, item])</code>. Əks halda komponent yenidən render olunmaya bilər.</p></div>
+        <div class="card"><span class="label err">Dərs 6</span><h4>useEffect-də asılılıq massivi səhvləri</h4><p>Boş <code>[]</code> qoyub içəridə dəyişən dəyişəndən istifadə etmək (stale closure), yaxud asılılığı tam qoymayıb sonsuz render dövrəsi yaratmaq — ən çox baş verən bug mənbəyidir.</p></div>
+        <div class="card"><span class="label err">Dərs 4-7</span><h4>Props drilling</h4><p>Dəyəri 4-5 səviyyə aşağı komponentə ötürmək üçün hər aralıq komponentdən keçirmək. Bu, Context və ya state management alətinin nə üçün mövcud olduğunu göstərir.</p></div>
+        <div class="card"><span class="label err">Dərs 3</span><h4>Event handler-ı dərhal çağırmaq</h4><p><code>onClick={handleClick()}</code> yazmaq — bu, render zamanı funksiyanı dərhal işə salır. Düzgünü: <code>onClick={handleClick}</code> və ya <code>onClick={() =&gt; handleClick(id)}</code>.</p></div>
+        <div class="card"><span class="label err">Dərs 3</span><h4>Şərti render-də <code>0</code> problemi</h4><p><code>{count &amp;&amp; &lt;Badge /&gt;}</code> — <code>count</code> 0 olduqda ekranda "0" rəqəmi görünür. Düzgünü: <code>{count &gt; 0 &amp;&amp; ...}</code> və ya ternary istifadə edin.</p></div>
+        <div class="card"><span class="label err">Dərs 7</span><h4>Loading/error state-in unudulması</h4><p>API çağırışı zamanı yalnız uğurlu nəticəni gözləmək. İstifadəçi yavaş internetdə, yaxud server xətasında boş/qırıq ekranla qarşılaşır.</p></div>
+        <div class="card"><span class="label err">Dərs 8</span><h4>Context-in həddindən artıq istifadəsi</h4><p>Hər kiçik state üçün ayrı Context yaratmaq — hər dəyişiklikdə bütün ağacın yenidən render olunmasına səbəb ola bilər.</p></div>
+      </div>
+    </section>
+
+    <!-- 03 STATE MANAGEMENT -->
+    <section class="block reveal" id="state-management">
+      <div class="kicker"><span class="num">03</span><h2>State idarəetmənin növbəti səviyyəsi</h2></div>
+      <p class="intro"><code>useState</code> və Context API kiçik-orta layihələr üçün kifayətdir. Amma tətbiq böyüdükdə, çoxlu komponent eyni state-i paylaşdıqda və dəyişiklik tarixçəsini izləmək lazım gəldikdə, xüsusi bir alət lazım olur. İki ən populyar seçim: <strong>Redux Toolkit</strong> və <strong>Zustand</strong>.</p>
+
+      <div class="grid">
+        <div class="card"><span class="label tip">Redux Toolkit</span><h4>Struktur və nəzarət üçün</h4><p>Redux-un rəsmi, "boilerplate-i azaldılmış" versiyası. Ciddi qaydalar (action, reducer, slice), Redux DevTools ilə vaxtda geriyə getmə (time-travel debugging), böyük komandalar üçün proqnozlaşdırıla bilən struktur təqdim edir.</p></div>
+        <div class="card"><span class="label tip">Zustand</span><h4>Sadəlik və sürət üçün</h4><p>Minimal boilerplate ilə hook-əsaslı state store. Provider "sarmağa" ehtiyac yoxdur, öyrənmə əyrisi qısadır. Kiçik-orta komanda və layihələr üçün əla seçimdir.</p></div>
+      </div>
+
+      <h3 class="sub"><span class="tag">03.1</span>Müqayisə</h3>
+      <table>
+        <tr><th>Meyar</th><th>Redux Toolkit</th><th>Zustand</th></tr>
+        <tr><td>Boilerplate</td><td class="muted">Orta (slice, store konfiqurasiyası)</td><td class="muted">Çox az</td></tr>
+        <tr><td>Öyrənmə əyrisi</td><td class="muted">Nisbətən dik</td><td class="muted">Yumşaq</td></tr>
+        <tr><td>DevTools / debugging</td><td class="muted">Güclü, hazır inteqrasiya</td><td class="muted">Əsas dəstək var, daha sadə</td></tr>
+        <tr><td>Ən uyğun olduğu yer</td><td class="muted">Böyük, çox komandalı, mürəkkəb state-li tətbiqlər</td><td class="muted">Startup, MVP, orta ölçülü tətbiqlər</td></tr>
+      </table>
+
+      <div class="callout">
+        <h4>💡 Qızıl qayda</h4>
+        <p style="margin:0; font-size:14.3px;">Kiçik layihədə birbaşa Redux-a keçməyin. Əvvəlcə <code>useState</code> + Context ilə problemi hiss edin (props drilling, sinxronizasiya çətinliyi) — yalnız bu, real ağrı yaratdıqda əlavə alət qoşun. Alət seçimi problemi izləməlidir, əksinə yox.</p>
+      </div>
+    </section>
+
+    <!-- 04 NEXT.JS -->
+    <section class="block reveal" id="nextjs">
+      <div class="kicker"><span class="num">04</span><h2>Next.js-ə giriş: React-dan fərqi</h2></div>
+      <p class="intro">İndiyə qədər öyrəndiyiniz React (Vite ilə) — brauzerdə işləyən, "client-side rendering" (CSR) əsaslı bir kitabxanadır. Next.js isə React üzərində qurulmuş bir <strong>framework</strong>-dür və server-side imkanlar əlavə edir.</p>
+
+      <h3 class="sub"><span class="tag">04.1</span>SSR nədir və niyə vacibdir</h3>
+      <p>Adi React tətbiqində brauzer boş bir HTML alır, sonra JavaScript yüklənir və səhifəni "qurur". Next.js isə HTML-i <strong>serverdə əvvəlcədən render edir</strong> (Server-Side Rendering) — istifadəçi dərhal məzmunu görür, axtarış motorları (Google) səhifəni daha yaxşı indeksləyir.</p>
+
+      <h3 class="sub"><span class="tag">04.2</span>File-based routing</h3>
+      <p>React Router-də marşrutları əl ilə kod içində təsvir edirsiniz. Next.js-də isə qovluq strukturu birbaşa marşrutu müəyyən edir:</p>
+      <div class="term">
+        <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">app/</span></div>
+        <pre class="filetree"><code><span class="d">app/</span>
+├── <span class="f">page.jsx</span>            <span class="c">// → "/"</span>
+├── <span class="d">about/</span>
+│   └── <span class="f">page.jsx</span>        <span class="c">// → "/about"</span>
+└── <span class="d">tasks/</span>
+    └── <span class="d">[id]/</span>
+        └── <span class="f">page.jsx</span>    <span class="c">// → "/tasks/12" (dinamik)</span></code></pre>
+      </div>
+
+      <table>
+        <tr><th>Xüsusiyyət</th><th>React (Vite/CRA)</th><th>Next.js</th></tr>
+        <tr><td>Render yeri</td><td class="muted">Yalnız brauzerdə (CSR)</td><td class="muted">Server + brauzer (SSR/SSG/ISR)</td></tr>
+        <tr><td>Routing</td><td class="muted">React Router — əl ilə konfiqurasiya</td><td class="muted">Qovluq strukturu = marşrut</td></tr>
+        <tr><td>SEO</td><td class="muted">Əlavə alət tələb edir</td><td class="muted">Qutudan çıxan dəstək</td></tr>
+        <tr><td>API endpoint-lər</td><td class="muted">Ayrı backend lazımdır</td><td class="muted">Eyni layihədə (Route Handlers)</td></tr>
+        <tr><td>Ən uyğun olduğu yer</td><td class="muted">Login arxası panel, admin, SPA</td><td class="muted">Kütləyə açıq sayt, bloq, e-ticarət</td></tr>
+      </table>
+    </section>
+
+    <!-- 05 MİNİ LAYİHƏ -->
+    <section class="block reveal" id="miniloyihe">
+      <div class="kicker"><span class="num">05</span><h2>Praktiki hissə: Mini-layihə</h2></div>
+      <p class="intro">Kursun bütün mövzularını bir tətbiqdə birləşdirəcəyik: <strong>To-Do List + API inteqrasiyası + Routing + Context (tema)</strong>. Aşağıda tam texniki spesifikasiya və addım-addım tikinti planı var.</p>
+
+      <h3 class="sub"><span class="tag">05.1</span>Funksional tələblər</h3>
+      <div class="grid">
+        <div class="card"><h4>1. Tapşırıqlar (CRUD)</h4><p>Tapşırıq əlavə etmək, redaktə etmək, silmək, "tamamlandı" işarələmək. Vəziyyəti <code>useReducer</code> ilə idarə etmək tövsiyə olunur — çoxlu əlaqəli əməliyyat olduğundan.</p></div>
+        <div class="card"><h4>2. API inteqrasiyası</h4><p>Tapşırıqları xarici mənbədən (məs. JSONPlaceholder və ya öz mock API-niz) çəkin. Yükləmə (loading) və xəta (error) vəziyyətlərini istifadəçiyə göstərin.</p></div>
+        <div class="card"><h4>3. Routing</h4><p>Ən azı iki səhifə: siyahı (<code>/</code>) və tapşırığın detalı (<code>/tasks/:id</code>). React Router ilə naviqasiya qurun.</p></div>
+        <div class="card"><h4>4. Context (tema)</h4><p>Açıq/qaranlıq rejim arasında keçid. Seçim <code>localStorage</code>-də saxlanmalı ki, səhifə yenilənəndə itməsin.</p></div>
+      </div>
+
+      <h3 class="sub"><span class="tag">05.2</span>Tikinti sırası (addım-addım)</h3>
+      <ul class="plain">
+        <li><strong>1-ci addım —</strong> Vite ilə layihəni yaradın, qovluq strukturunu 01-ci bölmədəki nümunəyə uyğun qurun.</li>
+        <li><strong>2-ci addım —</strong> Statik komponentləri qurun: <code>TaskCard</code>, <code>TaskList</code>, <code>Navbar</code> — hələ data olmadan, sadəcə görünüş.</li>
+        <li><strong>3-cü addım —</strong> <code>ThemeContext</code>-i yaradın və <code>App.jsx</code>-i onunla sarın — bu ən sadə hissədir, əvvəl bitirin ki, motivasiya düşməsin.</li>
+        <li><strong>4-cü addım —</strong> <code>services/taskApi.js</code> daxilində API funksiyalarını yazın (<code>getTasks</code>, <code>addTask</code> və s.).</li>
+        <li><strong>5-ci addım —</strong> <code>useFetch</code> custom hook-u ilə data çəkməni, loading/error idarəetməsini bir yerə toplayın.</li>
+        <li><strong>6-cı addım —</strong> React Router-i qurun, <code>TaskDetailPage</code>-i dinamik <code>:id</code> parametri ilə bağlayın.</li>
+        <li><strong>7-ci addım —</strong> CRUD əməliyyatlarını <code>useReducer</code> ilə bağlayın, formanı test edin.</li>
+        <li><strong>8-ci addım —</strong> Kiçik "cilalama": boş siyahı mesajı, uğurlu/uğursuz bildirişlər, responsive CSS.</li>
+      </ul>
+
+      <div class="term">
+        <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">src/context/ThemeContext.jsx</span></div>
+        <pre><code><span class="c-peri">import</span> { createContext, useState, useEffect } <span class="c-peri">from</span> <span class="c-teal">'react'</span>;
+
+<span class="c-peri">export const</span> ThemeContext = createContext();
+
+<span class="c-peri">export function</span> <span class="c-amber">ThemeProvider</span>({ children }) {
+  <span class="c-peri">const</span> [theme, setTheme] = useState(
+    () =&gt; localStorage.getItem(<span class="c-teal">'theme'</span>) || <span class="c-teal">'light'</span>
+  );
+
+  useEffect(() =&gt; {
+    localStorage.setItem(<span class="c-teal">'theme'</span>, theme);
+  }, [theme]);
+
+  <span class="c-peri">const</span> toggleTheme = () =&gt;
+    setTheme(prev =&gt; (prev === <span class="c-teal">'light'</span> ? <span class="c-teal">'dark'</span> : <span class="c-teal">'light'</span>));
+
+  <span class="c-peri">return</span> (
+    &lt;ThemeContext.Provider value={{ theme, toggleTheme }}&gt;
+      {children}
+    &lt;/ThemeContext.Provider&gt;
+  );
+}</code></pre>
+      </div>
+
+      <h3 class="sub"><span class="tag">05.3</span>Layihənin GitHub-a yüklənməsi</h3>
+      <p>Bitmiş layihəni GitHub-a yükləmək portfolionuzun bir hissəsidir — düzgün etmək önəmlidir.</p>
+      <div class="term">
+        <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">terminal</span></div>
+        <pre><code><span class="c-muted"># .gitignore faylını yoxlayın (node_modules, .env daxil olmalıdır)</span>
+<span class="c-muted">$</span> git init
+<span class="c-muted">$</span> git add .
+<span class="c-muted">$</span> git commit -m <span class="c-teal">"feat: mini to-do layihəsi tamamlandı"</span>
+<span class="c-muted">$</span> git branch -M main
+<span class="c-muted">$</span> git remote add origin https://github.com/istifadeci-adi/mini-todo.git
+<span class="c-muted">$</span> git push -u origin main</code></pre>
+      </div>
+      <p><strong>README.md</strong> faylında mütləq olmalıdır: layihənin qısa təsviri, istifadə olunan texnologiyalar, lokal quraşdırma addımları (<code>npm install</code>, <code>npm run dev</code>), və mümkünsə canlı demo linki (Vercel/Netlify ilə pulsuz deploy edə bilərsiniz).</p>
+    </section>
+
+    <!-- 06 TAPŞIRIQ -->
+    <section class="block reveal" id="tapshiriq">
+      <div class="kicker"><span class="num">06</span><h2>Tapşırıq</h2></div>
+      <div class="callout">
+        <h4>📋 Qəbul kriteriyaları</h4>
+        <p style="margin:0 0 6px; font-size:14.3px; color:var(--muted);">Tam işlək mini-layihəni tamamlayıb GitHub-a yükləyin. Aşağıdakı bütün bəndlər yerinə yetirilməlidir:</p>
+        <ul class="check">
+          <li>Tapşırıq əlavə etmək, redaktə etmək, silmək və tamamlandı işarələmək işləyir</li>
+          <li>API-dən data çəkilir, loading və error vəziyyətləri istifadəçiyə göstərilir</li>
+          <li>Ən azı 2 fərqli marşrut (route) mövcuddur və naviqasiya işləyir</li>
+          <li>Açıq/qaranlıq tema Context vasitəsilə idarə olunur və <code>localStorage</code>-də saxlanılır</li>
+          <li>Kod, 01-ci bölmədəki struktur və adlandırma qaydalarına uyğundur</li>
+          <li>Layihə GitHub-da, düzgün <code>.gitignore</code> və dolğun <code>README.md</code> ilə yerləşdirilib</li>
+          <li><em>(Bonus)</em> Layihə Vercel/Netlify-də canlı deploy olunub</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 07 BUGLAR -->
+    <section class="block reveal" id="buglar">
+      <div class="kicker"><span class="num">07</span><h2>Xəta və bug bələdçisi</h2></div>
+      <p class="intro">Mini-layihəni qurarkən qarşınıza çıxa biləcək ən çox yayılmış xətalar və onların həlli. Bunları qarşıdan gördükdə paniki etməyin — demək olar hər developer bu siyahını dəfələrlə görür.</p>
+      <div class="grid">
+        <div class="card bug-card">
+          <h4>"Cannot read properties of undefined"</h4>
+          <div class="row"><b>Səbəb</b><span>API cavabı hələ gəlməyib, amma komponent artıq data-nı oxumağa çalışır.</span></div>
+          <div class="row"><b>Həll</b><span>Loading state yoxlayın; <code>data?.title</code> kimi optional chaining istifadə edin.</span></div>
+        </div>
+        <div class="card bug-card">
+          <h4>Sonsuz render dövrəsi</h4>
+          <div class="row"><b>Səbəb</b><span><code>useEffect</code> içində state yeniləyib, asılılıq massivinə həmin state-i yanlış əlavə etmək, ya da hər renderdə yeni obyekt/massiv yaratmaq.</span></div>
+          <div class="row"><b>Həll</b><span>Asılılıqları diqqətlə seçin; obyekt/funksiyaları <code>useMemo</code>/<code>useCallback</code> ilə sabitləyin.</span></div>
+        </div>
+        <div class="card bug-card">
+          <h4>CORS xətası</h4>
+          <div class="row"><b>Səbəb</b><span>Xarici API brauzerdən birbaşa sorğuya icazə vermir.</span></div>
+          <div class="row"><b>Həll</b><span>CORS dəstəkləyən test API istifadə edin, və ya öz kiçik backend/proxy qurun.</span></div>
+        </div>
+        <div class="card bug-card">
+          <h4>Səhifə yenilənəndə 404 (routing)</h4>
+          <div class="row"><b>Səbəb</b><span><code>/tasks/3</code> ünvanını birbaşa açanda server bu marşrutu tanımır (Vite/statik hosting konfiqurasiyası).</span></div>
+          <div class="row"><b>Həll</b><span>Hosting platformasında SPA "fallback to index.html" qaydasını aktivləşdirin (Vercel/Netlify-də avtomatik dəstəklənir).</span></div>
+        </div>
+        <div class="card bug-card">
+          <h4>Tema seçimi yadda saxlanmır</h4>
+          <div class="row"><b>Səbəb</b><span><code>localStorage</code> ilə sinxronizasiya unudulub, yalnız React state-də saxlanılır.</span></div>
+          <div class="row"><b>Həll</b><span>Tema dəyişəndə <code>useEffect</code> ilə <code>localStorage.setItem</code> çağırın (05.2-dəki nümunəyə baxın).</span></div>
+        </div>
+        <div class="card bug-card">
+          <h4>"Can't perform a React state update on an unmounted component"</h4>
+          <div class="row"><b>Səbəb</b><span>Komponent DOM-dan silinəndən sonra hələ tamamlanmamış fetch cavabı state-i yeniləməyə çalışır.</span></div>
+          <div class="row"><b>Həll</b><span><code>useEffect</code>-də cleanup funksiyası ilə sorğunu ləğv edin, yaxud "mounted" bayrağı istifadə edin.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 BEST PRACTICES -->
+    <section class="block reveal" id="best-practices">
+      <div class="kicker"><span class="num">08</span><h2>Nələri etsək daha yaxşı olar</h2></div>
+      <p class="intro">Layihəni "işlədən" səviyyədən "peşəkar" səviyyəyə aparan adətlər.</p>
+      <div class="grid">
+        <div class="card"><span class="label ok">Kod keyfiyyəti</span><h4>ESLint + Prettier qurun</h4><p>Format və qayda xətalarını yazarkən görün, code review-da vaxt itirməyin.</p></div>
+        <div class="card"><span class="label ok">Struktur</span><h4>Təkrarlanan məntiqi custom hook edin</h4><p><code>useFetch</code>, <code>useLocalStorage</code> kimi hook-lar kodu 3-4 komponentdə təkrarlamaqdan xilas edir.</p></div>
+        <div class="card"><span class="label ok">Performans</span><h4><code>useMemo</code>/<code>useCallback</code>-i ehtiyat olanda işlədin</h4><p>Əvvəlcədən optimallaşdırma vaxt itkisidir — real ləngimə hiss etdikdə əlavə edin.</p></div>
+        <div class="card"><span class="label ok">Əlçatanlıq (a11y)</span><h4>Semantik HTML və <code>alt</code> mətnləri</h4><p><code>&lt;div onClick&gt;</code> əvəzinə <code>&lt;button&gt;</code>; şəkillərdə həmişə <code>alt</code> atributu.</p></div>
+        <div class="card"><span class="label ok">Git</span><h4>Mənalı commit mesajları</h4><p><code>feat: tema keçidi əlavə edildi</code> — <code>fix: səhv düzəldi</code>-dən daha faydalıdır.</p></div>
+        <div class="card"><span class="label ok">Növbəti addım</span><h4>Testə başlayın</h4><p>React Testing Library ilə ən azı bir-iki komponent üçün sadə test yazmağı öyrənin — işə qəbulda böyük fərq yaradır.</p></div>
+      </div>
+    </section>
+
+    <!-- 09 FAQ -->
+    <section class="block reveal" id="faq">
+      <div class="kicker"><span class="num">09</span><h2>Tez-tez verilən suallar</h2></div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span class="qm">Q1</span> React öyrəndikdən sonra hansı istiqamətə getmək lazımdır?</div>
+        <div class="faq-a">
+          <p>Bu, tam olaraq <strong>məqsədinizdən</strong> asılıdır. Üç əsas yol var, aşağıdakı yol xəritəsi bölməsində vizual şəkildə göstərilib:</p>
+          <p><strong>Next.js</strong> — SEO vacib olan, ictimaiyyətə açıq veb saytlar (bloq, e-ticarət, marketinq səhifələri) qurmaq istəyirsinizsə. <strong>React Native</strong> — mobil tətbiq (iOS/Android) inkişaf etdirmək istəyirsinizsə, React bilikləriniz birbaşa işə yarayır. <strong>TypeScript</strong> isə əslində "alternativ" deyil — bu, hər iki yolla da birləşən, kod keyfiyyətini artıran bir vasitədir. Əksər iş elanlarında TypeScript tələb olunduğu üçün, hansı istiqaməti seçsəniz seçin, TypeScript-i öyrənmək güclü tövsiyədir.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span class="qm">Q2</span> Real layihələrdə hansı state management alətini seçmək lazımdır?</div>
+        <div class="faq-a">
+          <p>Universal cavab yoxdur — qərar bu suallara görə verilir:</p>
+          <p><strong>Layihə kiçikdirsə</strong> (bir neçə səhifə, kiçik komanda) — <code>useState</code> + Context adətən kifayətdir. <strong>Komanda böyükdürsə</strong> və state çox mürəkkəbdirsə (məs. çoxlu asılı əlaqələr, vaxtda geriyə debug etmək tələbi) — Redux Toolkit. <strong>Sürətli inkişaf lazımdırsa</strong>, komanda kiçikdirsə, boilerplate istəmirsinizsə — Zustand. İş bazarını nəzərə alsanız, Redux Toolkit hələ də ən çox tələb olunan bacarıqlardan biridir, ona görə heç olmasa əsaslarını bilmək faydalıdır.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><span class="qm">Q3</span> Portfolio üçün hansı layihələr edilməlidir?</div>
+        <div class="faq-a">
+          <p>İşəgötürənlər eyni "to-do list" layihəsini yüzlərlə görür — seçdiyiniz layihə real bir problemi həll etməli və API/state idarəetməsini nümayiş etdirməlidir:</p>
+          <p><strong>Hava proqnozu tətbiqi</strong> — xarici API, axtarış, loading/error idarəetməsi. <strong>Kiçik e-ticarət vitrini</strong> — məhsul siyahısı, filter, səbət state-i (Context və ya Zustand). <strong>Şəxsi bloq/CMS</strong> — Next.js ilə SSR, dinamik marşrutlar. <strong>Məlumat paneli (dashboard)</strong> — qrafiklər, cədvəllər, real API ilə. <strong>Söhbət (chat) tətbiqi</strong> — real-vaxt data (WebSocket və ya Firebase) ilə tanışlıq. Ən vacibi: hər layihədə README, təmiz kod strukturu və canlı demo linki olsun.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 YOL XƏRİTƏSİ -->
+    <section class="block reveal" id="yol-xeritesi">
+      <div class="kicker"><span class="num">10</span><h2>Növbəti addımlar: yol xəritəsi</h2></div>
+      <p class="intro">React əsaslarını bitirdiniz — indi budaqlanma vaxtıdır. Aşağıdakı "git branch" məntiqi ilə üç istiqaməti göstərir; hansını seçəcəyiniz məqsədinizdən asılıdır, amma heç biri digərini istisna etmir.</p>
+
+      <div class="roadmap">
+        <div class="rm-trunk">
+          <h4>🌳 main → React</h4>
+          <p>Siz buradasınız: komponentlər, state, props, hook-lar, routing, API, Context — tam mənimsənilib.</p>
+        </div>
+        <div class="rm-branches">
+          <div class="branch peri">
+            <span class="who">VEB / SEO ÜÇÜN</span>
+            <h4>Next.js</h4>
+            <p>Server-side rendering, file-based routing, ictimaiyyətə açıq saytlar üçün ideal seçim. React biliyiniz birbaşa köçürülür.</p>
+          </div>
+          <div class="branch teal">
+            <span class="who">MOBİL ÜÇÜN</span>
+            <h4>React Native</h4>
+            <p>Eyni komponent məntiqi ilə iOS və Android tətbiqləri yazın. JSX, state, props — hamısı tanışdır.</p>
+          </div>
+          <div class="branch amber">
+            <span class="who">KOD KEYFİYYƏTİ ÜÇÜN</span>
+            <h4>TypeScript</h4>
+            <p>Yuxarıdakı hər iki yolla birləşir. Xətaları yazarkən tutur, iş elanlarının böyük əksəriyyətində tələb olunur.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p class="sign">// react-kursu / dərs-10 / tamamlandı ✓</p>
+      <p>Təbriklər — kursun sonuna çatdınız! Növbəti addım sadədir: mini-layihəni bitirin, GitHub-a yükləyin və yuxarıdakı üç istiqamətdən birini seçib davam edin. Öyrənmə heç vaxt xətti bir yol deyil — irəli-geri gedə, mövzulara qayıda bilərsiniz. Uğurlar!</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // mobile toc toggle
+  const menuBtn = document.getElementById('menuBtn');
+  const tocPanel = document.getElementById('tocPanel');
+  menuBtn.addEventListener('click', () => tocPanel.classList.toggle('open'));
+  tocPanel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => tocPanel.classList.remove('open')));
+
+  // scroll progress bar
+  const progressBar = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progressBar.style.width = scrolled + '%';
+  });
+
+  // active toc link on scroll
+  const sections = document.querySelectorAll('section.block[id]');
+  const links = document.querySelectorAll('.toc a');
+  const setActive = () => {
+    let current = '';
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= 120) current = sec.id;
+    });
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+  };
+  window.addEventListener('scroll', setActive);
+  setActive();
+
+  // reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('show'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  revealEls.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

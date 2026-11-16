@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Regular Expressions (Regex) — JS Dərsliyi</title>
+<meta name="description" content="JavaScript-də Regular Expressions: test(), match(), replace() metodları, forma validasiyası, ən çox edilən səhvlər və yaxşı təcrübələr." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Karla:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#0f141b;
+  --bg-soft:#141a23;
+  --surface:#1a222c;
+  --surface-2:#212b37;
+  --border:#2b3644;
+  --border-soft:#232d39;
+  --text:#e9eef4;
+  --text-muted:#9bacbd;
+  --text-faint:#6b7c8d;
+  --amber:#f4b740;
+  --amber-soft:rgba(244,183,64,.14);
+  --amber-line:rgba(244,183,64,.4);
+  --coral:#ff6f61;
+  --coral-soft:rgba(255,111,97,.13);
+  --mint:#5fe3c0;
+  --mint-soft:rgba(95,227,192,.13);
+  --blue:#6fa8ff;
+  --radius-s:8px;
+  --radius-m:14px;
+  --radius-l:22px;
+  --font-display:'Sora',sans-serif;
+  --font-body:'Karla',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --maxw:900px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0 0 .5em;line-height:1.2;letter-spacing:-.01em}
+p{margin:0 0 1em}
+a{color:var(--blue)}
+code,pre,.mono{font-family:var(--font-mono)}
+::selection{background:var(--amber);color:#141821}
+
+/* focus visibility */
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+/* ============ PROGRESS BAR ============ */
+#scrollProgress{
+  position:fixed;top:0;left:0;height:3px;width:0%;
+  background:linear-gradient(90deg,var(--amber),var(--coral));
+  z-index:1000;transition:width .1s linear;
+}
+
+/* ============ TOPBAR ============ */
+.topbar{
+  position:sticky;top:0;z-index:900;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:12px 20px;
+  background:rgba(15,20,27,.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border-soft);
+}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text)}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
+.brand small{display:block;font-family:var(--font-body);font-weight:400;color:var(--text-faint);font-size:11px;margin-top:2px}
+.toc-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font-mono);font-size:13px;
+  padding:9px 14px;border-radius:999px;cursor:pointer;
+}
+.toc-btn:hover{border-color:var(--amber-line)}
+.toc-btn .bars{display:flex;flex-direction:column;gap:3px}
+.toc-btn .bars span{width:14px;height:2px;background:var(--text)}
+
+/* ============ TOC PANEL ============ */
+.toc-overlay{
+  position:fixed;inset:0;background:rgba(6,9,13,.6);
+  z-index:950;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.toc-overlay.open{opacity:1;pointer-events:auto}
+.toc-panel{
+  position:fixed;top:0;right:0;height:100%;width:min(320px,86vw);
+  background:var(--bg-soft);border-left:1px solid var(--border);
+  z-index:960;padding:22px 20px;
+  transform:translateX(105%);transition:transform .25s ease;
+  overflow-y:auto;
+}
+.toc-panel.open{transform:translateX(0)}
+.toc-panel h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:16px}
+.toc-panel ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.toc-panel a{
+  display:flex;gap:10px;align-items:baseline;
+  text-decoration:none;color:var(--text-muted);
+  padding:9px 8px;border-radius:8px;font-size:14.5px;
+}
+.toc-panel a:hover,.toc-panel a.active{background:var(--surface);color:var(--text)}
+.toc-panel a.active{color:var(--amber)}
+.toc-panel .n{font-family:var(--font-mono);font-size:12px;color:var(--text-faint);min-width:20px}
+.toc-close{
+  position:absolute;top:18px;right:18px;background:none;border:none;
+  color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;padding:6px;
+}
+
+/* ============ LAYOUT ============ */
+main{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+section{padding:64px 0;border-bottom:1px solid var(--border-soft)}
+section:last-of-type{border-bottom:none}
+.eyebrow{
+  display:flex;align-items:center;gap:12px;margin-bottom:14px;
+}
+.eyebrow .num{font-family:var(--font-mono);font-size:13px;color:var(--bg);background:var(--amber);
+  padding:3px 9px;border-radius:6px;font-weight:600;letter-spacing:.02em}
+.eyebrow .label{font-family:var(--font-mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint)}
+h2{font-size:clamp(22px,3.4vw,30px)}
+h2 .accent{color:var(--amber)}
+.lede{color:var(--text-muted);font-size:16.5px;max-width:62ch}
+
+/* ============ HERO ============ */
+.hero{padding:52px 0 60px}
+.hero .eyebrow{margin-bottom:18px}
+.hero h1{font-size:clamp(30px,6vw,46px);margin-bottom:14px}
+.hero-sub{color:var(--text-muted);font-size:17px;max-width:64ch;margin-bottom:8px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 36px}
+.tag{
+  font-family:var(--font-mono);font-size:12.5px;color:var(--mint);
+  background:var(--mint-soft);border:1px solid rgba(95,227,192,.3);
+  padding:5px 11px;border-radius:999px;
+}
+
+/* ============ LAB (playground) ============ */
+.lab{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-l);
+  padding:22px;
+}
+.lab-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.lab-head h3{margin:0;font-size:16px;display:flex;align-items:center;gap:8px}
+.lab-head h3::before{content:"●";color:var(--amber);font-size:11px}
+.reset-btn{
+  font-family:var(--font-mono);font-size:12.5px;color:var(--text-muted);
+  background:transparent;border:1px solid var(--border);border-radius:999px;
+  padding:6px 12px;cursor:pointer;
+}
+.reset-btn:hover{color:var(--text);border-color:var(--text-faint)}
+
+.pattern-row{
+  display:flex;align-items:stretch;gap:0;
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-s);
+  overflow:hidden;margin-bottom:14px;
+}
+.pattern-row .slash{
+  font-family:var(--font-mono);color:var(--text-faint);display:flex;align-items:center;
+  padding:0 10px;font-size:18px;user-select:none;
+}
+.pattern-row input{
+  flex:1;min-width:0;background:transparent;border:none;color:var(--amber);
+  font-family:var(--font-mono);font-size:15px;padding:13px 4px;
+}
+.pattern-row input:focus{outline:none}
+.pattern-row .flags-suffix{display:flex;align-items:center;padding:0 10px;color:var(--blue);font-family:var(--font-mono);font-size:15px;font-weight:600}
+
+.flag-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.flag-chip{position:relative}
+.flag-chip input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
+.flag-chip label{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  min-width:50px;padding:7px 10px;border-radius:10px;
+  border:1px solid var(--border);background:var(--bg);
+  font-family:var(--font-mono);cursor:pointer;transition:border-color .15s,background .15s;
+}
+.flag-chip label .k{font-size:15px;font-weight:700;color:var(--text)}
+.flag-chip label .d{font-size:9.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.03em}
+.flag-chip input:checked + label{background:var(--amber-soft);border-color:var(--amber-line)}
+.flag-chip input:checked + label .k{color:var(--amber)}
+.flag-chip input:focus-visible + label{outline:2px solid var(--blue);outline-offset:2px}
+
+.lab textarea{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-s);
+  color:var(--text);font-family:var(--font-mono);font-size:14.5px;padding:12px;
+  resize:vertical;min-height:80px;line-height:1.6;
+}
+.lab textarea:focus{outline:none;border-color:var(--amber-line)}
+.field-label{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin:14px 0 6px;font-family:var(--font-mono)}
+
+.error-box{
+  display:none;background:var(--coral-soft);border:1px solid rgba(255,111,97,.35);
+  color:var(--coral);border-radius:var(--radius-s);padding:10px 13px;font-size:13.5px;
+  font-family:var(--font-mono);margin-top:12px;
+}
+.error-box.show{display:block}
+
+.lab-grid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:18px}
+@media(min-width:760px){.lab-grid{grid-template-columns:1fr 1fr}}
+
+.out-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-s);padding:14px}
+.out-card h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-faint);display:flex;align-items:center;gap:8px}
+.out-card .badge{font-family:var(--font-mono);font-size:11px;padding:2px 7px;border-radius:6px}
+.badge.ok{background:var(--mint-soft);color:var(--mint)}
+.badge.no{background:var(--coral-soft);color:var(--coral)}
+.out-pre{
+  font-family:var(--font-mono);font-size:13px;white-space:pre-wrap;word-break:break-word;
+  color:var(--text-muted);max-height:180px;overflow-y:auto;line-height:1.55;
+}
+.highlight-box{
+  font-family:var(--font-mono);font-size:14px;line-height:1.8;white-space:pre-wrap;word-break:break-word;
+}
+.highlight-box mark{background:var(--amber);color:#161b12;border-radius:3px;padding:0 2px;font-weight:600}
+.lab-note{font-size:12.5px;color:var(--text-faint);margin-top:6px;font-family:var(--font-mono)}
+
+/* ============ PROSE / CODE ============ */
+.prose{color:var(--text-muted)}
+.prose strong{color:var(--text)}
+.code-block{
+  position:relative;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-m);margin:16px 0;overflow:hidden;
+}
+.code-block .cb-top{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 14px;border-bottom:1px solid var(--border-soft);
+}
+.code-block .cb-label{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em}
+.code-block.bad .cb-label{color:var(--coral)}
+.code-block.good .cb-label{color:var(--mint)}
+.copy-btn{
+  background:none;border:1px solid var(--border);color:var(--text-faint);
+  font-family:var(--font-mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;
+}
+.copy-btn:hover{color:var(--text);border-color:var(--text-faint)}
+.code-block pre{margin:0;padding:14px;overflow-x:auto}
+.code-block code{font-size:13.5px;line-height:1.65;color:var(--text)}
+.code-pair{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:700px){.code-pair.two{grid-template-columns:1fr 1fr}}
+
+/* ============ TABLE ============ */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-m);margin:16px 0}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border-soft);font-size:14px}
+th{font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);background:var(--surface)}
+td code{color:var(--amber);font-size:13.5px}
+tr:last-child td{border-bottom:none}
+
+/* ============ CARDS / GRID ============ */
+.grid-2{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:700px){.grid-2{grid-template-columns:1fr 1fr}}
+.mini-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);padding:18px}
+.mini-card h4{font-size:15px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.mini-card p{color:var(--text-muted);font-size:14.5px;margin:0}
+
+/* ============ DETAILS / ACCORDION ============ */
+details{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);
+  margin-bottom:12px;overflow:hidden;
+}
+summary{
+  list-style:none;cursor:pointer;padding:16px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-family:var(--font-display);font-weight:600;font-size:15px;
+}
+summary::-webkit-details-marker{display:none}
+summary .chev{
+  font-family:var(--font-mono);color:var(--text-faint);transition:transform .2s;flex-shrink:0;
+}
+details[open] summary .chev{transform:rotate(45deg)}
+details[open] summary{border-bottom:1px solid var(--border-soft)}
+.details-body{padding:16px 18px 20px}
+.sev-tag{font-family:var(--font-mono);font-size:11px;padding:2px 8px;border-radius:6px;background:var(--coral-soft);color:var(--coral);margin-right:8px;flex-shrink:0}
+
+/* ============ FORM DEMO ============ */
+.form-demo{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:700px){.form-demo{grid-template-columns:1fr 1fr}}
+.f-field{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);padding:16px}
+.f-field label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:8px;font-weight:600}
+.f-field input{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-s);
+  color:var(--text);font-size:15px;padding:11px 12px;font-family:var(--font-body);
+}
+.f-field input:focus{outline:none}
+.f-field.valid input{border-color:var(--mint)}
+.f-field.invalid input{border-color:var(--coral)}
+.f-msg{font-size:12.5px;margin-top:8px;min-height:16px;font-family:var(--font-mono)}
+.f-msg.ok{color:var(--mint)}
+.f-msg.no{color:var(--coral)}
+.f-pattern{font-size:11.5px;color:var(--text-faint);margin-top:6px;font-family:var(--font-mono);word-break:break-all}
+.strength-bar{height:6px;border-radius:3px;background:var(--border);margin-top:10px;overflow:hidden}
+.strength-fill{height:100%;width:0%;background:var(--coral);transition:width .2s,background .2s}
+
+/* ============ BEST PRACTICE LIST ============ */
+.bp-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.bp-list li{
+  display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-m);padding:14px 16px;color:var(--text-muted);font-size:14.5px;
+}
+.bp-list li::before{content:"✓";color:var(--mint);font-weight:700;flex-shrink:0}
+.bp-list li strong{color:var(--text)}
+
+/* ============ FOOTER ============ */
+footer{padding:40px 20px 60px;text-align:center;color:var(--text-faint);font-size:13px}
+footer .fmark{color:var(--amber);font-family:var(--font-mono)}
+
+@media(max-width:600px){
+  section{padding:44px 0}
+  .lab{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div id="scrollProgress"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span>JS Dərsliyi
+      <small>Regular Expressions (Regex)</small>
+    </span>
+  </div>
+  <button class="toc-btn" id="tocOpenBtn" aria-label="Mündəricatı aç">
+    <span class="bars"><span></span><span></span><span></span></span>
+    Mündəricat
+  </button>
+</header>
+
+<div class="toc-overlay" id="tocOverlay"></div>
+<nav class="toc-panel" id="tocPanel" aria-label="Mündəricat">
+  <button class="toc-close" id="tocCloseBtn" aria-label="Bağla">✕</button>
+  <h3>Dərsin planı</h3>
+  <ol>
+    <li><a data-toc href="#giris"><span class="n">01</span>Regex nədir?</span></a></li>
+    <li><a data-toc href="#sintaksis"><span class="n">02</span>Sintaksisin əsasları</span></a></li>
+    <li><a data-toc href="#test-metodu"><span class="n">03</span>test() metodu</span></a></li>
+    <li><a data-toc href="#match-metodu"><span class="n">04</span>match() / matchAll()</span></a></li>
+    <li><a data-toc href="#replace-metodu"><span class="n">05</span>replace() / replaceAll()</span></a></li>
+    <li><a data-toc href="#validasiya"><span class="n">06</span>Praktiki validasiya</span></a></li>
+    <li><a data-toc href="#sehvler"><span class="n">07</span>Ən çox edilən səhvlər</span></a></li>
+    <li><a data-toc href="#best-practice"><span class="n">08</span>Yaxşı təcrübələr</span></a></li>
+    <li><a data-toc href="#yekun"><span class="n">09</span>Yekun və özünüyoxlama</span></a></li>
+  </ol>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="eyebrow">
+      <span class="label">JS Dərs Otağı · Regex modulu</span>
+    </div>
+    <h1>Mətnin içindəki <span style="color:var(--amber)">gizli qaydaları</span> tapmaq</h1>
+    <p class="hero-sub">Regular Expressions (regex) — mətndə naxış (pattern) axtaran mini-dildir. Bu dərsdə <code>test()</code>, <code>match()</code> və <code>replace()</code> metodlarını, forma validasiyasını, real layihələrdə ən çox rast gəlinən səhvləri və onları necə düzəltməyi addım-addım, nümunələrlə görəcəksən.</p>
+    <div class="hero-tags">
+      <span class="tag">test()</span>
+      <span class="tag">match() / matchAll()</span>
+      <span class="tag">replace() / replaceAll()</span>
+      <span class="tag">forma validasiyası</span>
+      <span class="tag">Azərbaycan hərfləri (əöüğşç)</span>
+    </div>
+
+    <div class="lab" id="lab">
+      <div class="lab-head">
+        <h3>Canlı Regex Laboratoriyası</h3>
+        <button class="reset-btn" id="labReset">↺ Sıfırla</button>
+      </div>
+
+      <div class="field-label">Pattern</div>
+      <div class="pattern-row">
+        <span class="slash">/</span>
+        <input type="text" id="pgPattern" spellcheck="false" autocomplete="off" maxlength="200" />
+        <span class="slash">/</span>
+        <span class="flags-suffix" id="pgFlagsSuffix">g</span>
+      </div>
+
+      <div class="field-label">Bayraqlar (flags)</div>
+      <div class="flag-chips">
+        <div class="flag-chip"><input type="checkbox" id="pgFlagG" checked><label for="pgFlagG"><span class="k">g</span><span class="d">global</span></label></div>
+        <div class="flag-chip"><input type="checkbox" id="pgFlagI"><label for="pgFlagI"><span class="k">i</span><span class="d">case</span></label></div>
+        <div class="flag-chip"><input type="checkbox" id="pgFlagM"><label for="pgFlagM"><span class="k">m</span><span class="d">multiline</span></label></div>
+        <div class="flag-chip"><input type="checkbox" id="pgFlagS"><label for="pgFlagS"><span class="k">s</span><span class="d">dotAll</span></label></div>
+        <div class="flag-chip"><input type="checkbox" id="pgFlagU"><label for="pgFlagU"><span class="k">u</span><span class="d">unicode</span></label></div>
+      </div>
+
+      <div class="field-label">Test mətni</div>
+      <textarea id="pgTestStr" maxlength="600" rows="3"></textarea>
+
+      <div class="field-label">replace() üçün əvəzedici mətn</div>
+      <div class="pattern-row" style="background:var(--bg)">
+        <input type="text" id="pgReplacement" spellcheck="false" autocomplete="off" style="color:var(--mint)" maxlength="120" />
+      </div>
+
+      <div class="error-box" id="pgError"></div>
+
+      <div class="field-label">Nəticə: vurğulanmış uyğunluqlar</div>
+      <div class="out-card">
+        <div class="highlight-box" id="pgHighlight"></div>
+      </div>
+
+      <div class="lab-grid">
+        <div class="out-card">
+          <h4>test() <span class="badge" id="pgTestBadge">—</span></h4>
+          <div class="out-pre" id="pgTestOut">—</div>
+        </div>
+        <div class="out-card">
+          <h4>match() <span class="badge" id="pgMatchBadge">—</span></h4>
+          <div class="out-pre" id="pgMatchOut">—</div>
+        </div>
+        <div class="out-card">
+          <h4>matchAll() — ətraflı (qruplarla)</h4>
+          <div class="out-pre" id="pgMatchAllOut">—</div>
+        </div>
+        <div class="out-card">
+          <h4>replace() <span class="badge" id="pgReplaceBadge">—</span></h4>
+          <div class="out-pre" id="pgReplaceOut">—</div>
+        </div>
+      </div>
+      <p class="lab-note" id="pgHint"></p>
+    </div>
+  </section>
+
+  <!-- 01 GİRİŞ -->
+  <section id="giris">
+    <div class="eyebrow"><span class="num">01</span><span class="label">Əsas anlayış</span></div>
+    <h2>Regex nədir və nə üçün lazımdır?</h2>
+    <p class="lede">Regular Expression (qısaca <strong style="color:var(--text)">regex</strong>) — mətn içində müəyyən bir "naxışı" (pattern) təsvir etməyin universal üsuludur. JavaScript-də regex <code>/pattern/flags</code> şəklində yazılır və <code>RegExp</code> növü kimi mövcuddur.</p>
+    <div class="prose">
+      <p>Adi <code>includes()</code> və ya <code>indexOf()</code> yalnız sabit, dəqiq mətn axtara bilir. Amma real həyatda çox vaxt "dəqiq mətn" yox, <strong>qayda</strong> axtarırıq: "bu, e-poçt formatındadırmı?", "bu sətirdə hər hansı rəqəm varmı?", "bütün tarixləri tap və formatını dəyiş". Məhz burada regex işə düşür.</p>
+      <p>Ən çox rast gəlinən istifadə sahələri:</p>
+    </div>
+    <div class="grid-2">
+      <div class="mini-card"><h4>🔎 Axtarış və doğrulama</h4><p>E-poçt, telefon, şifrə, istifadəçi adı kimi sahələrin düzgün formatda olub-olmadığını yoxlamaq.</p></div>
+      <div class="mini-card"><h4>✂️ Ayırma və çıxarma</h4><p>Uzun mətndən tarixləri, qiymətləri, hashtag-ları və ya linkləri "tutub" çıxarmaq.</p></div>
+      <div class="mini-card"><h4>🔁 Kütləvi əvəzləmə</h4><p>Min sətirlik mətndə bir formatı başqasına çevirmək (məs. tarix formatını dəyişmək).</p></div>
+      <div class="mini-card"><h4>🧹 Təmizləmə</h4><p>İstifadəçi girişindən artıq boşluqları, icazəsiz simvolları təmizləmək.</p></div>
+    </div>
+  </section>
+
+  <!-- 02 SİNTAKSİS -->
+  <section id="sintaksis">
+    <div class="eyebrow"><span class="num">02</span><span class="label">Təməl</span></div>
+    <h2>Sintaksisin əsasları</h2>
+    <p class="lede">Regex öz "əlifbasına" malikdir. Aşağıdakı simvollar demək olar ki, hər pattern-də qarşına çıxacaq.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Simvol</th><th>Məna</th></tr></thead>
+        <tbody>
+          <tr><td><code>.</code></td><td>İstənilən bir simvol (yeni sətir xaric — <code>s</code> bayrağı olmadan)</td></tr>
+          <tr><td><code>\d</code> / <code>\D</code></td><td>Rəqəm <code>[0-9]</code> / rəqəm olmayan</td></tr>
+          <tr><td><code>\w</code> / <code>\W</code></td><td>Söz simvolu <code>[A-Za-z0-9_]</code> / əksi — <strong style="color:var(--coral)">Azərbaycan hərflərini əhatə etmir!</strong></td></tr>
+          <tr><td><code>\s</code> / <code>\S</code></td><td>Boşluq (space, tab, sətir sonu) / boşluq olmayan</td></tr>
+          <tr><td><code>^</code> / <code>$</code></td><td>Sətrin başlanğıcı / sonu</td></tr>
+          <tr><td><code>[abc]</code> / <code>[^abc]</code></td><td>Simvol sinfi / inkar edilmiş sinif</td></tr>
+          <tr><td><code>(...)</code></td><td>Tutan qrup (capturing group)</td></tr>
+          <tr><td><code>(?:...)</code></td><td>Tutmayan qrup (yalnız qruplaşdırma üçün)</td></tr>
+          <tr><td><code>(?&lt;ad&gt;...)</code></td><td>Adlandırılmış qrup — <code>match.groups.ad</code> ilə əlçatan</td></tr>
+          <tr><td><code>|</code></td><td>VƏ YA (alternation)</td></tr>
+          <tr><td><code>* + ?</code></td><td>0+, 1+, 0 və ya 1 dəfə təkrar</td></tr>
+          <tr><td><code>{n,m}</code></td><td>n-dən m-ə qədər təkrar</td></tr>
+          <tr><td><code>\b</code></td><td>Söz sərhədi</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:28px">Bayraqlar (flags) isə regex-in <strong style="color:var(--text)">necə</strong> işləyəcəyini müəyyən edir:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Bayraq</th><th>Təsir</th></tr></thead>
+        <tbody>
+          <tr><td><code>g</code></td><td>Bütün uyğunluqları tapır (yalnız birincini yox)</td></tr>
+          <tr><td><code>i</code></td><td>Böyük/kiçik hərf fərqi qoymur</td></tr>
+          <tr><td><code>m</code></td><td><code>^</code> və <code>$</code> hər sətrin əvvəli/sonu kimi işləyir</td></tr>
+          <tr><td><code>s</code></td><td><code>.</code> yeni sətri (<code>\n</code>) də əhatə edir</td></tr>
+          <tr><td><code>u</code></td><td>Unicode-u düzgün emal edir (emoji, Azərbaycan hərfləri və s.)</td></tr>
+          <tr><td><code>y</code></td><td>Sticky — yalnız <code>lastIndex</code> mövqeyindən axtarır</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 03 TEST -->
+  <section id="test-metodu">
+    <div class="eyebrow"><span class="num">03</span><span class="label">Metod</span></div>
+    <h2><code style="color:var(--amber)">test()</code> metodu</h2>
+    <p class="lede"><code>regex.test(mətn)</code> — mətni özü qaytarmır, sadəcə <strong style="color:var(--text)">true / false</strong> qaytarır: "uyğunluq varmı, yoxdurmu?". Bunun üçün ən uyğun yer — forma validasiyasıdır, çünki adətən bizə yalnız "keçərlidirmi" cavabı lazımdır.</p>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">nümunə</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const pinRegex = /^\d{4}$/;
+
+console.log(pinRegex.test("2026")); // true
+console.log(pinRegex.test("abcd")); // false</code></pre>
+    </div>
+    <p class="prose">Diqqət: əgər regex-in <code>g</code> bayrağı varsa, <code>test()</code> "yaddaşlıdır" — hər çağırışdan sonra daxili <code>lastIndex</code> dəyərini yadda saxlayır. Bu, <a href="#bug1">aşağıdakı ilk bug-da</a> geniş izah olunur.</p>
+  </section>
+
+  <!-- 04 MATCH -->
+  <section id="match-metodu">
+    <div class="eyebrow"><span class="num">04</span><span class="label">Metod</span></div>
+    <h2><code style="color:var(--amber)">match()</code> və <code style="color:var(--amber)">matchAll()</code></h2>
+    <p class="lede"><code>str.match(regex)</code> — mətnin özündən uyğun gələn hissələri qaytarır. Davranışı <code>g</code> bayrağından asılı olaraq <strong style="color:var(--text)">tamamilə dəyişir</strong>:</p>
+    <div class="grid-2">
+      <div class="mini-card">
+        <h4>❌ <code>g</code> bayrağı yoxdur</h4>
+        <p>İlk uyğunluğu, <strong>qruplarla və indekslə birlikdə</strong> tam obyekt (array-abənzər) kimi qaytarır. Uyğunluq yoxdursa — <code>null</code>.</p>
+      </div>
+      <div class="mini-card">
+        <h4>✅ <code>g</code> bayrağı var</h4>
+        <p>Bütün tam uyğunluqların sadə sətir array-i qaytarılır, <strong>amma qruplar itir</strong>. Uyğunluq yoxdursa — yenə <code>null</code>.</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">g bayrağı olmadan — qruplarla</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const str = "Görüş 12.05.2026 tarixində olacaq.";
+const re = /(\d{2})\.(\d{2})\.(\d{4})/;
+
+const m = str.match(re);
+console.log(m[0]);       // "12.05.2026"
+console.log(m[1], m[2], m[3]); // "12" "05" "2026"
+console.log(m.index);    // 6</code></pre>
+    </div>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">g bayrağı ilə — qruplar itir</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const re2 = /\d{2}\.\d{2}\.\d{4}/g;
+console.log(str.match(re2)); // ["12.05.2026"] — qruplar YOXDUR</code></pre>
+    </div>
+    <p class="prose">Həm <strong style="color:var(--text)">bütün uyğunluqları</strong>, həm də <strong style="color:var(--text)">onların qruplarını</strong> birlikdə almaq istəsək — <code>matchAll()</code> köməyə çatır (mütləq <code>g</code> bayrağı tələb edir):</p>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">matchAll() — adlı qruplarla</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const re3 = /(?&lt;gun&gt;\d{2})\.(?&lt;ay&gt;\d{2})\.(?&lt;il&gt;\d{4})/g;
+
+for (const m of str.matchAll(re3)) {
+  console.log(m.groups.gun, m.groups.ay, m.groups.il);
+  // "12" "05" "2026"
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- 05 REPLACE -->
+  <section id="replace-metodu">
+    <div class="eyebrow"><span class="num">05</span><span class="label">Metod</span></div>
+    <h2><code style="color:var(--amber)">replace()</code> və <code style="color:var(--amber)">replaceAll()</code></h2>
+    <p class="lede"><code>str.replace(pattern, əvəzedici)</code> — tapılan hissəni yenisi ilə dəyişir. Əvəzedici həm <strong style="color:var(--text)">sətir</strong> (xüsusi <code>$1</code>, <code>$&amp;</code>, <code>$&lt;ad&gt;</code> işarələri ilə), həm də <strong style="color:var(--text)">funksiya</strong> ola bilər.</p>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">qruplarla format dəyişmək</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const tarix = "2026-05-12";
+const yeni = tarix.replace(/(\d{4})-(\d{2})-(\d{2})/, "$3.$2.$1");
+
+console.log(yeni); // "12.05.2026"</code></pre>
+    </div>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">funksiya ilə — kart nömrəsini maskalamaq</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const kart = "4169 4501 2233 8890";
+// hər rəqəmi, sonrasında ən azı 4 rəqəm gələn yerlərdə * ilə əvəz et
+const maskali = kart.replace(/\d(?=\D*\d{4})/g, "*");
+
+console.log(maskali); // "**** **** **** 8890"</code></pre>
+    </div>
+    <p class="prose">ES2021-dən etibarən <code>replaceAll()</code> var — sadə sətirlə işlədikdə avtomatik <strong style="color:var(--text)">bütün</strong> uyğunluqları dəyişir (regex-də isə yenə <code>g</code> bayrağı məcburidir, əks halda xəta verir):</p>
+    <div class="code-block">
+      <div class="cb-top"><span class="cb-label">replaceAll()</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><code>const cumle = "pişik, pişik və pişik";
+console.log(cumle.replaceAll("pişik", "pişik balası"));
+// "pişik balası, pişik balası və pişik balası"</code></pre>
+    </div>
+  </section>
+
+  <!-- 06 VALİDASİYA -->
+  <section id="validasiya">
+    <div class="eyebrow"><span class="num">06</span><span class="label">Praktika</span></div>
+    <h2>Praktiki nümunə: forma validasiyası</h2>
+    <p class="lede">Aşağıdakı sahələr canlıdır — yazdıqca <code>test()</code> əsasında yoxlanılır. Bu, regex-in real layihələrdə ən çox işlədiyi yerdir.</p>
+    <div class="form-demo">
+      <div class="f-field" id="fEmailWrap">
+        <label for="fEmail">E-poçt ünvanı</label>
+        <input type="text" id="fEmail" placeholder="ad@nümunə.com" autocomplete="off" />
+        <div class="f-msg" id="fEmailMsg"></div>
+        <div class="f-pattern">/^[^\s@]+@[^\s@]+\.[^\s@]+$/</div>
+      </div>
+      <div class="f-field" id="fPhoneWrap">
+        <label for="fPhone">Mobil nömrə (AZ)</label>
+        <input type="text" id="fPhone" placeholder="+994501234567" autocomplete="off" />
+        <div class="f-msg" id="fPhoneMsg"></div>
+        <div class="f-pattern">/^(\+994|0)(10|50|51|55|60|70|77|99)\d{7}$/</div>
+      </div>
+      <div class="f-field" id="fNameWrap">
+        <label for="fName">Ad Soyad (AZ hərfləri dəstəklənir)</label>
+        <input type="text" id="fName" placeholder="Cəlil Məmmədquluzadə" autocomplete="off" />
+        <div class="f-msg" id="fNameMsg"></div>
+        <div class="f-pattern">/^\p{L}+(\s\p{L}+)*$/u</div>
+      </div>
+      <div class="f-field" id="fPassWrap">
+        <label for="fPass">Şifrə gücü</label>
+        <input type="password" id="fPass" placeholder="Ən azı 8 simvol" autocomplete="off" />
+        <div class="strength-bar"><div class="strength-fill" id="fPassBar"></div></div>
+        <div class="f-msg" id="fPassMsg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 BUGLAR -->
+  <section id="sehvler">
+    <div class="eyebrow"><span class="num">07</span><span class="label">Diqqət</span></div>
+    <h2>Ən çox edilən səhvlər və buglar</h2>
+    <p class="lede">Regex özü sadədir, amma JavaScript-in onu necə icra etməsi barədə bir neçə "tələ" var. Aşağıda ən çox rast gəlinən 8 səhvi — səbəbi və düzəlişi ilə birlikdə tapa bilərsən.</p>
+
+    <details id="bug1">
+      <summary><span><span class="sev-tag">Bug</span>«g» bayrağı + test() — lastIndex tələsi</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose"><code>g</code> bayraqlı regex <strong style="color:var(--text)">öz vəziyyətini (lastIndex) yadda saxlayır</strong>. Eyni regex obyektini dəfələrlə çağırsan, nəticə hər dəfə fərqli ola bilər — halbuki mətn dəyişməyib.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const re = /ab/g;
+console.log(re.test("ab")); // true
+console.log(re.test("ab")); // false  ← eyni sətir, nəticə dəyişdi!
+console.log(re.test("ab")); // true</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>// sadəcə true/false lazımdırsa, "g" bayrağını çıxar
+const re2 = /ab/;
+console.log(re2.test("ab")); // həmişə true
+
+// və ya hər yoxlamadan əvvəl lastIndex-i sıfırla
+re.lastIndex = 0;</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>İstifadəçi girişini escape etmədən regex qurmaq</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose">Axtarış qutusundakı mətni birbaşa <code>new RegExp()</code>-ə versən, istifadəçi <code>.</code>, <code>*</code>, <code>(</code> kimi xüsusi simvollar yazarsa, pattern gözlənilməz işləyər və ya xəta verər.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>function axtar(sozler, metn) {
+  const re = new RegExp(sozler, "gi");
+  return metn.match(re);
+}
+axtar("qiymet 5.99", metn); // "." istənilən simvolu tutur!</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function axtar(sozler, metn) {
+  const re = new RegExp(escapeRegex(sozler), "gi");
+  return metn.match(re);
+}</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>Aclı (greedy) vs tənbəl (lazy) kvantifikator</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose"><code>.+</code> defolt olaraq <strong style="color:var(--text)">aclıdır</strong> — mümkün qədər çox simvolu "udur". Bu, ikinci bağlayan işarəyə qədər hər şeyi tutmasına səbəb ola bilər.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const html = "&lt;b&gt;qalın&lt;/b&gt; və &lt;i&gt;əyri&lt;/i&gt;";
+console.log(html.match(/&lt;.+&gt;/)[0]);
+// "&lt;b&gt;qalın&lt;/b&gt; və &lt;i&gt;əyri&lt;/i&gt;"  ← hamısını uddu!</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>console.log(html.match(/&lt;.+?&gt;/)[0]);
+// "&lt;b&gt;"  ← "?" onu tənbəl edir, ilk bağlanışda dayanır</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>Anchor-ların (^ $) unudulması</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose"><code>^</code> və <code>$</code> olmadan regex mətnin <strong style="color:var(--text)">hər hansı hissəsində</strong> uyğunluq axtarır — nəticədə "yarımçıq doğru" mətnlər də keçərli sayıla bilər.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const sifreRegex = /\d{8,}/;
+console.log(sifreRegex.test("zibil 12345678 zibil")); // true!</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const sifreRegex2 = /^\d{8,}$/;
+console.log(sifreRegex2.test("zibil 12345678 zibil")); // false
+console.log(sifreRegex2.test("12345678"));              // true</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>«i» bayrağının unudulması</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose">Defolt olaraq regex böyük/kiçik hərfi fərqləndirir. İstifadəçi girişi ilə işləyəndə bu, gözlənilməz "uyğunsuzluqlara" səbəb olur.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const re = /baki/;
+console.log(re.test("Mən Bakıda yaşayıram")); // false</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const re2 = /bak[ıi]/i;
+console.log(re2.test("Mən Bakıda yaşayıram")); // true</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>Azərbaycan hərfləri \w və [a-z] daxilində deyil</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose">JavaScript-in <code>\w</code> və <code>a-z</code> diapazonu yalnız latın əlifbasının 26 hərfini tanıyır. <strong style="color:var(--coral)">ə, ı, ğ, ş, ç, ö, ü</strong> bu diapazona daxil deyil!</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const adRegex = /^[a-zA-Z]+$/;
+console.log(adRegex.test("Cəlil")); // false — "ə" tanınmadı!</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>// 1) hərfləri əl ilə əlavə et
+const adRegex1 = /^[a-zA-ZƏəIıİiĞğŞşÇçÖöÜü]+$/;
+
+// 2) və ya unicode hərf sinfindən istifadə et ("u" bayrağı ilə)
+const adRegex2 = /^\p{L}+$/u;
+
+console.log(adRegex2.test("Cəlil")); // true</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>replace()-də «g» olmadan yalnız ilk uyğunluq dəyişir</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose">Çox zaman gözlənilir ki, <code>replace()</code> bütün uyğunluqları dəyişəcək — amma <code>g</code> bayrağı olmadan cəmi <strong style="color:var(--text)">biri</strong> dəyişir.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Səhv</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const metn = "pişik pişik pişik";
+console.log(metn.replace(/pişik/, "it"));
+// "it pişik pişik"  ← cəmi biri dəyişdi!</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>console.log(metn.replace(/pişik/g, "it"));   // "it it it"
+console.log(metn.replaceAll("pişik", "it")); // "it it it"</code></pre>
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary><span><span class="sev-tag">Bug</span>İç-içə kvantifikatorlar və regex ilə "parse" etmək</span><span class="chev">+</span></summary>
+      <div class="details-body">
+        <p class="prose">Bəzi mürəkkəb pattern-lər (məs. <code>(a+)+</code> kimi iç-içə təkrarlar) uzun mətndə <strong style="color:var(--coral)">catastrophic backtracking</strong>-ə səbəb ola bilər — brauzer/server saniyələrlə, hətta dəqiqələrlə "asılı" qalır. Həmçinin HTML və ya JSON kimi strukturlu formatları regex ilə "parse" etməyə çalışmaq da tipik səhvdir.</p>
+        <div class="code-block bad">
+          <div class="cb-top"><span class="cb-label">❌ Riskli</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>const supheliRegex = /^(a+)+$/;
+supheliRegex.test("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!");
+// brauzer bir müddət tamamilə donur</code></pre>
+        </div>
+        <div class="code-block good">
+          <div class="cb-top"><span class="cb-label">✅ Düzgün</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code>// 1) iç-içə kvantifikatorlardan çəkin — /^a+$/ kifayətdir
+// 2) strukturlu formatlar üçün hazır parser işlət:
+const data = JSON.parse(jsonString); // regex yox, düz parser</code></pre>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- 08 BEST PRACTICE -->
+  <section id="best-practice">
+    <div class="eyebrow"><span class="num">08</span><span class="label">Tövsiyələr</span></div>
+    <h2>Nəyi etsək daha yaxşı olar?</h2>
+    <ul class="bp-list">
+      <li>Mürəkkəb pattern qurmadan əvvəl <strong>onlayn regex test alətindən</strong> istifadə et — hər hissənin nəyə uyğun gəldiyini canlı gör.</li>
+      <li>Uzun pattern-ləri <strong>adlandırılmış qruplarla</strong> (<code>(?&lt;ad&gt;...)</code>) böl — 6 ay sonra özün də oxuyanda anlayacaqsan.</li>
+      <li>Azərbaycan və digər unicode simvollarla işləyəndə <strong><code>u</code> bayrağı</strong> və <code>\p{L}</code> kimi unicode sinifləri düşün.</li>
+      <li>Təkrar istifadə olunan regex-i <strong>funksiya içində yox, modulun yuxarısında bir dəfə</strong> təyin et — hər çağırışda yenidən yaratmaq performansa təsir edir.</li>
+      <li>İstifadəçi girişindən qaynaqlanan hər hissəni <strong>mütləq escape et</strong> — özün yazdığın <code>escapeRegex()</code> funksiyası kifayətdir.</li>
+      <li>Frontend validasiyası <strong>yalnız UX üçündür</strong> — heç vaxt etibar edilən son nöqtə deyil, backend-də mütləq təkrar yoxla.</li>
+      <li>Bir "hamısını edən" nəhəng regex yazmaqdansa, məntiqi olaraq <strong>bir neçə sadə regex-ə böl</strong>.</li>
+      <li>Test case-lərinə <strong>sərhəd halları</strong> əlavə et: boş sətir, yalnız boşluqlar, çox uzun mətn, emoji, Azərbaycan hərfləri.</li>
+    </ul>
+  </section>
+
+  <!-- 09 YEKUN -->
+  <section id="yekun">
+    <div class="eyebrow"><span class="num">09</span><span class="label">Yoxla özünü</span></div>
+    <h2>Yekun və özünüyoxlama</h2>
+    <p class="lede">Sualın üstünə klikləyib cavabı yoxla:</p>
+
+    <details>
+      <summary><span>1. «g» bayraqlı regex-i eyni sətir üzərində iki dəfə <code>test()</code> ilə çağırsaq, nəticələr niyə fərqli ola bilər?</span><span class="chev">+</span></summary>
+      <div class="details-body prose"><p><strong style="color:var(--mint)">Cavab:</strong> çünki <code>g</code> bayrağı regex-ə vəziyyət (<code>lastIndex</code>) qazandırır — hər uğurlu axtarışdan sonra sonrakı axtarış həmin nöqtədən başlayır. Nəticədə eyni mətn üçün nəticə "true, false, true..." arasında dəyişə bilər.</p></div>
+    </details>
+
+    <details>
+      <summary><span>2. <code>match()</code> metodunu «g» bayrağı ilə çağırsaq, tutulan qruplar nəticədə olurmu?</span><span class="chev">+</span></summary>
+      <div class="details-body prose"><p><strong style="color:var(--mint)">Cavab:</strong> Xeyr. «g» ilə <code>match()</code> yalnız tam uyğunluqların sadə sətir siyahısını qaytarır, qruplar itir. Qrupları saxlamaq üçün <code>matchAll()</code> və ya «g» olmadan tək uyğunluqla işləmək lazımdır.</p></div>
+    </details>
+
+    <details>
+      <summary><span>3. "Əli" sözü <code>/^[a-z]+$/i</code> pattern-inə niyə uyğun gəlmir?</span><span class="chev">+</span></summary>
+      <div class="details-body prose"><p><strong style="color:var(--mint)">Cavab:</strong> çünki <code>[a-z]</code> diapazonu yalnız latın əlifbasının 26 hərfini əhatə edir; "ə" bu diapazona daxil deyil. Hərfi əl ilə diapazona əlavə etmək və ya <code>/^\p{L}+$/u</code> kimi unicode hərf sinfindən istifadə etmək lazımdır.</p></div>
+    </details>
+
+    <details>
+      <summary><span>4. <code>replace()</code>-in ilk arqumenti adi sətir (regex yox) olduqda neçə uyğunluq dəyişir?</span><span class="chev">+</span></summary>
+      <div class="details-body prose"><p><strong style="color:var(--mint)">Cavab:</strong> cəmi biri — ilk rast gəlinən. Hamısını dəyişmək üçün ya <code>g</code> bayraqlı regex, ya da <code>replaceAll()</code> lazımdır.</p></div>
+    </details>
+
+    <details>
+      <summary><span>5. İstifadəçi girişini birbaşa <code>new RegExp(input)</code> şəklində işlətmək niyə risklidir?</span><span class="chev">+</span></summary>
+      <div class="details-body prose"><p><strong style="color:var(--mint)">Cavab:</strong> çünki istifadəçi <code>.</code>, <code>*</code>, <code>(</code> kimi xüsusi regex simvolları yaza bilər — bu, gözlənilməz uyğunluqlara, xətalara, hətta mürəkkəb hallarda performans problemlərinə (ReDoS) səbəb ola bilər. Girişi əvvəlcə escape etmək lazımdır.</p></div>
+    </details>
+  </section>
+
+</main>
+
+<footer>
+  <p>Bu dərs JavaScript-də Regular Expressions mövzusunu əhatə edir — <span class="fmark">test() · match() · replace()</span>. Öz layihələrində yeni regex qurarkən mütləq sərhəd hallarını (boş sətir, uzun mətn, Azərbaycan hərfləri) sına.</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- yardımçı funksiyalar ---------- */
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ---------- scroll progress ---------- */
+var progressEl = document.getElementById('scrollProgress');
+function updateProgress(){
+  var h = document.documentElement;
+  var scrolled = h.scrollTop;
+  var max = h.scrollHeight - h.clientHeight;
+  var pct = max > 0 ? (scrolled/max)*100 : 0;
+  progressEl.style.width = pct + '%';
+}
+document.addEventListener('scroll', updateProgress, {passive:true});
+updateProgress();
+
+/* ---------- TOC panel ---------- */
+var tocPanel = document.getElementById('tocPanel');
+var tocOverlay = document.getElementById('tocOverlay');
+var tocOpenBtn = document.getElementById('tocOpenBtn');
+var tocCloseBtn = document.getElementById('tocCloseBtn');
+
+function openToc(){ tocPanel.classList.add('open'); tocOverlay.classList.add('open'); }
+function closeToc(){ tocPanel.classList.remove('open'); tocOverlay.classList.remove('open'); }
+
+tocOpenBtn.addEventListener('click', openToc);
+tocCloseBtn.addEventListener('click', closeToc);
+tocOverlay.addEventListener('click', closeToc);
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeToc(); });
+Array.prototype.forEach.call(document.querySelectorAll('[data-toc]'), function(a){
+  a.addEventListener('click', closeToc);
+});
+
+/* scroll-spy: active link */
+var tocLinks = Array.prototype.slice.call(document.querySelectorAll('[data-toc]'));
+var sections = tocLinks.map(function(a){ return document.querySelector(a.getAttribute('href')); }).filter(Boolean);
+if('IntersectionObserver' in window){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      var id = '#' + entry.target.id;
+      var link = tocLinks.find(function(a){ return a.getAttribute('href') === id; });
+      if(!link) return;
+      if(entry.isIntersecting){
+        tocLinks.forEach(function(l){ l.classList.remove('active'); });
+        link.classList.add('active');
+      }
+    });
+  }, {rootMargin:'-40% 0px -55% 0px'});
+  sections.forEach(function(s){ io.observe(s); });
+}
+
+/* ---------- copy buttons ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function(btn){
+  btn.addEventListener('click', function(){
+    var block = btn.closest('.code-block');
+    var codeEl = block ? block.querySelector('code') : null;
+    if(!codeEl) return;
+    var text = codeEl.textContent;
+    var done = function(){
+      var old = btn.textContent;
+      btn.textContent = 'Kopyalandı ✓';
+      setTimeout(function(){ btn.textContent = old; }, 1500);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, done);
+    } else {
+      done();
+    }
+  });
+});
+
+/* =====================================================
+   CANLI REGEX LABORATORİYASI
+===================================================== */
+var pgPattern = document.getElementById('pgPattern');
+var pgFlagG = document.getElementById('pgFlagG');
+var pgFlagI = document.getElementById('pgFlagI');
+var pgFlagM = document.getElementById('pgFlagM');
+var pgFlagS = document.getElementById('pgFlagS');
+var pgFlagU = document.getElementById('pgFlagU');
+var pgTestStr = document.getElementById('pgTestStr');
+var pgReplacement = document.getElementById('pgReplacement');
+var pgFlagsSuffix = document.getElementById('pgFlagsSuffix');
+var pgError = document.getElementById('pgError');
+var pgHighlight = document.getElementById('pgHighlight');
+var pgTestOut = document.getElementById('pgTestOut');
+var pgTestBadge = document.getElementById('pgTestBadge');
+var pgMatchOut = document.getElementById('pgMatchOut');
+var pgMatchBadge = document.getElementById('pgMatchBadge');
+var pgMatchAllOut = document.getElementById('pgMatchAllOut');
+var pgReplaceOut = document.getElementById('pgReplaceOut');
+var pgReplaceBadge = document.getElementById('pgReplaceBadge');
+var pgHint = document.getElementById('pgHint');
+
+var DEFAULTS = {
+  pattern: '[\\w.-]+@[\\w.-]+\\.\\w+',
+  flags: {g:true,i:false,m:false,s:false,u:false},
+  testStr: 'Sual var? Yazın: elvin.m@example.com və ya destek@saytim.az ünvanına. Təşəkkürlər!',
+  replacement: '[E-POÇT GİZLƏDİLDİ]'
+};
+
+function currentFlags(){
+  var f = '';
+  if(pgFlagG.checked) f += 'g';
+  if(pgFlagI.checked) f += 'i';
+  if(pgFlagM.checked) f += 'm';
+  if(pgFlagS.checked) f += 's';
+  if(pgFlagU.checked) f += 'u';
+  return f;
+}
+
+function buildHighlight(str, baseRegex){
+  var flags = baseRegex.flags.indexOf('g') === -1 ? baseRegex.flags + 'g' : baseRegex.flags;
+  var g;
+  try { g = new RegExp(baseRegex.source, flags); } catch(e){ return {html: escapeHtml(str), count:0}; }
+  var html = '';
+  var lastIndex = 0;
+  var m;
+  var count = 0;
+  var guard = 0;
+  while((m = g.exec(str)) !== null && guard < 2000){
+    guard++;
+    if(m[0].length === 0){
+      g.lastIndex++;
+      continue;
+    }
+    html += escapeHtml(str.slice(lastIndex, m.index));
+    html += '<mark>' + escapeHtml(m[0]) + '</mark>';
+    lastIndex = g.lastIndex;
+    count++;
+  }
+  html += escapeHtml(str.slice(lastIndex));
+  return {html: html, count: count};
+}
+
+function formatSingleMatch(m){
+  var lines = [];
+  lines.push('Tam uyğunluq: "' + m[0] + '" (indeks: ' + m.index + ')');
+  if(m.length > 1){
+    for(var i=1;i<m.length;i++){
+      lines.push('  Qrup ' + i + ': ' + (m[i] !== undefined ? '"' + m[i] + '"' : '(yoxdur)'));
+    }
+  }
+  if(m.groups){
+    Object.keys(m.groups).forEach(function(k){
+      lines.push('  Adlı qrup <' + k + '>: "' + m.groups[k] + '"');
+    });
+  }
+  return lines.join('\n');
+}
+
+function runPlayground(){
+  var pattern = pgPattern.value;
+  var flags = currentFlags();
+  pgFlagsSuffix.textContent = flags || '\u2014';
+
+  var re;
+  try{
+    re = new RegExp(pattern, flags);
+    pgError.classList.remove('show');
+    pgError.textContent = '';
+  } catch(e){
+    pgError.textContent = 'Pattern düzgün deyil: ' + e.message;
+    pgError.classList.add('show');
+    pgHighlight.innerHTML = escapeHtml(pgTestStr.value);
+    pgTestOut.textContent = '—'; pgTestBadge.textContent = '—'; pgTestBadge.className = 'badge';
+    pgMatchOut.textContent = '—'; pgMatchBadge.textContent = '—'; pgMatchBadge.className = 'badge';
+    pgMatchAllOut.textContent = '—';
+    pgReplaceOut.textContent = '—'; pgReplaceBadge.textContent = '—'; pgReplaceBadge.className = 'badge';
+    pgHint.textContent = '';
+    return;
+  }
+
+  var str = pgTestStr.value;
+
+  /* Highlight */
+  var hl = buildHighlight(str, re);
+  pgHighlight.innerHTML = hl.html || '<span style="color:var(--text-faint)">(mətn boşdur)</span>';
+
+  /* test() — hər dəfə TƏZƏ regex ilə, lastIndex bugundan qorunmaq üçün */
+  var testRe = new RegExp(pattern, flags);
+  var testResult = testRe.test(str);
+  pgTestOut.textContent = testResult ? 'true' : 'false';
+  pgTestBadge.textContent = testResult ? 'uyğun gəlir' : 'uyğun gəlmir';
+  pgTestBadge.className = 'badge ' + (testResult ? 'ok' : 'no');
+
+  /* match() — istifadəçinin seçdiyi bayraqlara görə davranış fərqlənir */
+  var matchRe = new RegExp(pattern, flags);
+  var matchResult;
+  try { matchResult = str.match(matchRe); } catch(e){ matchResult = null; }
+
+  if(!matchResult){
+    pgMatchOut.textContent = 'null (uyğunluq tapılmadı)';
+    pgMatchBadge.textContent = '0 uyğunluq';
+    pgMatchBadge.className = 'badge no';
+  } else if(flags.indexOf('g') !== -1){
+    pgMatchOut.textContent = 'g bayrağı ilə — yalnız tam uyğunluqlar, qruplar yoxdur:\n[' +
+      matchResult.map(function(x){ return '"' + x + '"'; }).join(', ') + ']';
+    pgMatchBadge.textContent = matchResult.length + ' uyğunluq';
+    pgMatchBadge.className = 'badge ok';
+  } else {
+    pgMatchOut.textContent = formatSingleMatch(matchResult);
+    pgMatchBadge.textContent = '1 uyğunluq (ilk)';
+    pgMatchBadge.className = 'badge ok';
+  }
+
+  /* matchAll() — həmişə ətraflı, qruplarla */
+  var allFlags = flags.indexOf('g') === -1 ? flags + 'g' : flags;
+  try{
+    var allRe = new RegExp(pattern, allFlags);
+    var all = Array.from(str.matchAll(allRe));
+    if(all.length === 0){
+      pgMatchAllOut.textContent = 'Uyğunluq tapılmadı.';
+    } else {
+      pgMatchAllOut.textContent = all.map(function(m, idx){
+        return '#' + (idx+1) + '  ' + formatSingleMatch(m).replace(/\n/g, '\n     ');
+      }).join('\n\n');
+    }
+  } catch(e){
+    pgMatchAllOut.textContent = 'Xəta: ' + e.message;
+  }
+
+  /* replace() */
+  try{
+    var replaceRe = new RegExp(pattern, flags);
+    var replacedStr = str.replace(replaceRe, pgReplacement.value);
+    pgReplaceOut.textContent = replacedStr;
+    if(hl.count > 1 && flags.indexOf('g') === -1){
+      pgReplaceBadge.textContent = 'yalnız 1-ci dəyişdi';
+      pgReplaceBadge.className = 'badge no';
+      pgHint.textContent = '⚠ "g" bayrağı seçilməyib, ona görə yalnız İLK uyğunluq dəyişdirildi. Yuxarıda ' + hl.count + ' uyğunluq var idi.';
+    } else {
+      pgReplaceBadge.textContent = hl.count + ' dəyişdi';
+      pgReplaceBadge.className = 'badge ok';
+      pgHint.textContent = '';
+    }
+  } catch(e){
+    pgReplaceOut.textContent = 'Xəta: ' + e.message;
+    pgReplaceBadge.textContent = 'xəta';
+    pgReplaceBadge.className = 'badge no';
+  }
+}
+
+function resetPlayground(){
+  pgPattern.value = DEFAULTS.pattern;
+  pgFlagG.checked = DEFAULTS.flags.g;
+  pgFlagI.checked = DEFAULTS.flags.i;
+  pgFlagM.checked = DEFAULTS.flags.m;
+  pgFlagS.checked = DEFAULTS.flags.s;
+  pgFlagU.checked = DEFAULTS.flags.u;
+  pgTestStr.value = DEFAULTS.testStr;
+  pgReplacement.value = DEFAULTS.replacement;
+  runPlayground();
+}
+
+[pgPattern, pgFlagG, pgFlagI, pgFlagM, pgFlagS, pgFlagU, pgTestStr, pgReplacement].forEach(function(el){
+  el.addEventListener('input', runPlayground);
+  el.addEventListener('change', runPlayground);
+});
+document.getElementById('labReset').addEventListener('click', resetPlayground);
+
+resetPlayground();
+
+/* =====================================================
+   FORMA VALİDASİYA DEMOSU
+===================================================== */
+var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+var phoneRe = /^(\+994|0)(10|50|51|55|60|70|77|99)\d{7}$/;
+var nameRe = /^\p{L}+(\s\p{L}+)*$/u;
+
+function wireField(inputId, wrapId, msgId, validator, okText, noText){
+  var input = document.getElementById(inputId);
+  var wrap = document.getElementById(wrapId);
+  var msg = document.getElementById(msgId);
+  input.addEventListener('input', function(){
+    var v = input.value.trim();
+    if(v === ''){
+      wrap.classList.remove('valid','invalid');
+      msg.textContent = '';
+      msg.className = 'f-msg';
+      return;
+    }
+    var ok = validator(v);
+    wrap.classList.toggle('valid', ok);
+    wrap.classList.toggle('invalid', !ok);
+    msg.textContent = ok ? okText : noText;
+    msg.className = 'f-msg ' + (ok ? 'ok' : 'no');
+  });
+}
+
+wireField('fEmail','fEmailWrap','fEmailMsg', function(v){ return emailRe.test(v); }, '✓ Düzgün format', '✕ E-poçt formatına uyğun deyil');
+wireField('fPhone','fPhoneWrap','fPhoneMsg', function(v){ return phoneRe.test(v.replace(/\s|-/g,'')); }, '✓ Düzgün AZ nömrə', '✕ Format: +994501234567 və ya 0501234567');
+wireField('fName','fNameWrap','fNameMsg', function(v){ return nameRe.test(v); }, '✓ Yalnız hərflər — düzgündür', '✕ Yalnız hərf və boşluq istifadə et');
+
+var passInput = document.getElementById('fPass');
+var passBar = document.getElementById('fPassBar');
+var passMsg = document.getElementById('fPassMsg');
+passInput.addEventListener('input', function(){
+  var v = passInput.value;
+  if(v === ''){
+    passBar.style.width = '0%';
+    passBar.style.background = 'var(--border)';
+    passMsg.textContent = '';
+    passMsg.className = 'f-msg';
+    return;
+  }
+  var score = 0;
+  if(v.length >= 8) score++;
+  if(/[a-z]/.test(v)) score++;
+  if(/[A-Z]/.test(v)) score++;
+  if(/\d/.test(v)) score++;
+  if(/[^A-Za-z0-9]/.test(v)) score++;
+
+  var pct = (score/5)*100;
+  passBar.style.width = pct + '%';
+  var label, color, cls;
+  if(score <= 2){ label = 'Zəif şifrə'; color = 'var(--coral)'; cls='no'; }
+  else if(score <= 3){ label = 'Orta güclü şifrə'; color = 'var(--amber)'; cls='no'; }
+  else { label = 'Güclü şifrə'; color = 'var(--mint)'; cls='ok'; }
+  passBar.style.background = color;
+  passMsg.textContent = label + ' (' + score + '/5 meyar)';
+  passMsg.className = 'f-msg ' + cls;
+});
+
+})();
+</script>
+</body>
+</html>

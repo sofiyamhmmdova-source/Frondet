@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 8 — Performans Optimallaşdırması | React Kursu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0a0f1d;
+    --surface:#121a2e;
+    --surface-2:#1a2440;
+    --surface-3:#212c4d;
+    --line:#2a3655;
+    --line-soft:#1e2842;
+    --text:#edf1f9;
+    --text-dim:#93a0bd;
+    --text-faint:#657092;
+    --cool:#38bdf8;
+    --good:#34d399;
+    --warm:#fbbf24;
+    --hot:#fb6340;
+    --violet:#a78bfa;
+    --radius-sm:8px;
+    --radius:14px;
+    --radius-lg:22px;
+    --font-display:'Space Grotesk', 'IBM Plex Sans', system-ui, sans-serif;
+    --font-body:'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-mono:'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --maxw:1080px;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *,*::before,*::after{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(167,139,250,0.14), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(56,189,248,0.10), transparent 55%),
+      var(--ink);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:var(--cool);}
+  h1,h2,h3,h4{font-family:var(--font-display); font-weight:600; margin:0; letter-spacing:-0.01em;}
+  p{margin:0 0 1em 0;}
+  ul,ol{margin:0 0 1em 0; padding-left:1.3em;}
+  li{margin-bottom:0.45em;}
+  code{font-family:var(--font-mono); font-size:0.9em; background:var(--surface-3); padding:0.15em 0.4em; border-radius:5px; color:#c9d5f5;}
+  ::selection{background:rgba(167,139,250,0.35); color:#fff;}
+
+  :focus-visible{outline:2px solid var(--cool); outline-offset:3px; border-radius:4px;}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px;}
+
+  /* ===== grid texture background used behind hero ===== */
+  .grid-bg{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:42px 42px;
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), transparent 90%);
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), transparent 90%);
+    pointer-events:none;
+  }
+
+  /* ===== HERO ===== */
+  .hero{position:relative; overflow:hidden; padding:76px 0 54px; border-bottom:1px solid var(--line-soft);}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--violet); background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.35);
+    padding:6px 14px; border-radius:999px; margin-bottom:22px;
+  }
+  .eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--violet); box-shadow:0 0 0 3px rgba(167,139,250,0.25);}
+
+  .hero h1{
+    font-size:clamp(32px, 5.4vw, 54px);
+    line-height:1.15;
+    max-width:21ch;
+    overflow-wrap:break-word;
+    padding-bottom:0.1em;
+    background:linear-gradient(100deg, #fff 30%, var(--cool) 90%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero__sub{
+    margin-top:18px; font-size:clamp(16px,2vw,19px); color:var(--text-dim); max-width:56ch;
+  }
+
+  .chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:28px;}
+  .chip{
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:13.5px; font-family:var(--font-mono); color:var(--text);
+    background:var(--surface); border:1px solid var(--line); padding:8px 14px; border-radius:999px;
+  }
+
+  /* thermometer / render-heat legend — recurring signature motif */
+  .heat-legend{
+    margin-top:40px; padding:18px 22px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    display:flex; flex-direction:column; gap:10px; max-width:520px;
+  }
+  .heat-legend__title{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-faint);}
+  .heat-bar{height:10px; border-radius:999px; background:linear-gradient(90deg, var(--cool), var(--good) 35%, var(--warm) 68%, var(--hot));}
+  .heat-labels{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-dim);}
+
+  /* ===== TOC ===== */
+  .toc-wrap{position:sticky; top:0; z-index:40; background:rgba(10,15,29,0.86); backdrop-filter:blur(10px); border-bottom:1px solid var(--line-soft);}
+  .toc{display:flex; gap:6px; overflow-x:auto; padding:12px 24px; max-width:var(--maxw); margin:0 auto; scrollbar-width:thin;}
+  .toc::-webkit-scrollbar{height:5px;}
+  .toc::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px;}
+  .toc a{
+    flex:0 0 auto; text-decoration:none; font-size:13.5px; color:var(--text-dim);
+    padding:8px 14px; border-radius:999px; white-space:nowrap; transition:all .15s ease; border:1px solid transparent;
+  }
+  .toc a:hover{color:var(--text); background:var(--surface);}
+  .toc a.is-num{font-family:var(--font-mono);}
+
+  /* ===== SECTIONS ===== */
+  section{padding:64px 0;}
+  section + section{border-top:1px solid var(--line-soft);}
+  .section-head{margin-bottom:36px; max-width:70ch;}
+  .section-kicker{
+    display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:12.5px;
+    letter-spacing:0.12em; text-transform:uppercase; color:var(--cool); margin-bottom:12px;
+  }
+  .section-kicker::before{content:''; width:22px; height:1px; background:var(--cool);}
+  .section-head h2{font-size:clamp(24px,3.4vw,34px);}
+  .section-head p{color:var(--text-dim); margin-top:12px; font-size:16px;}
+
+  /* numbered theory items — real sequence, numbering is meaningful here */
+  .topic{margin-bottom:52px; scroll-margin-top:90px;}
+  .topic__head{display:flex; align-items:baseline; gap:16px; margin-bottom:16px;}
+  .topic__num{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); border:1px solid var(--line); border-radius:8px; padding:3px 9px; flex:0 0 auto;}
+  .topic__title{font-size:clamp(19px,2.6vw,24px);}
+  .topic__body{max-width:76ch;}
+  .topic__body > p{color:#d3dbf0;}
+
+  .callout{
+    display:flex; gap:12px; padding:16px 18px; border-radius:var(--radius); margin:18px 0;
+    border:1px solid var(--line); background:var(--surface); font-size:14.5px;
+  }
+  .callout__icon{flex:0 0 auto; font-size:18px; line-height:1.4;}
+  .callout--warn{border-color:rgba(251,191,36,0.35); background:rgba(251,191,36,0.06);}
+  .callout--good{border-color:rgba(52,211,153,0.32); background:rgba(52,211,153,0.055);}
+  .callout--info{border-color:rgba(56,189,248,0.32); background:rgba(56,189,248,0.055);}
+  .callout p{margin:0;}
+  .callout strong{color:#fff;}
+
+  /* ===== CODE BLOCKS ===== */
+  .code-pair{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:20px 0;}
+  @media (max-width:820px){ .code-pair{grid-template-columns:1fr;} }
+
+  .code-block{position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); background:var(--surface-2);}
+  .code-block--bad{border-color:rgba(251,99,64,0.4);}
+  .code-block--good{border-color:rgba(52,211,153,0.4);}
+  .code-label{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:9px 14px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.04em;
+    border-bottom:1px solid var(--line); background:rgba(255,255,255,0.02);
+  }
+  .code-label__tag{display:flex; align-items:center; gap:7px; text-transform:uppercase; letter-spacing:0.08em;}
+  .code-block--bad .code-label__tag{color:var(--hot);}
+  .code-block--good .code-label__tag{color:var(--good);}
+  .copy-btn{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--text-dim); background:transparent;
+    border:1px solid var(--line); border-radius:6px; padding:4px 9px; cursor:pointer; transition:all .15s ease;
+  }
+  .copy-btn:hover{color:var(--text); border-color:var(--text-faint);}
+  .copy-btn.copied{color:var(--good); border-color:var(--good);}
+
+  pre{margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--font-mono); font-size:13px; line-height:1.65; color:#d7deef;}
+  pre .cm{color:#657092;}
+  pre .kw{color:#a78bfa;}
+  pre .fn{color:#38bdf8;}
+  pre .str{color:#34d399;}
+  pre .num{color:#fbbf24;}
+  pre .tag{color:#fb7185;}
+
+  .code-block.solo{margin:20px 0;}
+
+  /* ===== TABLE ===== */
+  .table-wrap{overflow-x:auto; margin:20px 0; border:1px solid var(--line); border-radius:var(--radius);}
+  table{width:100%; border-collapse:collapse; font-size:14.5px; min-width:520px;}
+  th,td{text-align:left; padding:13px 16px; border-bottom:1px solid var(--line-soft);}
+  th{font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); background:var(--surface);}
+  tr:last-child td{border-bottom:none;}
+  td code{white-space:nowrap;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+
+  /* ===== RENDER LAB (interactive simulation) ===== */
+  .lab{
+    border:1px solid var(--line); border-radius:var(--radius-lg); background:var(--surface);
+    padding:28px; margin:28px 0;
+  }
+  .lab__top{display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin-bottom:22px;}
+  .lab__buttons{display:flex; flex-wrap:wrap; gap:10px;}
+  .lab-btn{
+    font-family:var(--font-mono); font-size:13px; border-radius:10px; padding:11px 16px; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text); transition:all .15s ease;
+  }
+  .lab-btn:hover{border-color:var(--text-faint); transform:translateY(-1px);}
+  .lab-btn--a{border-color:rgba(56,189,248,0.4);}
+  .lab-btn--b{border-color:rgba(251,99,64,0.4);}
+  .lab-btn--reset{color:var(--text-faint);}
+  .lab__meta{font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim);}
+  .lab__meta b{color:#fff;}
+
+  .lab__boxes{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){ .lab__boxes{grid-template-columns:1fr;} }
+
+  .render-box{
+    border:1px solid var(--line); border-radius:var(--radius); padding:20px; background:var(--surface-2);
+    transition:background .5s ease, border-color .5s ease, box-shadow .5s ease;
+  }
+  .render-box__top{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .render-box__label{font-family:var(--font-mono); font-size:13px; color:var(--text-dim);}
+  .render-box__badge{font-family:var(--font-mono); font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); color:var(--text-faint);}
+  .render-box__count{font-size:30px; font-family:var(--font-display); font-weight:600;}
+  .render-box__status{font-size:12.5px; color:var(--text-faint); margin-top:6px; min-height:18px;}
+
+  .render-box.flash-hot{background:rgba(251,99,64,0.16); border-color:var(--hot); box-shadow:0 0 0 3px rgba(251,99,64,0.12);}
+  .render-box.flash-cool{background:rgba(52,211,153,0.14); border-color:var(--good); box-shadow:0 0 0 3px rgba(52,211,153,0.10);}
+
+  .lab__note{margin-top:20px; font-size:13.5px; color:var(--text-faint);}
+
+  /* ===== TASK SECTION ===== */
+  .task-card{border:1px solid rgba(167,139,250,0.35); background:rgba(167,139,250,0.06); border-radius:var(--radius-lg); padding:30px;}
+  .task-card h3{font-size:20px; margin-bottom:14px;}
+  .check-list{list-style:none; padding:0; margin:16px 0;}
+  .check-list li{
+    display:flex; gap:10px; align-items:flex-start; margin-bottom:10px; font-size:14.5px; color:#d3dbf0;
+  }
+  .check-list li::before{content:'☐'; color:var(--violet); font-size:16px; line-height:1.4; flex:0 0 auto;}
+
+  details.hint{margin-top:18px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); overflow:hidden;}
+  details.hint summary{cursor:pointer; padding:14px 18px; font-family:var(--font-mono); font-size:13.5px; color:var(--cool); list-style:none; display:flex; align-items:center; gap:8px;}
+  details.hint summary::-webkit-details-marker{display:none;}
+  details.hint summary::before{content:'▸'; transition:transform .2s ease;}
+  details.hint[open] summary::before{transform:rotate(90deg);}
+  details.hint .hint-body{padding:0 18px 18px; font-size:14px; color:var(--text-dim);}
+
+  /* ===== BUG CARDS ===== */
+  .bug-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+  .bug-card{border:1px solid var(--line); border-left:3px solid var(--hot); border-radius:var(--radius); background:var(--surface); padding:20px 22px;}
+  .bug-card__head{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .bug-card__num{font-family:var(--font-mono); font-size:12px; color:var(--hot); border:1px solid rgba(251,99,64,0.4); border-radius:6px; padding:1px 8px;}
+  .bug-card__title{font-size:16.5px; font-weight:600; font-family:var(--font-display);}
+  .bug-card__why{font-size:14.5px; color:var(--text-dim); margin:10px 0;}
+  .bug-card__fix{
+    display:flex; gap:8px; font-size:14px; color:var(--good); background:rgba(52,211,153,0.07);
+    border:1px solid rgba(52,211,153,0.25); border-radius:9px; padding:10px 13px; margin-top:10px;
+  }
+
+  /* ===== BEST PRACTICES ===== */
+  .bp-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  @media (max-width:720px){ .bp-grid{grid-template-columns:1fr;} }
+  .bp-card{border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; background:var(--surface);}
+  .bp-card__icon{font-size:20px; margin-bottom:10px; display:block;}
+  .bp-card h4{font-size:15.5px; margin-bottom:8px;}
+  .bp-card p{font-size:14px; color:var(--text-dim); margin:0;}
+
+  /* ===== FAQ ACCORDION ===== */
+  .faq-item{border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); margin-bottom:14px; overflow:hidden;}
+  .faq-q{
+    width:100%; text-align:right; display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:none; border:none; color:var(--text); font-family:var(--font-body); font-size:16px; font-weight:600;
+    padding:19px 22px; cursor:pointer; text-align:left;
+  }
+  .faq-q__plus{font-family:var(--font-mono); font-size:20px; color:var(--violet); transition:transform .25s ease; flex:0 0 auto;}
+  .faq-item.open .faq-q__plus{transform:rotate(45deg);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+  .faq-a__inner{padding:0 22px 22px; font-size:15px; color:#d3dbf0;}
+  .faq-a__inner p{margin-bottom:12px;}
+
+  /* ===== FOOTER ===== */
+  footer{padding:48px 0 60px; text-align:center;}
+  footer p{color:var(--text-faint); font-size:13.5px;}
+
+  .num-list{counter-reset:step;}
+  .num-list li{list-style:none; position:relative; padding-left:8px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="grid-bg" aria-hidden="true"></div>
+  <div class="wrap" style="position:relative;">
+    <span class="eyebrow">React Kursu · Dərs 8</span>
+    <h1>Performans Optimallaşdırması</h1>
+    <p class="hero__sub">React tətbiqləri niyə "ləngiyir", lazımsız render-lər haradan gəlir və bunları <code>useMemo</code>, <code>useCallback</code>, <code>React.memo</code> ilə necə idarə etmək olar — nəzəriyyədən canlı simulyasiyaya, oradan da real tapşırığa qədər.</p>
+    <div class="chips">
+      <span class="chip">⏱ ≈ 2.5 saat</span>
+      <span class="chip">🧠 5 nəzəri mövzu</span>
+      <span class="chip">🛠 2 praktiki nümunə</span>
+      <span class="chip">🎯 1 tapşırıq</span>
+      <span class="chip">🐞 8 tipik xəta</span>
+    </div>
+
+    <div class="heat-legend">
+      <span class="heat-legend__title">Render İstiliyi — bu dərs boyu istifadə olunan şkala</span>
+      <div class="heat-bar"></div>
+      <div class="heat-labels">
+        <span>❄️ Soyuq — lazımsız render yoxdur</span>
+        <span>🔥 İsti — lazımsız render baş verir</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="toc-wrap">
+  <nav class="toc" aria-label="Məzmun">
+    <a href="#nezeri">Nəzəriyyə</a>
+    <a href="#lab">Render Laboratoriyası</a>
+    <a href="#praktika">Praktika</a>
+    <a href="#tapshiriq">Tapşırıq</a>
+    <a href="#xetalar">Xətalar</a>
+    <a href="#yaxsi">Ən yaxşı təcrübələr</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+</div>
+
+<main class="wrap">
+
+<!-- ================= NƏZƏRİ HİSSƏ ================= -->
+<section id="nezeri">
+  <div class="section-head">
+    <span class="section-kicker">Nəzəri hissə</span>
+    <h2>Render niyə "təkrarlanır"?</h2>
+    <p>React-də performans problemlərinin demək olar hamısı bir kökdən qaynaqlanır: <strong>lazımsız yenidən render olunma</strong>. Əvvəlcə bunun niyə baş verdiyini anlayaq, sonra React-in verdiyi üç əsas alətlə — <code>useMemo</code>, <code>useCallback</code>, <code>React.memo</code> — bunu necə idarə edəcəyimizi öyrənək.</p>
+  </div>
+
+  <!-- 01 -->
+  <article class="topic" id="sebeb">
+    <div class="topic__head">
+      <span class="topic__num">01</span>
+      <h3 class="topic__title">Lazımsız re-render-lərin yaranma səbəbləri</h3>
+    </div>
+    <div class="topic__body">
+      <p>Component-in state və ya props-u dəyişəndə React onun funksiyasını yenidən çağırır — buna "render" deyilir. Render özü birbaşa DOM-u dəyişdirmir: React əvvəlcə yeni virtual DOM ağacını hesablayır, sonra onu əvvəlki ağacla müqayisə edir (reconciliation) və yalnız fərqi real DOM-a tətbiq edir. Problem odur ki, <strong>render funksiyasının özünün icrası da vaxt aparır</strong> — xüsusilə ağır hesablamalar olduqda və ya component ağacı böyük olduqda.</p>
+      <p>Ən çox rast gəlinən səbəblər:</p>
+      <ol>
+        <li><strong>Parent render → bütün children render.</strong> Defolt olaraq, valideyn komponent render olunanda, onun bütün uşaq komponentləri də yenidən render olunur — props-ları heç dəyişməsə belə.</li>
+        <li><strong>State dəyişikliyi.</strong> <code>useState</code> / <code>useReducer</code> ilə idarə olunan state hər dəyişdikdə, o state-dən asılı olan komponent yenidən render olunur.</li>
+        <li><strong>Context dəyişikliyi.</strong> Bir Context Provider-in <code>value</code>-su dəyişəndə, həmin context-i "consume" edən <em>bütün</em> komponentlər render olunur — hətta onlar dəyərin yalnız bir hissəsindən istifadə etsələr belə.</li>
+        <li><strong>Hər renderdə yeni referans yaranması.</strong> JavaScript-də <code>{}</code>, <code>[]</code> və funksiyalar hər dəfə "yeni" obyekt kimi yaranır — məzmunu eyni olsa belə (<code>{} !== {}</code>). Render funksiyası daxilində "inline" yaradılan obyekt/array/funksiya propslar üçün bu, ciddi problemdir.</li>
+        <li><strong>Key prop-un səhv seçilməsi.</strong> Siyahılarda key kimi massiv index-indən istifadə etmək React-ə "hansı element həqiqətən dəyişib" sualını düzgün cavablandırmağa mane olur və lazımsız unmount/remount yaradır.</li>
+      </ol>
+      <div class="callout callout--info">
+        <span class="callout__icon">💡</span>
+        <p><strong>Vacib fərq:</strong> render olunmaq DOM-un dəyişməsi demək deyil. React render nəticəsini əvvəlki ilə müqayisə edir və real DOM-a yalnız fərqi yazır. Amma <em>müqayisənin özü</em> və <em>render funksiyasının icrası</em> pulsuz deyil — optimallaşdırmanın hədəfi məhz budur.</p>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ================= RENDER LABORATORIYASI ================= -->
+<section id="lab">
+  <div class="section-head">
+    <span class="section-kicker">Canlı simulyasiya</span>
+    <h2>Render Laboratoriyası</h2>
+    <p>Aşağıdakı simulyasiya real React tətbiqinin sadələşdirilmiş modelidir: iki "uşaq komponent" var — biri adi, digəri <code>React.memo</code> ilə sarılıb. Fərqli düymələri sınayıb, hansı halda hansının render olunduğunu izləyin.</p>
+  </div>
+
+  <div class="lab">
+    <div class="lab__top">
+      <div class="lab__buttons">
+        <button class="lab-btn lab-btn--a" id="btn-unrelated">❄️ Əlaqəsiz state-i dəyiş</button>
+        <button class="lab-btn lab-btn--b" id="btn-props">🔥 Uşaq props-unu dəyiş</button>
+        <button class="lab-btn lab-btn--reset" id="btn-reset">↺ Sıfırla</button>
+      </div>
+      <div class="lab__meta">Ana komponent render sayı: <b id="parent-count">0</b></div>
+    </div>
+
+    <div class="lab__boxes">
+      <div class="render-box" id="box-plain">
+        <div class="render-box__top">
+          <span class="render-box__label">&lt;PlainChild /&gt; — memo yoxdur</span>
+          <span class="render-box__badge">Adi</span>
+        </div>
+        <div class="render-box__count"><span id="count-plain">0</span> render</div>
+        <div class="render-box__status" id="status-plain">Hələ heç bir hadisə baş verməyib</div>
+      </div>
+
+      <div class="render-box" id="box-memo">
+        <div class="render-box__top">
+          <span class="render-box__label">&lt;MemoChild /&gt; — React.memo</span>
+          <span class="render-box__badge">Memo</span>
+        </div>
+        <div class="render-box__count"><span id="count-memo">0</span> render</div>
+        <div class="render-box__status" id="status-memo">Hələ heç bir hadisə baş verməyib</div>
+      </div>
+    </div>
+
+    <p class="lab__note">
+      <strong>❄️ "Əlaqəsiz state-i dəyiş"</strong> ana komponentdə uşaqlara heç bir aidiyyəti olmayan bir state-i dəyişir (məsələn tema rəngi). Ana yenidən render olunur, adi uşaq da onunla birlikdə render olunur — <code>React.memo</code> ilə sarılmış uşaq isə props-u dəyişmədiyi üçün render-i "atlayır".<br>
+      <strong>🔥 "Uşaq props-unu dəyiş"</strong> isə uşağa ötürülən real props-u dəyişir — bu halda hər iki uşaq render olunur, çünki bu dəfə dəyişiklik həqiqətən onlara aiddir.
+    </p>
+  </div>
+</section>
+
+<!-- ================= NƏZƏRİ HİSSƏ DAVAM ================= -->
+<section>
+  <!-- 02 useMemo -->
+  <article class="topic" id="usememo">
+    <div class="topic__head">
+      <span class="topic__num">02</span>
+      <h3 class="topic__title">useMemo — hesablamaların yaddaşda saxlanması</h3>
+    </div>
+    <div class="topic__body">
+      <p><code>useMemo</code> bir hesablamanın <strong>nəticəsini</strong> yaddaşda saxlayır və yalnız dependency array-dəki dəyərlər dəyişəndə həmin hesablamanı yenidən icra edir. Digər hallarda əvvəlki nəticəni birbaşa qaytarır.</p>
+
+      <div class="code-pair">
+        <div class="code-block code-block--bad">
+          <div class="code-label"><span class="code-label__tag">❌ Problem</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><span class="kw">function</span> <span class="fn">ProductList</span>({ products, query }) {
+  <span class="cm">// hər render-də — hətta əlaqəsiz</span>
+  <span class="cm">// state dəyişəndə belə — təkrar hesablanır</span>
+  <span class="kw">const</span> filtered = products.filter(p =&gt;
+    p.name.toLowerCase().includes(query)
+  );
+
+  <span class="kw">return</span> filtered.map(p =&gt; &lt;<span class="tag">Item</span> {...p} /&gt;);
+}</pre>
+        </div>
+        <div class="code-block code-block--good">
+          <div class="code-label"><span class="code-label__tag">✅ Həll</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><span class="kw">function</span> <span class="fn">ProductList</span>({ products, query }) {
+  <span class="kw">const</span> filtered = <span class="fn">useMemo</span>(() =&gt; {
+    <span class="kw">return</span> products.filter(p =&gt;
+      p.name.toLowerCase().includes(query)
+    );
+  }, [products, query]);
+  <span class="cm">// yalnız bunlar dəyişəndə təkrar hesablanır</span>
+
+  <span class="kw">return</span> filtered.map(p =&gt; &lt;<span class="tag">Item</span> {...p} /&gt;);
+}</pre>
+        </div>
+      </div>
+
+      <p><strong>Nə vaxt istifadə etmək lazımdır:</strong></p>
+      <ul>
+        <li>Hesablama həqiqətən "baha"dırsa — böyük massiv üzərində <code>sort</code>, <code>filter</code>, <code>reduce</code>, mürəkkəb riyazi əməliyyatlar.</li>
+        <li>Nəticənin <strong>referensial olaraq stabil</strong> qalması lazımdırsa — məsələn, nəticə <code>React.memo</code> ilə sarılmış child-ə obyekt/array kimi ötürüləndə.</li>
+      </ul>
+
+      <div class="callout callout--warn">
+        <span class="callout__icon">⚠️</span>
+        <p><strong>Diqqət:</strong> <code>useMemo</code>-nun özü də pulsuz deyil — hər renderdə dependency array-i əvvəlki ilə müqayisə etmək və nəticəni yaddaşda saxlamaq xərci var. Sadə əməliyyatlar (<code>a + b</code> kimi) üçün bu müqayisə xərci, hesablamanın özündən baha ola bilər.</p>
+      </div>
+    </div>
+  </article>
+
+  <!-- 03 useCallback -->
+  <article class="topic" id="usecallback">
+    <div class="topic__head">
+      <span class="topic__num">03</span>
+      <h3 class="topic__title">useCallback — funksiyaların yenidən yaradılmasının qarşısını alma</h3>
+    </div>
+    <div class="topic__body">
+      <p><code>useCallback</code> dəyəri deyil, <strong>funksiyanın özünün referansını</strong> yaddaşda saxlayır. Riyazi olaraq bu belə ifadə olunur:</p>
+      <div class="code-block solo code-block--good">
+        <div class="code-label"><span class="code-label__tag">Ekvivalentlik</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="fn">useCallback</span>(fn, deps) === <span class="fn">useMemo</span>(() =&gt; fn, deps)</pre>
+      </div>
+
+      <p><strong>Niyə lazımdır:</strong> funksiyanı prop kimi <code>React.memo</code> ilə sarılmış child-ə ötürəndə, hər render fərqli funksiya referansı yaradır (<code>function(){} !== function(){}</code>) — bu da <code>React.memo</code>-nun müqayisəsini "sındırır" və child yenə render olunur.</p>
+
+      <div class="code-pair">
+        <div class="code-block code-block--bad">
+          <div class="code-label"><span class="code-label__tag">❌ Problem</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><span class="kw">function</span> <span class="fn">Toolbar</span>({ onSave }) {
+  <span class="kw">const</span> [theme, setTheme] = <span class="fn">useState</span>(<span class="str">'light'</span>);
+
+  <span class="cm">// hər renderdə YENİ funksiya yaranır</span>
+  <span class="kw">const</span> handleClick = () =&gt; onSave(<span class="str">'draft'</span>);
+
+  <span class="kw">return</span> &lt;<span class="tag">MemoButton</span> onClick={handleClick} /&gt;;
+}</pre>
+        </div>
+        <div class="code-block code-block--good">
+          <div class="code-label"><span class="code-label__tag">✅ Həll</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><span class="kw">function</span> <span class="fn">Toolbar</span>({ onSave }) {
+  <span class="kw">const</span> [theme, setTheme] = <span class="fn">useState</span>(<span class="str">'light'</span>);
+
+  <span class="kw">const</span> handleClick = <span class="fn">useCallback</span>(() =&gt; {
+    onSave(<span class="str">'draft'</span>);
+  }, [onSave]); <span class="cm">// referans stabildir</span>
+
+  <span class="kw">return</span> &lt;<span class="tag">MemoButton</span> onClick={handleClick} /&gt;;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- 04 React.memo -->
+  <article class="topic" id="reactmemo">
+    <div class="topic__head">
+      <span class="topic__num">04</span>
+      <h3 class="topic__title">React.memo — komponent səviyyəsində optimallaşdırma</h3>
+    </div>
+    <div class="topic__body">
+      <p><code>React.memo</code> bir HOC (higher-order component) kimi işləyir: komponenti "sarıyır" və hər render öncəsi yeni props-ları əvvəlki render-in props-ları ilə <strong>səthi (shallow)</strong> müqayisə edir. Əgər hamısı eynidirsə, React komponentin funksiyasını yenidən çağırmır, son render nəticəsini təkrar istifadə edir.</p>
+
+      <div class="code-block solo code-block--good">
+        <div class="code-label"><span class="code-label__tag">Sintaksis</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="kw">const</span> ProductCard = <span class="fn">React.memo</span>(<span class="kw">function</span> <span class="fn">ProductCard</span>({ product, onSelect }) {
+  <span class="kw">return</span> &lt;<span class="tag">div</span> onClick={() =&gt; onSelect(product.id)}&gt;{product.name}&lt;/<span class="tag">div</span>&gt;;
+});
+
+<span class="cm">// xüsusi müqayisə funksiyası ilə:</span>
+<span class="kw">const</span> ProductCard2 = <span class="fn">React.memo</span>(ProductCard, (prev, next) =&gt; {
+  <span class="kw">return</span> prev.product.id === next.product.id;
+});</pre>
+      </div>
+
+      <p><strong>Nə vaxt faydalıdır:</strong> tez-tez render olunan valideynin altında yerləşən, render-i nisbətən "baha", props-ları isə <em>az-az</em> dəyişən komponentlərdə.</p>
+
+      <div class="callout callout--warn">
+        <span class="callout__icon">⚠️</span>
+        <p><strong>Məhdudiyyətlər:</strong></p>
+        <ul style="margin-top:8px;">
+          <li>Müqayisə <strong>səthidir (shallow)</strong> — obyektin içindəki dəyər dəyişsə belə, referans eynidirsə fərq görünmür; referans fərqlidirsə (inline yaradılıbsa) hər dəfə "fərqli" sayılır.</li>
+          <li><code>children</code> prop-u ötürüləndə demək olar həmişə fərqli referans olur (JSX hər renderdə yeni React element obyekti yaradır) — bu komponentlərdə <code>React.memo</code> çox vaxt işləmir.</li>
+          <li>Müqayisənin özü də pulsuz deyil — çoxlu sayda sadə prop-u olan komponentlərdə bu xərc qazancdan çox ola bilər.</li>
+          <li><code>React.memo</code> yalnız props-a təsir edir — komponent öz daxilində <code>useState</code>/<code>useContext</code> istifadə edirsə, memo olsa belə yenə render olunacaq.</li>
+        </ul>
+      </div>
+    </div>
+  </article>
+
+  <!-- 05 custom hooks -->
+  <article class="topic" id="customhook">
+    <div class="topic__head">
+      <span class="topic__num">05</span>
+      <h3 class="topic__title">Custom hook yazma prinsipləri</h3>
+    </div>
+    <div class="topic__body">
+      <ul>
+        <li>Ad mütləq <code>use</code> prefiksi ilə başlamalıdır — React linter yalnız bu halda Hook Qaydalarını yoxlaya bilir.</li>
+        <li><strong>Hook Qaydaları:</strong> yalnız komponentin/hook-un "top level"-ində çağırılmalıdır — şərt (<code>if</code>), dövr (<code>for</code>) və ya iç-içə funksiya daxilində yox.</li>
+        <li>Təkrarlanan stateful məntiqi (data fetching, subscription, localStorage sinxronizasiyası və s.) ayrı hook-a çıxarmaq kodu təmiz və test edilə bilən edir.</li>
+        <li><strong>Return API dizaynı:</strong> sadə hook-lar üçün array (<code>[value, setValue]</code> — <code>useState</code> kimi) uyğundur; çoxlu dəyər/funksiya qaytaran hook-lar üçün isə object (<code>{ data, loading, error, refetch }</code>) daha oxunaqlıdır, çünki istifadəçiyə adlandırma sərbəstliyi verir.</li>
+        <li>Hook öz daxilində lazım gəldikcə <code>useMemo</code>/<code>useCallback</code> istifadə edərək qaytardığı dəyər və funksiyaların referensial stabilliyini təmin etməlidir — əks halda hook-u çağıran hər komponent lazımsız render-lərlə üzləşəcək.</li>
+      </ul>
+      <div class="code-block solo">
+        <div class="code-label"><span class="code-label__tag">Qısa nümunə — useDebounce</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="kw">function</span> <span class="fn">useDebounce</span>(value, delay = <span class="num">300</span>) {
+  <span class="kw">const</span> [debounced, setDebounced] = <span class="fn">useState</span>(value);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> id = setTimeout(() =&gt; setDebounced(value), delay);
+    <span class="kw">return</span> () =&gt; clearTimeout(id); <span class="cm">// təmizləmə</span>
+  }, [value, delay]);
+
+  <span class="kw">return</span> debounced;
+}</pre>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ================= PRAKTIKI HISSƏ ================= -->
+<section id="praktika">
+  <div class="section-head">
+    <span class="section-kicker">Praktiki hissə</span>
+    <h2>Nəzəriyyədən koda</h2>
+    <p>İndi öyrəndiklərimizi iki real ssenaridə tətbiq edək: böyük bir siyahının axtarış performansını yaxşılaşdırmaq və özümüzün custom hook-larımızı yazmaq.</p>
+  </div>
+
+  <article class="topic">
+    <div class="topic__head">
+      <span class="topic__num">A</span>
+      <h3 class="topic__title">Böyük siyahıda filtrasiya/axtarış performansının optimallaşdırılması</h3>
+    </div>
+    <div class="topic__body">
+      <p><strong>Problem:</strong> 10.000 məhsuldan ibarət siyahımız var. Axtarış input-una hər hərf yazıldıqda bütün siyahı yenidən filtr olunur <em>və</em> bütün siyahı elementləri yenidən render olunur — hətta nəticədə heç dəyişməyən elementlər belə.</p>
+
+      <div class="code-block solo code-block--bad">
+        <div class="code-label"><span class="code-label__tag">❌ Optimallaşdırılmamış</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="kw">function</span> <span class="fn">ProductSearch</span>({ products }) {
+  <span class="kw">const</span> [query, setQuery] = <span class="fn">useState</span>(<span class="str">''</span>);
+
+  <span class="cm">// hər renderdə yenidən hesablanır</span>
+  <span class="kw">const</span> filtered = products.filter(p =&gt;
+    p.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span>&gt;
+      &lt;<span class="tag">input</span> value={query} onChange={e =&gt; setQuery(e.target.value)} /&gt;
+      {filtered.map(p =&gt; (
+        <span class="cm">// hər renderdə YENİ inline funksiya — memo faydasızdır</span>
+        &lt;<span class="tag">ProductItem</span> key={p.id} product={p}
+          onSelect={() =&gt; console.log(p.id)} /&gt;
+      ))}
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}</pre>
+      </div>
+
+      <div class="code-block solo code-block--good">
+        <div class="code-label"><span class="code-label__tag">✅ Optimallaşdırılmış</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="kw">const</span> ProductItem = <span class="fn">React.memo</span>(<span class="kw">function</span> <span class="fn">ProductItem</span>({ product, onSelect }) {
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span> onClick={() =&gt; onSelect(product.id)}&gt;{product.name}&lt;/<span class="tag">div</span>&gt;
+  );
+});
+
+<span class="kw">function</span> <span class="fn">ProductSearch</span>({ products }) {
+  <span class="kw">const</span> [query, setQuery] = <span class="fn">useState</span>(<span class="str">''</span>);
+
+  <span class="cm">// 1) yalnız products və ya query dəyişəndə yenidən hesablanır</span>
+  <span class="kw">const</span> filtered = <span class="fn">useMemo</span>(() =&gt;
+    products.filter(p =&gt; p.name.toLowerCase().includes(query.toLowerCase())),
+    [products, query]
+  );
+
+  <span class="cm">// 2) referans stabildir — ProductItem-in memo-su işləyir</span>
+  <span class="kw">const</span> handleSelect = <span class="fn">useCallback</span>(id =&gt; {
+    console.log(id);
+  }, []);
+
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span>&gt;
+      &lt;<span class="tag">input</span> value={query} onChange={e =&gt; setQuery(e.target.value)} /&gt;
+      {filtered.map(p =&gt; (
+        &lt;<span class="tag">ProductItem</span> key={p.id} product={p} onSelect={handleSelect} /&gt;
+      ))}
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}</pre>
+      </div>
+
+      <div class="callout callout--good">
+        <span class="callout__icon">✅</span>
+        <p><strong>Nəticə:</strong> axtarış zamanı yalnız siyahının məzmunu (<code>filtered</code>) yenidən hesablanır; artıq siyahıda qalan elementlərin <code>ProductItem</code> komponentləri isə eyni <code>product</code> və eyni (stabil) <code>onSelect</code> referansı aldıqları üçün render-i "atlayır".</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="topic">
+    <div class="topic__head">
+      <span class="topic__num">B</span>
+      <h3 class="topic__title">Öz custom hook-unu yazmaq: useFetch</h3>
+    </div>
+    <div class="topic__body">
+      <p>Data fetching məntiqini təkrarlamamaq üçün, onu <code>loading</code>/<code>error</code>/<code>data</code> vəziyyətlərini idarə edən ayrıca hook-a çıxarırıq. <code>AbortController</code> ilə komponent unmount olanda sorğunu ləğv edirik ki, "unmounted komponentə state yazma" xətası baş verməsin.</p>
+      <div class="code-block solo">
+        <div class="code-label"><span class="code-label__tag">hooks/useFetch.js</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="kw">function</span> <span class="fn">useFetch</span>(url) {
+  <span class="kw">const</span> [data, setData] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [loading, setLoading] = <span class="fn">useState</span>(<span class="kw">true</span>);
+  <span class="kw">const</span> [error, setError] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> controller = <span class="kw">new</span> AbortController();
+    setLoading(<span class="kw">true</span>);
+
+    fetch(url, { signal: controller.signal })
+      .then(res =&gt; res.json())
+      .then(json =&gt; { setData(json); setError(<span class="kw">null</span>); })
+      .catch(err =&gt; { <span class="kw">if</span> (err.name !== <span class="str">'AbortError'</span>) setError(err); })
+      .finally(() =&gt; setLoading(<span class="kw">false</span>));
+
+    <span class="kw">return</span> () =&gt; controller.abort(); <span class="cm">// təmizləmə</span>
+  }, [url]);
+
+  <span class="kw">return</span> { data, loading, error };
+}
+
+<span class="cm">// istifadəsi:</span>
+<span class="kw">function</span> <span class="fn">UserProfile</span>({ id }) {
+  <span class="kw">const</span> { data, loading, error } = <span class="fn">useFetch</span>(<span class="str">`/api/users/${id}`</span>);
+  <span class="kw">if</span> (loading) <span class="kw">return</span> &lt;<span class="tag">Spinner</span> /&gt;;
+  <span class="kw">if</span> (error) <span class="kw">return</span> &lt;<span class="tag">Error</span> message={error.message} /&gt;;
+  <span class="kw">return</span> &lt;<span class="tag">Profile</span> user={data} /&gt;;
+}</pre>
+      </div>
+    </div>
+  </article>
+
+  <article class="topic">
+    <div class="topic__head">
+      <span class="topic__num">C</span>
+      <h3 class="topic__title">Öz custom hook-unu yazmaq: useLocalStorage</h3>
+    </div>
+    <div class="topic__body">
+      <p>State-i avtomatik olaraq <code>localStorage</code> ilə sinxronlaşdıran hook — <code>useState</code>-in eyni API-sini təqdim edir, sadəcə dəyəri saxlayır.</p>
+      <div class="code-block solo">
+        <div class="code-label"><span class="code-label__tag">hooks/useLocalStorage.js</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><span class="kw">function</span> <span class="fn">useLocalStorage</span>(key, initialValue) {
+  <span class="kw">const</span> [value, setValue] = <span class="fn">useState</span>(() =&gt; {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> saved = window.localStorage.getItem(key);
+      <span class="kw">return</span> saved !== <span class="kw">null</span> ? JSON.parse(saved) : initialValue;
+    } <span class="kw">catch</span> {
+      <span class="kw">return</span> initialValue;
+    }
+  });
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  <span class="kw">return</span> [value, setValue];
+}
+
+<span class="cm">// istifadəsi — useState kimi, amma yaddaşda qalır:</span>
+<span class="kw">const</span> [theme, setTheme] = <span class="fn">useLocalStorage</span>(<span class="str">'theme'</span>, <span class="str">'light'</span>);</pre>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ================= TAPŞIRIQ ================= -->
+<section id="tapshiriq">
+  <div class="section-head">
+    <span class="section-kicker">Tapşırıq</span>
+    <h2>Axtarış sahəli məhsul siyahısını optimallaşdırın</h2>
+    <p>Aşağıdakı başlanğıc koddan istifadə edərək, dərsdə öyrəndiyimiz üç aləti tətbiq edin.</p>
+  </div>
+
+  <div class="task-card">
+    <h3>🎯 Tələblər</h3>
+    <ul class="check-list">
+      <li>100+ elementdən ibarət <code>products</code> massivi və axtarış input-u olan komponenti optimallaşdırın.</li>
+      <li>Filtrasiya məntiqini <code>useMemo</code> ilə əhatə edin, dependency array-i düzgün müəyyən edin (nə artıq, nə əskik).</li>
+      <li>Siyahı elementini (<code>ProductCard</code>) <code>React.memo</code> ilə sarın.</li>
+      <li>Element seçimi üçün handler funksiyasını <code>useCallback</code> ilə stabilləşdirin.</li>
+      <li>React DevTools Profiler ilə əvvəl/sonra render sayını müqayisə edin və nəticəni qeyd edin.</li>
+    </ul>
+
+    <div class="code-block solo">
+      <div class="code-label"><span class="code-label__tag">Başlanğıc kod</span><button class="copy-btn" data-copy>Kopyala</button></div>
+      <pre><span class="kw">function</span> <span class="fn">ProductSearchPage</span>({ products }) {
+  <span class="kw">const</span> [query, setQuery] = <span class="fn">useState</span>(<span class="str">''</span>);
+  <span class="kw">const</span> [selectedId, setSelectedId] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+  <span class="cm">// TODO: bunu useMemo ilə əhatə et</span>
+  <span class="kw">const</span> results = products.filter(p =&gt;
+    p.name.toLowerCase().includes(query.toLowerCase())
+  );
+
+  <span class="kw">return</span> (
+    &lt;<span class="tag">div</span>&gt;
+      &lt;<span class="tag">input</span>
+        placeholder=<span class="str">"Məhsul axtar..."</span>
+        value={query}
+        onChange={e =&gt; setQuery(e.target.value)}
+      /&gt;
+      &lt;<span class="tag">ul</span>&gt;
+        {results.map(p =&gt; (
+          <span class="cm">// TODO: ProductCard-ı React.memo ilə sar</span>
+          <span class="cm">// TODO: onSelect-i useCallback ilə stabilləşdir</span>
+          &lt;<span class="tag">ProductCard</span>
+            key={p.id}
+            product={p}
+            selected={p.id === selectedId}
+            onSelect={() =&gt; setSelectedId(p.id)}
+          /&gt;
+        ))}
+      &lt;/<span class="tag">ul</span>&gt;
+    &lt;/<span class="tag">div</span>&gt;
+  );
+}</pre>
+    </div>
+
+    <details class="hint">
+      <summary>💡 İpucunu göstər</summary>
+      <div class="hint-body">
+        <p><code>onSelect={() =&gt; setSelectedId(p.id)}</code> sətri sizi çətinliyə sala bilər — burada hər elementin öz <code>id</code>-si funksiyaya "bağlanmalıdır" (closure). Bunun üçün <code>onSelect</code>-i <code>useCallback</code> ilə <em>id qəbul edən</em> bir funksiya kimi yazın (<code>useCallback(id =&gt; setSelectedId(id), [])</code>) və <code>ProductCard</code> daxilində <code>onClick={() =&gt; onSelect(product.id)}</code> şəklində çağırın — beləcə valideyndəki funksiya referansı hər render üçün stabil qalır.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= XƏTALAR / BUGLAR ================= -->
+<section id="xetalar">
+  <div class="section-head">
+    <span class="section-kicker">Ola biləcək xətalar</span>
+    <h2>Tipik səhvlər və bug-lar</h2>
+    <p>Bu optimallaşdırma alətləri düzgün istifadə olunmasa, ya heç bir fayda vermir, ya da yeni bug-lar yaradır. Ən çox rast gəlinən 8 vəziyyət:</p>
+  </div>
+
+  <div class="bug-grid">
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">01</span><span class="bug-card__title">Dependency array-i unutmaq (stale closure)</span></div>
+      <p class="bug-card__why"><code>useMemo</code>/<code>useCallback</code>-ın deps array-ini boş qoymaq və ya natamam yazmaq — nəticədə funksiya köhnə (stale) dəyərlərdən istifadə etməyə davam edir.</p>
+      <div class="bug-card__fix">✅ ESLint-in <code>react-hooks/exhaustive-deps</code> qaydasını aktiv saxlayın və xəbərdarlıqları görməzdən gəlməyin.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">02</span><span class="bug-card__title">Deps daxilində hər dəfə yeni referans olan obyekt</span></div>
+      <p class="bug-card__why">Deps array-ində özü hər renderdə yenidən yaradılan inline obyekt (<code>{id}</code> kimi) olması — <code>useMemo</code> "işə düşmür" sayılır, çünki React deps-i "dəyişib" hesab edir.</p>
+      <div class="bug-card__fix">✅ Deps-ə primitiv dəyərlər (id, string, rəqəm) verin, tam obyekt yox.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">03</span><span class="bug-card__title">useCallback var, React.memo yoxdur</span></div>
+      <p class="bug-card__why">Funksiya referansı stabildir, amma onu qəbul edən komponent <code>memo</code> ilə sarılmayıb — komponent yenə hər render təkrar işə düşür. <code>useCallback</code>-in faydası sıfıra enir.</p>
+      <div class="bug-card__fix">✅ <code>useCallback</code> yalnız child <code>React.memo</code> ilə sarılıbsa mənalıdır — ikisini birlikdə düşünün.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">04</span><span class="bug-card__title">Hər yerə useMemo/useCallback yazmaq</span></div>
+      <p class="bug-card__why">Sadə <code>a + b</code> kimi ucuz əməliyyatlar üçün belə memo istifadə etmək — əlavə yaddaş və müqayisə xərcini artırır, kodu oxunaqsızlaşdırır.</p>
+      <div class="bug-card__fix">✅ Əvvəlcə profil edin, yalnız real "baha" yerlərdə tətbiq edin.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">05</span><span class="bug-card__title">children prop-lu komponentə React.memo tətbiq etmək</span></div>
+      <p class="bug-card__why">JSX <code>children</code> hər renderdə yeni React element obyekti olduğu üçün, <code>memo</code> praktiki olaraq heç vaxt "eyni" nəticə vermir.</p>
+      <div class="bug-card__fix">✅ Composition pattern-dən istifadə edin — dəyişən hissəni yuxarıda saxlayıb, sabit hissəni props kimi ötürün.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">06</span><span class="bug-card__title">Key kimi massiv index-i istifadə etmək</span></div>
+      <p class="bug-card__why">Sıralama, silmə və əlavə zamanı React-in düzgün diff aparmasına mane olur — həm performans, həm də state qarışması bug-larına (məsələn input-ların "yerinin dəyişməsi") səbəb olur.</p>
+      <div class="bug-card__fix">✅ Həmişə sabit, unikal <code>id</code> istifadə edin — index yalnız statik, heç vaxt dəyişməyən siyahılarda qəbul edilir.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">07</span><span class="bug-card__title">useEffect deps-ində memo-lanmamış obyekt</span></div>
+      <p class="bug-card__why">Hər render yeni referans yaradan obyekt/funksiya <code>useEffect</code>-in dependency-sinə verilirsə, effekt hər dəfə (bəzən sonsuz dövrdə) təkrar işə düşür.</p>
+      <div class="bug-card__fix">✅ Effektə verilən obyekt/funksiyaları da <code>useMemo</code>/<code>useCallback</code> ilə stabilləşdirin.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-card__head"><span class="bug-card__num">08</span><span class="bug-card__title">Profilsiz, "kor-koranə" optimallaşdırma</span></div>
+      <p class="bug-card__why">Real performans problemi ölçülmədən hər yerə memo əlavə etmək — həm vaxt itkisi, həm də lazımsız mürəkkəblik yaradır (premature optimization).</p>
+      <div class="bug-card__fix">✅ React DevTools Profiler ilə əvvəlcə "harada, nə qədər" vaxt itdiyini ölçün, sonra düzəldin.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= ƏN YAXŞI TƏCRÜBƏLƏR ================= -->
+<section id="yaxsi">
+  <div class="section-head">
+    <span class="section-kicker">Nələri etsək daha yaxşı olar</span>
+    <h2>Ən yaxşı təcrübələr</h2>
+    <p>Performans optimallaşdırması bir dəfəlik əməliyyat deyil, vərdişdir. Bu prinsiplər həmişə faydalıdır:</p>
+  </div>
+
+  <div class="bp-grid">
+    <div class="bp-card">
+      <span class="bp-card__icon">📏</span>
+      <h4>Əvvəlcə ölç, sonra optimallaşdır</h4>
+      <p>React DevTools Profiler-in Flamegraph və Ranked chart görünüşü ilə hansı komponentin, niyə render olduğunu real rəqəmlərlə görün.</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">🏭</span>
+      <h4>Production build üzərində test edin</h4>
+      <p>Development rejimi süni yavaşlığa səbəb olur və real rəqəmlər vermir — ölçmələri həmişə production build-də aparın.</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">🔦</span>
+      <h4>"Niyə render oldu?" sualına cavab tapın</h4>
+      <p>React DevTools-un "Highlight updates when components render" seçimini aktivləşdirərək lazımsız render-ləri gözlə görün.</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">⬇️</span>
+      <h4>State-i aşağı səviyyəyə "itələyin"</h4>
+      <p>State colocation — state-i yalnız ona ehtiyacı olan komponentdə saxlayın ki, yuxarı komponentin render-i lazımsız yerə aşağını "sürükləməsin".</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">🧩</span>
+      <h4>Composition-dan istifadə edin</h4>
+      <p>Dəyişən hissəni yuxarıda saxlayıb sabit hissəni <code>children</code> kimi ötürmək, memoizasiya olmadan da re-render-in "arasından keçməsinə" imkan verir.</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">🔑</span>
+      <h4>Key-ləri düzgün seçin</h4>
+      <p>Siyahılarda həmişə sabit, unikal id-lərdən istifadə edin — massiv index-indən yox.</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">📜</span>
+      <h4>Böyük siyahılar üçün virtualizasiyanı düşünün</h4>
+      <p>Minlərlə element varsa, <code>useMemo</code>/<code>React.memo</code> kifayət etməyə bilər — <code>react-window</code> və ya <code>react-virtual</code> kimi kitabxanalar yalnız görünən elementləri render edir.</p>
+    </div>
+    <div class="bp-card">
+      <span class="bp-card__icon">🐢</span>
+      <h4>Erkən optimallaşdırmadan çəkinin</h4>
+      <p>"Measure first" prinsipini əsas tutun — problem olmayan yerdə "həll" axtarmaq vaxt itkisi və əlavə mürəkkəblikdir.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq">
+  <div class="section-head">
+    <span class="section-kicker">Tez-tez verilən suallar</span>
+    <h2>FAQ</h2>
+  </div>
+
+  <div class="faq-list">
+
+    <div class="faq-item">
+      <button class="faq-q"><span>useMemo və useCallback arasındakı fərq nədir, çaşdırılan yerlər hansılardır?</span><span class="faq-q__plus">+</span></button>
+      <div class="faq-a"><div class="faq-a__inner">
+        <p><strong>Əsas fərq sadədir:</strong> <code>useMemo</code> bir <strong>dəyəri</strong> (hesablamanın nəticəsini) yaddaşda saxlayır, <code>useCallback</code> isə <strong>funksiyanın özünü</strong> (referansını) yaddaşda saxlayır. Riyazi olaraq: <code>useCallback(fn, deps) === useMemo(() =&gt; fn, deps)</code>.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Xüsusiyyət</th><th>useMemo</th><th>useCallback</th></tr></thead>
+            <tbody>
+              <tr><td>Nəyi yaddaşda saxlayır</td><td>Hesablamanın nəticəsini (dəyəri)</td><td>Funksiyanın özünü (referansını)</td></tr>
+              <tr><td>Sintaksis</td><td><code>useMemo(() =&gt; hesabla(), [deps])</code></td><td><code>useCallback(fn, [deps])</code></td></tr>
+              <tr><td>Əsas istifadə</td><td>Baha hesablamalar, stabil obyekt/array</td><td>Child-ə ötürülən stabil funksiya</td></tr>
+              <tr><td>Bir-birinə ekvivalenti</td><td>—</td><td><code>useMemo(() =&gt; fn, deps)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p><strong>Çaşdırılan yerlər:</strong></p>
+        <ul>
+          <li><code>useMemo(() =&gt; doSomething, [])</code> yazmaq — burada oxlu mötərizə (<code>doSomething()</code>) unudulub, nəticədə hesablamanın nəticəsi deyil, funksiyanın özü qaytarılır. Bu, texniki olaraq işləyir (çünki <code>useCallback</code> kimi davranır), amma niyyəti aydın olmadığı üçün çaşdırıcıdır.</li>
+          <li>"<code>useMemo</code> hər şeyi sürətləndirir" düşüncəsi — əslində yalnız render-lər arasında <em>təkrar</em> hesablamanın qarşısını alır, ilk render-i sürətləndirmir.</li>
+          <li>"<code>useCallback</code> funksiyanın icrasını sürətləndirir" düşüncəsi — əslində icra sürətinə heç bir təsiri yoxdur, sadəcə referansı sabit saxlayır.</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q"><span>Hər yerdə useMemo/useCallback işlətmək niyə səhvdir (overhead)?</span><span class="faq-q__plus">+</span></button>
+      <div class="faq-a"><div class="faq-a__inner">
+        <p>Hər <code>useMemo</code>/<code>useCallback</code> çağırışı öz daxilində iki əlavə iş görür: <strong>(1)</strong> dependency array-in hər elementini əvvəlki render-lə <code>Object.is</code> ilə müqayisə etmək və <strong>(2)</strong> nəticəni yaddaşda saxlamaq üçün əlavə yer ayırmaq.</p>
+        <p>Sadə əməliyyatlar üçün (iki ədədi toplamaq, string birləşdirmək və s.) bu müqayisə xərci, əməliyyatın <em>özünün</em> icra xərcindən qat-qat böyük ola bilər — yəni "optimallaşdırma" əslində tətbiqi <strong>yavaşladır</strong> və yaddaş istifadəsini artırır.</p>
+        <p>Bundan əlavə, hər yerdə memo istifadəsi kodu şişirdir, oxunaqlılığı azaldır və real problemi gizlədə bilər — developer "memo var, deməli optimaldır" düşüncəsinə düşüb, real profilə heç baxmaya bilər.</p>
+        <p><strong>Qayda:</strong> defolt olaraq memo istifadə <em>etməyin</em> — yalnız Profiler real bir problem göstərəndə tətbiq edin.</p>
+      </div></div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-q"><span>React.memo həmişə kömək edirmi?</span><span class="faq-q__plus">+</span></button>
+      <div class="faq-a"><div class="faq-a__inner">
+        <p><strong>Xeyr.</strong> Bir sıra hallarda ya faydasızdır, ya da əlavə xərc yaradır:</p>
+        <ul>
+          <li>Props demək olar hər render dəyişirsə (animasiya, real-time data) — müqayisə həmişə "fərqli" nəticə verəcək, sadəcə əlavə xərc yaranır.</li>
+          <li><code>children</code> prop-u olan komponentlərdə — yuxarıda izah olunduğu kimi, JSX children hər renderdə yeni referansdır.</li>
+          <li>Çox "ucuz" (sadə, kiçik) komponentlərdə — render-in özü onsuz da sürətli olduğundan, müqayisə xərci qazancdan çox ola bilər.</li>
+          <li>Props daxilində memo-lanmamış obyekt/array/funksiya varsa — <code>React.memo</code> tək başına, <code>useMemo</code>/<code>useCallback</code> olmadan işləməyəcək.</li>
+        </ul>
+        <p><strong>Nəticə:</strong> <code>React.memo</code> bir "alət"dir, "default davranış" deyil — yalnız profil edib real faydasını gördükdən sonra tətbiq edin.</p>
+      </div></div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Dərs 8 · Performans Optimallaşdırması — React Kursu</p>
+  </div>
+</footer>
+
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- FAQ accordion ---------- */
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var q = item.querySelector('.faq-q');
+    var a = item.querySelector('.faq-a');
+    q.addEventListener('click', function(){
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(function(openItem){
+        if(openItem !== item){
+          openItem.classList.remove('open');
+          openItem.querySelector('.faq-a').style.maxHeight = null;
+        }
+      });
+      if(isOpen){
+        item.classList.remove('open');
+        a.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+
+  /* ---------- Copy buttons ---------- */
+  document.querySelectorAll('[data-copy]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.code-block').querySelector('pre');
+      var text = pre.innerText;
+      var done = function(){
+        var original = btn.textContent;
+        btn.textContent = 'Kopyalandı ✓';
+        btn.classList.add('copied');
+        setTimeout(function(){
+          btn.textContent = original;
+          btn.classList.remove('copied');
+        }, 1600);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(done);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand('copy'); }catch(e){}
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+
+  /* ---------- Render Laboratoriyası (simulyasiya) ---------- */
+  var parentCount = 0, plainCount = 0, memoCount = 0;
+
+  var parentCountEl = document.getElementById('parent-count');
+  var plainCountEl  = document.getElementById('count-plain');
+  var memoCountEl   = document.getElementById('count-memo');
+  var plainStatusEl = document.getElementById('status-plain');
+  var memoStatusEl  = document.getElementById('status-memo');
+  var plainBoxEl    = document.getElementById('box-plain');
+  var memoBoxEl     = document.getElementById('box-memo');
+
+  function flash(el, cls){
+    el.classList.remove('flash-hot','flash-cool');
+    void el.offsetWidth; /* reflow to restart animation */
+    el.classList.add(cls);
+    setTimeout(function(){ el.classList.remove(cls); }, 650);
+  }
+
+  function unrelatedStateChange(){
+    parentCount++;
+    parentCountEl.textContent = parentCount;
+
+    plainCount++;
+    plainCountEl.textContent = plainCount;
+    plainStatusEl.textContent = 'Render oldu — valideyn render olanda o da render olur';
+    flash(plainBoxEl, 'flash-hot');
+
+    memoStatusEl.textContent = 'Render atlandı ✓ — props dəyişmədi';
+    flash(memoBoxEl, 'flash-cool');
+  }
+
+  function propsChange(){
+    parentCount++;
+    parentCountEl.textContent = parentCount;
+
+    plainCount++;
+    plainCountEl.textContent = plainCount;
+    plainStatusEl.textContent = 'Render oldu — props dəyişdi';
+    flash(plainBoxEl, 'flash-hot');
+
+    memoCount++;
+    memoCountEl.textContent = memoCount;
+    memoStatusEl.textContent = 'Render oldu — bu dəfə props həqiqətən dəyişdi';
+    flash(memoBoxEl, 'flash-hot');
+  }
+
+  function resetLab(){
+    parentCount = 0; plainCount = 0; memoCount = 0;
+    parentCountEl.textContent = '0';
+    plainCountEl.textContent = '0';
+    memoCountEl.textContent = '0';
+    plainStatusEl.textContent = 'Hələ heç bir hadisə baş verməyib';
+    memoStatusEl.textContent = 'Hələ heç bir hadisə baş verməyib';
+    plainBoxEl.classList.remove('flash-hot','flash-cool');
+    memoBoxEl.classList.remove('flash-hot','flash-cool');
+  }
+
+  var btnA = document.getElementById('btn-unrelated');
+  var btnB = document.getElementById('btn-props');
+  var btnR = document.getElementById('btn-reset');
+  if(btnA) btnA.addEventListener('click', unrelatedStateChange);
+  if(btnB) btnB.addEventListener('click', propsChange);
+  if(btnR) btnR.addEventListener('click', resetLab);
+
+})();
+</script>
+
+</body>
+</html>

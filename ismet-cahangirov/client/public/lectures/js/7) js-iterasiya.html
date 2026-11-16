@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JS İterasiya Vizuallaşdırıcı</title>
+<link href="https://fonts.googleapis.com/css2?family=DejaVu+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --panel: #141720;
+    --panel2: #1a1f2e;
+    --border: #2a2f45;
+    --accent1: #4fffb0;
+    --accent2: #ff6b6b;
+    --accent3: #ffd93d;
+    --accent4: #6bcbff;
+    --text: #e8eaf6;
+    --text-dim: #7a82a8;
+    --tag-bg: #222840;
+    --radius: 10px;
+    --mono: 'Share Tech Mono', 'DejaVu Sans Mono', monospace;
+    --body: 'DejaVu Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    padding: 18px 12px 40px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.1rem, 4vw, 1.6rem);
+    color: var(--accent1);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    margin-bottom: 24px;
+  }
+
+  /* ── TAB NAV ── */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: var(--panel2);
+    border: 1.5px solid var(--border);
+    color: var(--text-dim);
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: var(--body);
+    font-size: 0.82rem;
+    transition: all .22s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent1);
+    color: #0d0f14;
+    border-color: var(--accent1);
+    font-weight: 700;
+  }
+
+  /* ── SECTION ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: clamp(0.72rem, 2.5vw, 0.85rem);
+    line-height: 1.7;
+    overflow-x: auto;
+    margin-bottom: 22px;
+    white-space: pre;
+  }
+
+  .kw  { color: #c792ea; }
+  .fn  { color: var(--accent4); }
+  .str { color: var(--accent3); }
+  .num { color: #f78c6c; }
+  .cm  { color: #546e7a; }
+  .var { color: var(--accent1); }
+  .op  { color: var(--accent2); }
+  .punc{ color: var(--text-dim); }
+
+  /* ── ITER CARDS WRAPPER ── */
+  .iter-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* ── SINGLE ITER CARD ── */
+  .iter-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    animation: slideIn .35s ease both;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .iter-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .iter-num {
+    background: var(--accent1);
+    color: #0d0f14;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .iter-label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .iter-label strong {
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+
+  /* ── VARS GRID ── */
+  .vars-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .var-chip {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: var(--mono);
+    font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+    line-height: 1.4;
+  }
+
+  .var-chip .vname { color: var(--accent4); }
+  .var-chip .veq   { color: var(--text-dim); margin: 0 3px; }
+  .var-chip .vval  { color: var(--accent3); }
+  .var-chip .vval.green { color: var(--accent1); }
+  .var-chip .vval.red   { color: var(--accent2); }
+
+  /* ── OBJECT DISPLAY ── */
+  .obj-display {
+    background: #0a0c10;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 0 14px 12px;
+    font-family: var(--mono);
+    font-size: clamp(0.7rem, 2.4vw, 0.8rem);
+    line-height: 1.8;
+  }
+
+  .obj-line { display: flex; gap: 6px; align-items: center; }
+  .obj-key  { color: var(--accent4); }
+  .obj-colon{ color: var(--text-dim); }
+  .obj-val  { color: var(--accent3); }
+  .obj-new  { color: var(--accent1); font-weight: bold; }
+  .obj-brace{ color: var(--text-dim); }
+
+  /* ── ARRAY DISPLAY ── */
+  .arr-display {
+    background: #0a0c10;
+    border-radius: 6px;
+    padding: 9px 14px;
+    margin: 0 14px 12px;
+    font-family: var(--mono);
+    font-size: clamp(0.7rem, 2.4vw, 0.82rem);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .arr-bracket { color: var(--text-dim); font-size: 1.1em; }
+
+  .arr-item {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: var(--accent3);
+    transition: background .2s;
+  }
+
+  .arr-item.highlight {
+    background: rgba(255, 107, 107, 0.18);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .arr-item.sorted-highlight {
+    background: rgba(79, 255, 176, 0.15);
+    border-color: var(--accent1);
+    color: var(--accent1);
+  }
+
+  /* ── RESULT ROW ── */
+  .result-row {
+    margin: 0 14px 12px;
+    background: rgba(79,255,176,0.07);
+    border: 1px solid rgba(79,255,176,0.25);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .result-row .r-label {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ── SECTION TITLE ── */
+  .sec-title {
+    font-size: clamp(0.9rem, 3vw, 1.05rem);
+    color: var(--accent4);
+    margin-bottom: 10px;
+    padding-left: 4px;
+    border-left: 3px solid var(--accent4);
+    padding-left: 10px;
+    font-weight: 700;
+  }
+
+  .sec-desc {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+    line-height: 1.6;
+    padding-left: 4px;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    background: var(--panel2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.74rem;
+    color: var(--text-dim);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── FINAL OUTPUT ── */
+  .final-output {
+    background: #0a0c10;
+    border: 2px solid var(--accent1);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+  }
+
+  .final-label {
+    color: var(--accent1);
+    font-size: 0.7rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .console-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .console-arrow { color: var(--accent2); flex-shrink: 0; }
+  .console-val   { color: var(--accent3); word-break: break-all; }
+
+  /* ── SORT STEP ARROW ── */
+  .sort-arrow {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin: 2px 0;
+    line-height: 1;
+  }
+
+  /* ── COMPARE BOX ── */
+  .compare-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .cmp-item {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    color: var(--accent3);
+  }
+
+  .cmp-item.swap {
+    background: rgba(255,107,107,.2);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .cmp-item.ok {
+    background: rgba(79,255,176,.12);
+    border-color: var(--accent1);
+    color: var(--accent1);
+  }
+
+  .cmp-op {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+  }
+
+  .cmp-result {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-left: 2px;
+  }
+  .cmp-result.swap { color: var(--accent2); }
+  .cmp-result.ok   { color: var(--accent1); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent1), var(--accent4));
+    border-radius: 2px;
+    transition: width .4s ease;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 20px 0;
+  }
+
+</style>
+</head>
+<body>
+
+<h1>⚡ JS İterasiya Vizuallaşdırıcı</h1>
+<p class="subtitle">Hər addımda dəyişənlər canlı izlənir</p>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('reduce')">reduce() — Sayma</button>
+  <button class="tab-btn" onclick="showTab('sort-asc')">sort() — Artma</button>
+  <button class="tab-btn" onclick="showTab('sort-desc')">sort() — Azalma</button>
+</div>
+
+<!-- ═══════════════ REDUCE TAB ═══════════════ -->
+<div id="tab-reduce" class="section active">
+  <p class="sec-title">reduce() ilə meyvə sayma</p>
+  <p class="sec-desc">
+    Massiv üzərində dövr edilir. Hər meyvə obyektdə açar kimi saxlanılır, say artırılır.
+    <code style="color:var(--accent3)">obj[m] || 0</code> — əgər açar yoxdursa 0-dan başlayır.
+  </p>
+
+  <div class="code-block"><span class="kw">let</span> <span class="var">meyvələr</span> <span class="op">=</span> <span class="punc">[</span><span class="str">"alma"</span><span class="punc">,</span> <span class="str">"armud"</span><span class="punc">,</span> <span class="str">"alma"</span><span class="punc">,</span> <span class="str">"üzüm"</span><span class="punc">,</span> <span class="str">"alma"</span><span class="punc">];</span>
+
+<span class="kw">let</span> <span class="var">say</span> <span class="op">=</span> <span class="var">meyvələr</span><span class="punc">.</span><span class="fn">reduce</span><span class="punc">((</span><span class="var">obj</span><span class="punc">,</span> <span class="var">m</span><span class="punc">) =></span> <span class="punc">{</span>
+  <span class="var">obj</span><span class="punc">[</span><span class="var">m</span><span class="punc">]</span> <span class="op">=</span> <span class="punc">(</span><span class="var">obj</span><span class="punc">[</span><span class="var">m</span><span class="punc">]</span> <span class="op">||</span> <span class="num">0</span><span class="punc">)</span> <span class="op">+</span> <span class="num">1</span><span class="punc">;</span>
+  <span class="kw">return</span> <span class="var">obj</span><span class="punc">;</span>
+<span class="punc">},</span> <span class="punc">{});</span></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Cari meyvə (m)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent1)"></div> Yenilənən açar</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div> Mövcud say</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent4)"></div> Yığılmış obj</div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="reduce-progress" style="width:0%"></div></div>
+
+  <div class="iter-wrapper" id="reduce-steps"></div>
+
+  <div class="final-output">
+    <div class="final-label">▶ console.log(say)</div>
+    <div class="console-line">
+      <span class="console-arrow">▸</span>
+      <span class="console-val" id="reduce-final"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SORT ASC TAB ═══════════════ -->
+<div id="tab-sort-asc" class="section">
+  <p class="sec-title">sort((a, b) => a − b) — Artan sıralama</p>
+  <p class="sec-desc">
+    Müqayisə funksiyası <code style="color:var(--accent3)">a − b</code> qaytarır.
+    Mənfi → a öndə, Müsbət → b öndə, 0 → dəyişməz.
+    Hər keçiddə ən böyük element sona "qabarcıq kimi" çıxır.
+  </p>
+
+  <div class="code-block"><span class="kw">let</span> <span class="var">rəqəmlər</span> <span class="op">=</span> <span class="punc">[</span><span class="num">10</span><span class="punc">,</span> <span class="num">2</span><span class="punc">,</span> <span class="num">100</span><span class="punc">,</span> <span class="num">21</span><span class="punc">];</span>
+<span class="var">rəqəmlər</span><span class="punc">.</span><span class="fn">sort</span><span class="punc">((</span><span class="var">a</span><span class="punc">,</span> <span class="var">b</span><span class="punc">) =></span> <span class="var">a</span> <span class="op">-</span> <span class="var">b</span><span class="punc">);</span>
+<span class="cm">// Nəticə: [2, 10, 21, 100] ✅</span></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Yerdəyişmə baş verdi</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent1)"></div> Düzgün yerdədir</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div> Müqayisə edilmir</div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="sort-asc-progress" style="width:0%"></div></div>
+
+  <div class="iter-wrapper" id="sort-asc-steps"></div>
+
+  <div class="final-output">
+    <div class="final-label">▶ console.log(rəqəmlər)</div>
+    <div class="console-line">
+      <span class="console-arrow">▸</span>
+      <span class="console-val" id="sort-asc-final"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SORT DESC TAB ═══════════════ -->
+<div id="tab-sort-desc" class="section">
+  <p class="sec-title">sort((a, b) => b − a) — Azalan sıralama</p>
+  <p class="sec-desc">
+    Müqayisə funksiyası <code style="color:var(--accent3)">b − a</code> qaytarır —
+    artan sıralamadan fərqli olaraq a ilə b-nin yeri dəyişdirilib.
+    Nəticədə ən böyük element əvvəldə olur.
+  </p>
+
+  <div class="code-block"><span class="var">rəqəmlər</span><span class="punc">.</span><span class="fn">sort</span><span class="punc">((</span><span class="var">a</span><span class="punc">,</span> <span class="var">b</span><span class="punc">) =></span> <span class="var">b</span> <span class="op">-</span> <span class="var">a</span><span class="punc">);</span>
+<span class="cm">// Nəticə: [100, 21, 10, 2]</span></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div> Yerdəyişmə baş verdi</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent1)"></div> Düzgün yerdədir</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div> Müqayisə edilmir</div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="sort-desc-progress" style="width:0%"></div></div>
+
+  <div class="iter-wrapper" id="sort-desc-steps"></div>
+
+  <div class="final-output">
+    <div class="final-label">▶ console.log(rəqəmlər)</div>
+    <div class="console-line">
+      <span class="console-arrow">▸</span>
+      <span class="console-val" id="sort-desc-final"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── TAB SWITCH ── */
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ══════════════════════════════════════════
+   REDUCE ANIMATION
+══════════════════════════════════════════ */
+function buildReduce() {
+  const meyvələr = ["alma", "armud", "alma", "üzüm", "alma"];
+  const container = document.getElementById('reduce-steps');
+  const progress  = document.getElementById('reduce-progress');
+  const finalEl   = document.getElementById('reduce-final');
+  container.innerHTML = '';
+
+  let obj = {};
+  const total = meyvələr.length;
+
+  meyvələr.forEach((m, i) => {
+    const prevVal = obj[m] || 0;
+    obj[m] = prevVal + 1;
+    const snapshot = JSON.parse(JSON.stringify(obj));
+
+    const delay = i * 380;
+
+    setTimeout(() => {
+      // Progress
+      progress.style.width = ((i + 1) / total * 100) + '%';
+
+      // Card
+      const card = document.createElement('div');
+      card.className = 'iter-card';
+      card.style.animationDelay = '0ms';
+
+      // Header
+      card.innerHTML = `
+        <div class="iter-header">
+          <div class="iter-num">${i + 1}</div>
+          <div class="iter-label">
+            <strong>m = "<span style="color:var(--accent2)">${m}</span>"</strong>
+            &nbsp;·&nbsp; indeks: ${i}
+          </div>
+        </div>`;
+
+      // Variables
+      const vars = document.createElement('div');
+      vars.className = 'vars-grid';
+      vars.innerHTML = `
+        <div class="var-chip">
+          <span class="vname">m</span>
+          <span class="veq">=</span>
+          <span class="vval red">"${m}"</span>
+        </div>
+        <div class="var-chip">
+          <span class="vname">obj["${m}"] əvvəl</span>
+          <span class="veq">=</span>
+          <span class="vval">${prevVal === 0 ? '<span style="color:var(--text-dim)">yoxdur (0)</span>' : prevVal}</span>
+        </div>
+        <div class="var-chip">
+          <span class="vname">obj["${m}"] sonra</span>
+          <span class="veq">=</span>
+          <span class="vval green">${snapshot[m]}</span>
+        </div>`;
+      card.appendChild(vars);
+
+      // Object snapshot
+      const objDiv = document.createElement('div');
+      objDiv.className = 'obj-display';
+      let lines = '<span class="obj-brace">{ </span>';
+      const entries = Object.entries(snapshot);
+      entries.forEach(([k, v], idx) => {
+        const isNew = k === m;
+        lines += `<span class="obj-key">"${k}"</span><span class="obj-colon">:</span> <span class="${isNew ? 'obj-new' : 'obj-val'}">${v}</span>`;
+        if (idx < entries.length - 1) lines += '<span class="obj-colon">, </span>';
+      });
+      lines += ' <span class="obj-brace">}</span>';
+      objDiv.innerHTML = lines;
+      card.appendChild(objDiv);
+
+      container.appendChild(card);
+
+      // Final
+      if (i === total - 1) {
+        finalEl.textContent = '{ ' + Object.entries(obj).map(([k,v]) => `"${k}": ${v}`).join(', ') + ' }';
+      }
+    }, delay);
+  });
+}
+
+/* ══════════════════════════════════════════
+   BUBBLE SORT ANIMATION (generic)
+══════════════════════════════════════════ */
+function buildSort(dir) {
+  const isAsc = dir === 'asc';
+  const prefix = 'sort-' + dir;
+  const container = document.getElementById(prefix + '-steps');
+  const progress  = document.getElementById(prefix + '-progress');
+  const finalEl   = document.getElementById(prefix + '-final');
+  container.innerHTML = '';
+
+  const arr = [10, 2, 100, 21];
+  let current = [...arr];
+  const steps = [];
+
+  // Bubble sort — collect all compare/swap steps
+  let a = [...arr];
+  for (let pass = 0; pass < a.length - 1; pass++) {
+    for (let j = 0; j < a.length - pass - 1; j++) {
+      const diff = isAsc ? a[j] - a[j+1] : a[j+1] - a[j];
+      const doSwap = diff > 0;
+      const before = [...a];
+      if (doSwap) {
+        [a[j], a[j+1]] = [a[j+1], a[j]];
+      }
+      steps.push({
+        pass: pass + 1,
+        j,
+        compared: [j, j+1],
+        valA: before[j],
+        valB: before[j+1],
+        diff: isAsc ? before[j] - before[j+1] : before[j+1] - before[j],
+        doSwap,
+        before: [...before],
+        after: [...a],
+        frozenFrom: a.length - pass - 1
+      });
+    }
+  }
+
+  const total = steps.length;
+
+  steps.forEach((step, i) => {
+    setTimeout(() => {
+      progress.style.width = ((i + 1) / total * 100) + '%';
+
+      const card = document.createElement('div');
+      card.className = 'iter-card';
+
+      // Header
+      const passLabel = `Keçid ${step.pass}`;
+      const jLabel    = `Müqayisə ${step.j + 1}`;
+      card.innerHTML = `
+        <div class="iter-header">
+          <div class="iter-num">${i + 1}</div>
+          <div class="iter-label">
+            <strong>${passLabel}</strong> &nbsp;·&nbsp; ${jLabel}
+            &nbsp;·&nbsp;
+            <span style="color:${step.doSwap ? 'var(--accent2)' : 'var(--accent1)'}">
+              ${step.doSwap ? '🔄 Yerdəyişmə' : '✓ Dəyişmədi'}
+            </span>
+          </div>
+        </div>`;
+
+      // Compare box
+      const cmpDiv = document.createElement('div');
+      cmpDiv.className = 'compare-box';
+      const formula = isAsc
+        ? `${step.valA} − ${step.valB} = ${step.diff}`
+        : `${step.valB} − ${step.valA} = ${step.diff}`;
+      cmpDiv.innerHTML = `
+        <div class="var-chip" style="color:var(--text-dim);font-size:.72rem;">Müqayisə:</div>
+        <div class="cmp-item ${step.doSwap ? 'swap' : 'ok'}">${step.valA}</div>
+        <span class="cmp-op">${isAsc ? 'a−b' : 'b−a'}</span>
+        <div class="cmp-item ${step.doSwap ? 'swap' : 'ok'}">${step.valB}</div>
+        <span class="cmp-op">=</span>
+        <span class="cmp-result ${step.doSwap ? 'swap' : 'ok'}">
+          ${formula} → ${step.doSwap ? 'müsbət → yer dəyiş' : (step.diff < 0 ? 'mənfi → sabit qal' : 'sıfır → sabit qal')}
+        </span>`;
+      card.appendChild(cmpDiv);
+
+      // Array before
+      const arrBefore = buildArrayDiv(step.before, step.compared, false, step.frozenFrom);
+      arrBefore.style.marginBottom = '2px';
+      const labelB = document.createElement('div');
+      labelB.style.cssText = 'font-size:.7rem;color:var(--text-dim);padding:0 14px 2px;font-family:var(--mono)';
+      labelB.textContent = '→ əvvəl:';
+      card.appendChild(labelB);
+      card.appendChild(arrBefore);
+
+      if (step.doSwap) {
+        const arrow = document.createElement('div');
+        arrow.className = 'sort-arrow';
+        arrow.textContent = '↕';
+        card.appendChild(arrow);
+
+        const arrAfter = buildArrayDiv(step.after, step.compared, true, step.frozenFrom);
+        const labelA = document.createElement('div');
+        labelA.style.cssText = 'font-size:.7rem;color:var(--accent1);padding:0 14px 2px;font-family:var(--mono)';
+        labelA.textContent = '→ sonra:';
+        card.appendChild(labelA);
+        card.appendChild(arrAfter);
+      }
+
+      container.appendChild(card);
+
+      if (i === total - 1) {
+        finalEl.textContent = '[' + step.after.join(', ') + ']';
+      }
+    }, i * 420);
+  });
+}
+
+function buildArrayDiv(arr, highlighted, isSorted, frozenFrom) {
+  const div = document.createElement('div');
+  div.className = 'arr-display';
+  div.innerHTML = '<span class="arr-bracket">[</span>';
+  arr.forEach((n, idx) => {
+    const span = document.createElement('span');
+    span.className = 'arr-item';
+    if (highlighted && highlighted.includes(idx)) {
+      span.classList.add(isSorted ? 'sorted-highlight' : 'highlight');
+    } else if (idx >= frozenFrom) {
+      span.style.opacity = '.4';
+    }
+    span.textContent = n;
+    div.appendChild(span);
+  });
+  div.innerHTML += '<span class="arr-bracket">]</span>';
+  // Re-append spans (innerHTML wipe workaround)
+  const bracket1 = document.createElement('span');
+  bracket1.className = 'arr-bracket';
+  bracket1.textContent = '[';
+  const bracket2 = document.createElement('span');
+  bracket2.className = 'arr-bracket';
+  bracket2.textContent = ']';
+
+  div.innerHTML = '';
+  div.appendChild(bracket1);
+  arr.forEach((n, idx) => {
+    const span = document.createElement('span');
+    span.className = 'arr-item';
+    if (highlighted && highlighted.includes(idx)) {
+      span.classList.add(isSorted ? 'sorted-highlight' : 'highlight');
+    } else if (idx >= frozenFrom) {
+      span.style.opacity = '.4';
+    }
+    span.textContent = n;
+    div.appendChild(span);
+  });
+  div.appendChild(bracket2);
+  return div;
+}
+
+/* ── INIT ── */
+buildReduce();
+buildSort('asc');
+buildSort('desc');
+</script>
+</body>
+</html>

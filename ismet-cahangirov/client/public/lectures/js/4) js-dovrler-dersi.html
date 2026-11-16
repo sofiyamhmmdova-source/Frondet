@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>JavaScript Dövrləri — for, while, do...while | Tam Dərs</title>
+<meta name="description" content="JavaScript-də dövrlər (for, while, do...while) haqqında tam, addım-addım, interaktiv dərs. Ola biləcək xətalar, bug-lar və yaxşı təcrübələr.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1428;
+    --bg-alt:#141a35;
+    --bg-panel:#1B2145;
+    --bg-panel-2:#232B57;
+    --border:rgba(255,255,255,0.09);
+    --border-strong:rgba(255,255,255,0.18);
+    --text:#EEF0FA;
+    --text-muted:#A0A8CE;
+    --text-dim:#6E76A3;
+    --accent:#F2B84B;
+    --accent-dark:#C8912E;
+    --accent-soft:rgba(242,184,75,0.14);
+    --teal:#57E8C9;
+    --teal-soft:rgba(87,232,201,0.14);
+    --coral:#FF7A7A;
+    --coral-soft:rgba(255,122,122,0.14);
+    --violet:#9C8CFF;
+    --violet-soft:rgba(156,140,255,0.14);
+    --radius-sm:8px;
+    --radius-md:14px;
+    --radius-lg:24px;
+    --font-display:'Space Grotesk','Segoe UI',system-ui,-apple-system,'Noto Sans',Arial,sans-serif;
+    --font-body:'Inter','Segoe UI',system-ui,-apple-system,'Noto Sans',Arial,sans-serif;
+    --font-mono:'JetBrains Mono','Fira Code','Courier New',monospace;
+    --maxw:1120px;
+    --pad:clamp(20px,5vw,56px);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 620px at 85% -10%, rgba(156,140,255,0.16), transparent 60%),
+      radial-gradient(900px 500px at -10% 15%, rgba(87,232,201,0.10), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{
+    font-family:var(--font-display);
+    font-weight:600;
+    line-height:1.15;
+    margin:0 0 .5em;
+    letter-spacing:-0.01em;
+  }
+  p{margin:0 0 1em; color:var(--text-muted);}
+  a{color:var(--teal);}
+  ::selection{background:var(--accent); color:#181018;}
+  img,svg{display:block; max-width:100%;}
+  button{font-family:inherit;}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding-left:var(--pad); padding-right:var(--pad);}
+
+  /* ---------- focus ---------- */
+  a:focus-visible, button:focus-visible, .quiz-opt:focus-visible{
+    outline:2px solid var(--teal);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+  }
+
+  /* ---------- nav ---------- */
+  header.topnav{
+    position:sticky; top:0; z-index:40;
+    background:rgba(15,20,40,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .topnav-inner{
+    max-width:var(--maxw); margin:0 auto; padding:14px var(--pad);
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--text);
+    text-decoration:none;
+  }
+  .brand-mark{
+    width:30px; height:30px; border-radius:9px;
+    background:conic-gradient(from 220deg, var(--accent), var(--teal), var(--violet), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-weight:700; font-size:0.72rem; color:#0F1428;
+  }
+  nav.links{display:flex; gap:2px; flex-wrap:wrap;}
+  nav.links a{
+    color:var(--text-muted); text-decoration:none; font-size:0.86rem; font-weight:500;
+    padding:8px 12px; border-radius:8px; white-space:nowrap;
+    transition:color .15s ease, background .15s ease;
+  }
+  nav.links a:hover{color:var(--text); background:rgba(255,255,255,0.05);}
+  nav.links a.active{color:var(--accent); background:var(--accent-soft);}
+  #navToggle{
+    display:none; background:none; border:1px solid var(--border-strong); color:var(--text);
+    width:42px; height:42px; border-radius:10px; cursor:pointer; flex-shrink:0;
+  }
+  #navToggle span{display:block; width:18px; height:2px; background:var(--text); margin:4px auto; border-radius:2px;}
+
+  @media (max-width:860px){
+    nav.links{
+      position:absolute; top:100%; left:0; right:0;
+      flex-direction:column; gap:0; padding:10px var(--pad) 18px;
+      background:#131938; border-bottom:1px solid var(--border);
+      max-height:0; overflow:hidden; transition:max-height .25s ease;
+    }
+    nav.links.open{max-height:520px;}
+    nav.links a{padding:12px 6px; border-bottom:1px solid var(--border);}
+    #navToggle{display:block;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(40px,7vw,76px) 0 clamp(30px,6vw,56px);}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:0.76rem; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--accent); background:var(--accent-soft); border:1px solid rgba(242,184,75,0.35);
+    padding:6px 12px; border-radius:100px; margin-bottom:18px;
+  }
+  .eyebrow::before{content:"●"; font-size:0.6rem;}
+  .hero h1{font-size:clamp(2.1rem,5.2vw,3.4rem);}
+  .hero h1 em{font-style:normal; color:var(--accent);}
+  .hero-sub{font-size:clamp(1rem,2vw,1.15rem); max-width:640px;}
+  .hero-cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:26px;}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 20px; border-radius:11px; font-weight:600; font-size:0.92rem;
+    text-decoration:none; cursor:pointer; border:1px solid transparent; min-height:46px;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-accent{background:var(--accent); color:#221806; box-shadow:0 8px 24px -8px rgba(242,184,75,0.55);}
+  .btn-accent:hover{background:#f7c669;}
+  .btn-ghost{background:transparent; border-color:var(--border-strong); color:var(--text);}
+  .btn-ghost:hover{background:rgba(255,255,255,0.06);}
+  .btn-sm{padding:9px 14px; font-size:0.82rem; min-height:38px; border-radius:9px;}
+
+  /* ---------- loop visualizer ---------- */
+  .lv{
+    margin-top:48px; display:grid; grid-template-columns:280px 1fr; gap:0;
+    background:linear-gradient(180deg,var(--bg-panel),var(--bg-alt));
+    border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden;
+  }
+  @media (max-width:780px){ .lv{grid-template-columns:1fr;} }
+
+  .lv-diagram-col{
+    padding:32px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    border-right:1px solid var(--border); gap:18px;
+    background:radial-gradient(circle at 50% 40%, rgba(242,184,75,0.06), transparent 65%);
+  }
+  @media (max-width:780px){ .lv-diagram-col{border-right:none; border-bottom:1px solid var(--border);} }
+
+  .lv-diagram{position:relative; width:min(76vw,240px); aspect-ratio:1;}
+  .lv-track{position:absolute; inset:0; border-radius:50%; border:2px dashed var(--border-strong);}
+  .lv-track::after{
+    content:""; position:absolute; inset:16%; border-radius:50%;
+    background:radial-gradient(circle, rgba(242,184,75,0.08), transparent 70%);
+  }
+  .lv-node{
+    position:absolute; top:0; left:0; display:flex; flex-direction:column; align-items:center; gap:6px;
+    transform:translate(-50%,-50%); width:max-content;
+  }
+  .lv-dot{
+    width:15px; height:15px; border-radius:50%; background:var(--bg-panel-2);
+    border:2px solid var(--border-strong); transition:all .25s ease; position:relative;
+  }
+  .lv-node.active .lv-dot{
+    background:var(--accent); border-color:var(--accent);
+    box-shadow:0 0 0 6px rgba(242,184,75,0.22), 0 0 18px rgba(242,184,75,0.6);
+  }
+  .lv-label{font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); letter-spacing:0.03em;}
+  .lv-node.active .lv-label{color:var(--accent); font-weight:600;}
+  .lv-caption{font-family:var(--font-mono); font-size:0.72rem; color:var(--text-dim); text-align:center;}
+
+  .lv-panel{padding:26px 26px 28px;}
+  .lv-code{
+    background:#0B0F22; border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:16px 18px; font-family:var(--font-mono); font-size:0.86rem; overflow-x:auto;
+    margin:0 0 16px;
+  }
+  .lv-code [data-part]{padding:2px 3px; border-radius:5px; transition:background .2s ease, box-shadow .2s ease;}
+  .lv-code [data-part="init"].active{background:var(--violet-soft); box-shadow:0 0 0 1px rgba(156,140,255,0.5);}
+  .lv-code [data-part="cond"].active{background:var(--accent-soft); box-shadow:0 0 0 1px rgba(242,184,75,0.55);}
+  .lv-code [data-part="body"].active{background:var(--teal-soft); box-shadow:0 0 0 1px rgba(87,232,201,0.5);}
+  .lv-code [data-part="step"].active{background:var(--coral-soft); box-shadow:0 0 0 1px rgba(255,122,122,0.5);}
+
+  .lv-state{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+  .lv-state-row{
+    display:flex; align-items:center; gap:8px; background:var(--bg-panel-2); border:1px solid var(--border);
+    padding:8px 12px; border-radius:9px; font-size:0.82rem; color:var(--text-muted);
+  }
+  .lv-state-row strong{font-family:var(--font-mono); color:var(--text); font-size:0.9rem;}
+  .lv-output{
+    font-family:var(--font-mono); font-size:0.82rem; background:#0B0F22; border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:12px 14px; min-height:64px; max-height:120px; overflow-y:auto;
+    color:var(--teal); margin-bottom:16px;
+  }
+  .lv-output-empty{color:var(--text-dim); font-style:italic;}
+  .lv-output div{padding:1px 0;}
+  .lv-controls{display:flex; gap:10px; flex-wrap:wrap;}
+
+  /* ---------- sections ---------- */
+  main section{padding:clamp(46px,7vw,80px) 0; border-top:1px solid var(--border);}
+  section .eyebrow.small{font-size:0.7rem; padding:5px 10px;}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem); margin-bottom:14px;}
+  .lead{font-size:1.02rem; max-width:760px;}
+  .section-grid{display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start;}
+  @media (max-width:820px){ .section-grid{grid-template-columns:1fr;} }
+
+  /* ---------- code blocks ---------- */
+  .code-block{
+    background:#0B0F22; border:1px solid var(--border); border-radius:var(--radius-md);
+    overflow:hidden; margin:16px 0;
+  }
+  .code-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 16px; background:var(--bg-panel-2); border-bottom:1px solid var(--border);
+    font-family:var(--font-mono); font-size:0.72rem; color:var(--text-dim);
+  }
+  .code-dots{display:flex; gap:6px;}
+  .code-dots span{width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.15);}
+  .code-block pre{margin:0; padding:16px 18px; overflow-x:auto;}
+  .code-block code{font-family:var(--font-mono); font-size:0.86rem; color:#DCE1F5; white-space:pre;}
+  .tok-kw{color:var(--violet); font-weight:600;}
+  .tok-str{color:var(--teal);}
+  .tok-cm{color:var(--text-dim); font-style:italic;}
+  .tok-num{color:var(--accent);}
+
+  /* ---------- comparison table ---------- */
+  .table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius-md); margin-top:20px;}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:0.92rem;}
+  th,td{text-align:left; padding:13px 16px; border-bottom:1px solid var(--border);}
+  thead th{
+    background:var(--bg-panel-2); font-family:var(--font-mono); font-size:0.74rem;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); font-weight:600;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  td strong{color:var(--text);}
+  .tag{
+    display:inline-block; font-family:var(--font-mono); font-size:0.72rem; padding:3px 9px;
+    border-radius:100px; background:var(--teal-soft); color:var(--teal); border:1px solid rgba(87,232,201,0.35);
+  }
+
+  /* ---------- cards ---------- */
+  .card{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-md);
+    padding:22px 22px 24px;
+  }
+  .card h3{font-size:1.05rem; margin-bottom:8px;}
+  .use-cards{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px;}
+  @media (max-width:640px){ .use-cards{grid-template-columns:1fr;} }
+
+  /* ---------- bug cards ---------- */
+  .bug-list{display:flex; flex-direction:column; gap:16px; margin-top:26px;}
+  .bug-card{
+    background:var(--bg-panel); border:1px solid var(--border); border-left:3px solid var(--coral);
+    border-radius:var(--radius-md); padding:20px 22px;
+  }
+  .bug-card-head{display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap;}
+  .bug-num{
+    font-family:var(--font-mono); font-size:0.76rem; color:var(--coral); background:var(--coral-soft);
+    border:1px solid rgba(255,122,122,0.35); border-radius:100px; padding:3px 10px; flex-shrink:0;
+  }
+  .bug-card h3{margin:0; font-size:1rem;}
+  .bug-fix{
+    margin-top:12px; padding:12px 14px; border-radius:10px; background:var(--teal-soft);
+    border:1px solid rgba(87,232,201,0.3); font-size:0.9rem; color:var(--text);
+  }
+  .bug-fix strong{color:var(--teal);}
+
+  /* ---------- best practices ---------- */
+  .bp-list{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px;}
+  @media (max-width:700px){ .bp-list{grid-template-columns:1fr;} }
+  .bp-item{
+    display:flex; gap:14px; background:var(--bg-panel); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:18px 20px;
+  }
+  .bp-icon{
+    width:34px; height:34px; border-radius:9px; background:var(--accent-soft); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; font-family:var(--font-mono);
+  }
+  .bp-item h4{margin:0 0 4px; font-size:0.96rem; font-family:var(--font-body); font-weight:700; color:var(--text);}
+  .bp-item p{margin:0; font-size:0.88rem;}
+
+  /* ---------- playground ---------- */
+  .playground{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-lg);
+    margin-top:26px; overflow:hidden;
+  }
+  .pg-toolbar{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    padding:14px 20px; border-bottom:1px solid var(--border); background:var(--bg-panel-2);
+  }
+  .pg-toolbar span{font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim);}
+  .pg-toolbar-actions{display:flex; gap:8px;}
+  .pg-body{display:grid; grid-template-columns:1fr 1fr;}
+  @media (max-width:780px){ .pg-body{grid-template-columns:1fr;} }
+  #pgInput{
+    width:100%; height:260px; resize:vertical; background:#0B0F22; color:#DCE1F5; border:none;
+    border-right:1px solid var(--border); padding:18px; font-family:var(--font-mono); font-size:0.86rem;
+    line-height:1.6; outline:none;
+  }
+  @media (max-width:780px){ #pgInput{border-right:none; border-bottom:1px solid var(--border);} }
+  .pg-output-col{padding:18px; display:flex; flex-direction:column; gap:10px;}
+  .pg-output-label{font-family:var(--font-mono); font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em;}
+  #pgOutput{
+    flex:1; min-height:220px; background:#0B0F22; border:1px solid var(--border); border-radius:10px;
+    padding:14px; font-family:var(--font-mono); font-size:0.84rem; color:var(--teal); overflow-y:auto; white-space:pre-wrap;
+  }
+  #pgOutput .err{color:var(--coral);}
+  #pgOutput .warn{color:var(--accent);}
+  #pgOutput .empty{color:var(--text-dim); font-style:italic;}
+
+  /* ---------- quiz ---------- */
+  .quiz-list{display:flex; flex-direction:column; gap:18px; margin-top:26px;}
+  .quiz-card{background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-md); padding:20px 22px;}
+  .quiz-q{font-weight:700; color:var(--text); margin-bottom:14px; font-size:0.98rem;}
+  .quiz-opts{display:flex; flex-direction:column; gap:8px;}
+  .quiz-opt{
+    text-align:left; background:var(--bg-panel-2); border:1px solid var(--border); color:var(--text);
+    padding:11px 14px; border-radius:9px; cursor:pointer; font-size:0.9rem; transition:all .15s ease;
+  }
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong); background:rgba(255,255,255,0.05);}
+  .quiz-opt:disabled{cursor:default;}
+  .quiz-opt.correct{background:var(--teal-soft); border-color:var(--teal); color:var(--teal);}
+  .quiz-opt.incorrect{background:var(--coral-soft); border-color:var(--coral); color:var(--coral);}
+  .quiz-explain{
+    margin-top:12px; font-size:0.87rem; padding:10px 13px; border-radius:8px;
+    background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--text-muted); display:none;
+  }
+  .quiz-score{
+    margin-top:18px; font-family:var(--font-mono); font-size:0.9rem; color:var(--accent);
+    background:var(--accent-soft); border:1px solid rgba(242,184,75,0.35); border-radius:10px; padding:12px 16px;
+  }
+
+  /* ---------- cheat sheet ---------- */
+  .cheat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:22px;}
+  @media (max-width:900px){ .cheat-grid{grid-template-columns:1fr;} }
+  .cheat-card{background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-md); padding:20px;}
+  .cheat-card h3{font-family:var(--font-mono); font-size:0.95rem; color:var(--accent); margin-bottom:10px;}
+  .cheat-card ul{margin:0; padding-left:18px; color:var(--text-muted); font-size:0.87rem;}
+  .cheat-card li{margin-bottom:6px;}
+
+  footer{padding:36px var(--pad) 48px; text-align:center; color:var(--text-dim); font-size:0.84rem;}
+  footer a{color:var(--text-muted);}
+
+  .backtop{
+    position:fixed; bottom:20px; right:20px; z-index:30; width:44px; height:44px; border-radius:50%;
+    background:var(--accent); color:#221806; border:none; display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; cursor:pointer; box-shadow:0 8px 20px -6px rgba(242,184,75,0.6);
+    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
+  }
+  .backtop.show{opacity:1; pointer-events:auto;}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="topnav-inner">
+    <a href="#top" class="brand"><span class="brand-mark">JS</span> Dövrlər Dərsi</a>
+    <button id="navToggle" aria-label="Menyunu aç/bağla"><span></span><span></span><span></span></button>
+    <nav class="links" id="navLinks">
+      <a href="#giris">Giriş</a>
+      <a href="#for-dovru">For</a>
+      <a href="#while-dovru">While</a>
+      <a href="#do-while-dovru">Do...While</a>
+      <a href="#muqayise">Müqayisə</a>
+      <a href="#break-continue">Break/Continue</a>
+      <a href="#xetalar">Xətalar</a>
+      <a href="#best-practices">Ən yaxşı təcrübələr</a>
+      <a href="#playground">Kod Meydançası</a>
+      <a href="#quiz">Test</a>
+      <a href="#xulase">Xülasə</a>
+    </nav>
+  </div>
+</header>
+
+<div id="top"></div>
+<div class="wrap">
+  <section class="hero">
+    <span class="eyebrow">JavaScript · Əsaslar</span>
+    <h1>Dövrlər — kodu bir dəfə yaz,<br><em>yüzlərlə dəfə</em> işlət</h1>
+    <p class="hero-sub">
+      <code style="font-family:var(--font-mono);color:var(--text);">for</code>,
+      <code style="font-family:var(--font-mono);color:var(--text);">while</code> və
+      <code style="font-family:var(--font-mono);color:var(--text);">do...while</code>
+      dövrlərini addım-addım, real bug-lar və onların həlli ilə birlikdə öyrənəcəyik.
+      Aşağıdakı sxem bir <strong style="color:var(--text)">for</strong> dövrünün daxildə necə işlədiyini canlı göstərir.
+    </p>
+    <div class="hero-cta">
+      <a href="#giris" class="btn btn-accent">Dərsə başla ↓</a>
+      <a href="#playground" class="btn btn-ghost">Kodu canlı sına</a>
+    </div>
+
+    <div class="lv">
+      <div class="lv-diagram-col">
+        <div class="lv-diagram" id="lvDiagram">
+          <div class="lv-track"></div>
+          <div class="lv-node" data-stage="init"><span class="lv-dot"></span><span class="lv-label">Başlanğıc</span></div>
+          <div class="lv-node" data-stage="cond"><span class="lv-dot"></span><span class="lv-label">Şərt</span></div>
+          <div class="lv-node" data-stage="body"><span class="lv-dot"></span><span class="lv-label">Gövdə</span></div>
+          <div class="lv-node" data-stage="step"><span class="lv-dot"></span><span class="lv-label">Addım</span></div>
+        </div>
+        <div class="lv-caption">Şərt yalan olana qədər dövr davam edir</div>
+      </div>
+      <div class="lv-panel">
+        <div class="code-block" style="margin:0 0 16px;">
+          <pre class="lv-code"><code>for (<span data-part="init">let i = 1</span>; <span data-part="cond">i &lt;= 5</span>; <span data-part="step">i++</span>) {
+  <span data-part="body">console.log(i);</span>
+}</code></pre>
+        </div>
+        <div class="lv-state">
+          <div class="lv-state-row"><span>i =</span><strong id="lvI">—</strong></div>
+          <div class="lv-state-row"><span>Şərt (i ≤ 5)</span><strong id="lvCond">—</strong></div>
+          <div class="lv-state-row"><span>Mərhələ</span><strong id="lvStage">—</strong></div>
+        </div>
+        <div class="lv-output" id="lvOutput"><span class="lv-output-empty">Çıxış burada görünəcək... "Növbəti addım"-a klikləyin.</span></div>
+        <div class="lv-controls">
+          <button class="btn btn-ghost btn-sm" id="lvReset">↺ Sıfırla</button>
+          <button class="btn btn-accent btn-sm" id="lvStep">Növbəti addım →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<main>
+
+<!-- ================= GİRİŞ ================= -->
+<section id="giris">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 01 · Giriş</span>
+    <h2>Dövr (loop) nədir?</h2>
+    <p class="lead">
+      Dövr — müəyyən şərt doğru (true) olduğu müddətcə eyni kod bloğunu təkrar-təkrar icra edən proqramlaşdırma
+      strukturudur. Əl ilə eyni əməliyyatı dəfələrlə yazmaq əvəzinə, dövr həmin işi bizim üçün avtomatlaşdırır.
+    </p>
+    <div class="section-grid">
+      <div>
+        <p style="margin-bottom:6px;"><strong style="color:var(--text)">Dövr olmadan</strong> — 1-dən 5-ə qədər ədədləri çap etmək:</p>
+        <div class="code-block">
+          <div class="code-head"><span>without-loop.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code>console.log(<span class="tok-num">1</span>);
+console.log(<span class="tok-num">2</span>);
+console.log(<span class="tok-num">3</span>);
+console.log(<span class="tok-num">4</span>);
+console.log(<span class="tok-num">5</span>);
+<span class="tok-cm">// 1000-ə qədər olsaydı, 1000 sətir kod lazım gələrdi!</span></code></pre>
+        </div>
+      </div>
+      <div>
+        <p style="margin-bottom:6px;"><strong style="color:var(--text)">Dövr ilə</strong> — eyni nəticə, cəmi 3 sətir:</p>
+        <div class="code-block">
+          <div class="code-head"><span>with-loop.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">1</span>; i &lt;= <span class="tok-num">5</span>; i++) {
+  console.log(i);
+}</code></pre>
+        </div>
+      </div>
+    </div>
+    <p>
+      JavaScript-də üç əsas dövr növü var: <strong style="color:var(--text)">for</strong> (say məlum olduqda),
+      <strong style="color:var(--text)">while</strong> (şərtə əsaslanan) və
+      <strong style="color:var(--text)">do...while</strong> (ən azı bir dəfə icra olunmalı olan hallar üçün).
+      Növbəti bölmələrdə hər birini ayrıca, nümunələrlə araşdıracağıq.
+    </p>
+  </div>
+</section>
+
+<!-- ================= FOR ================= -->
+<section id="for-dovru">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 02 · for</span>
+    <h2><code style="font-family:var(--font-mono);">for</code> dövrü</h2>
+    <p class="lead">
+      <code style="font-family:var(--font-mono);color:var(--text);">for</code> dövrü təkrarların sayı əvvəlcədən
+      məlum olduqda ən uyğun seçimdir. Onun sintaksisi üç hissədən ibarətdir və hamısı bir sətirdə yazılır.
+    </p>
+    <div class="code-block">
+      <div class="code-head"><span>syntax</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">for</span> (başlanğıc; şərt; addım) {
+  <span class="tok-cm">// gövdə — təkrarlanacaq kod</span>
+}</code></pre>
+    </div>
+    <div class="use-cards">
+      <div class="card">
+        <h3 style="color:var(--violet);">1. Başlanğıc</h3>
+        <p>Dövr başlamazdan əvvəl <strong>bir dəfə</strong> icra olunur. Adətən sayğac dəyişəni yaradılır: <code style="font-family:var(--font-mono);color:var(--text);">let i = 0</code></p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--accent);">2. Şərt</h3>
+        <p>Hər təkrardan <strong>əvvəl</strong> yoxlanılır. <code style="font-family:var(--font-mono);color:var(--text);">true</code> olarsa gövdə icra olunur, <code style="font-family:var(--font-mono);color:var(--text);">false</code> olarsa dövr dayanır.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--teal);">3. Gövdə</h3>
+        <p>Şərt doğru olduqda icra olunan kod bloğu. Burada istədiyin əməliyyatı yerinə yetirirsən.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--coral);">4. Addım</h3>
+        <p>Hər təkrardan <strong>sonra</strong> icra olunur. Adətən sayğacı artırır/azaldır: <code style="font-family:var(--font-mono);color:var(--text);">i++</code> və ya <code style="font-family:var(--font-mono);color:var(--text);">i--</code></p>
+      </div>
+    </div>
+
+    <p style="margin-top:26px;"><strong style="color:var(--text)">Nümunə:</strong></p>
+    <div class="code-block">
+      <div class="code-head"><span>for-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">1</span>; i &lt;= <span class="tok-num">5</span>; i++) {
+  console.log(i);
+}
+<span class="tok-cm">// Çıxış: 1 2 3 4 5</span></code></pre>
+    </div>
+
+    <p style="margin-top:22px;"><strong style="color:var(--text)">Addım-addım icra:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Təkrar</th><th>i dəyəri</th><th>Şərt (i ≤ 5)</th><th>Nəticə</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>1</td><td><span class="tag">true</span></td><td>1 çap olunur, sonra i=2</td></tr>
+          <tr><td>2</td><td>2</td><td><span class="tag">true</span></td><td>2 çap olunur, sonra i=3</td></tr>
+          <tr><td>3</td><td>3</td><td><span class="tag">true</span></td><td>3 çap olunur, sonra i=4</td></tr>
+          <tr><td>4</td><td>4</td><td><span class="tag">true</span></td><td>4 çap olunur, sonra i=5</td></tr>
+          <tr><td>5</td><td>5</td><td><span class="tag">true</span></td><td>5 çap olunur, sonra i=6</td></tr>
+          <tr><td>6</td><td>6</td><td style="color:var(--coral);font-family:var(--font-mono);">false</td><td>Dövr dayanır</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px;"><strong style="color:var(--text)">Nə vaxt istifadə et:</strong> təkrarların sayı əvvəlcədən bəlli olduqda — massiv elementlərini gəzmək, 1-dən N-ə qədər saymaq, sabit sayda əməliyyat təkrarlamaq və s.</p>
+  </div>
+</section>
+
+<!-- ================= WHILE ================= -->
+<section id="while-dovru">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 03 · while</span>
+    <h2><code style="font-family:var(--font-mono);">while</code> dövrü</h2>
+    <p class="lead">
+      <code style="font-family:var(--font-mono);color:var(--text);">while</code> dövrü daha sadədir: yalnız şərt
+      var. Şərt doğru olduğu müddətcə gövdə icra olunur. Addımlama (say artırma/azaltma) gövdənin
+      <strong>daxilində, əl ilə</strong> yazılmalıdır.
+    </p>
+    <div class="code-block">
+      <div class="code-head"><span>syntax</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">while</span> (şərt) {
+  <span class="tok-cm">// gövdə</span>
+  <span class="tok-cm">// addımlama BURADA əl ilə edilməlidir</span>
+}</code></pre>
+    </div>
+    <p><strong style="color:var(--text)">Nümunə:</strong></p>
+    <div class="code-block">
+      <div class="code-head"><span>while-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">let</span> i = <span class="tok-num">1</span>;
+<span class="tok-kw">while</span> (i &lt;= <span class="tok-num">5</span>) {
+  console.log(i);
+  i++; <span class="tok-cm">// bunu unutsan, sonsuz dövr yaranar!</span>
+}
+<span class="tok-cm">// Çıxış: 1 2 3 4 5</span></code></pre>
+    </div>
+    <div class="bug-fix" style="margin-top:4px;">
+      ⚠️ <strong>Diqqət:</strong> <code style="font-family:var(--font-mono);">i++</code> sətrini gövdədən silsən,
+      şərt (<code style="font-family:var(--font-mono);">i ≤ 5</code>) heç vaxt yalan olmayacaq və brauzer donacaq.
+    </div>
+    <p style="margin-top:18px;"><strong style="color:var(--text)">Nə vaxt istifadə et:</strong> təkrarların sayı əvvəlcədən bilinmədikdə — məsələn istifadəçi düzgün məlumat daxil edənə qədər, ya da bir şərt (fayl sonuna çatana qədər və s.) ödənənə qədər davam edən proseslərdə.</p>
+  </div>
+</section>
+
+<!-- ================= DO WHILE ================= -->
+<section id="do-while-dovru">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 04 · do...while</span>
+    <h2><code style="font-family:var(--font-mono);">do...while</code> dövrü</h2>
+    <p class="lead">
+      <code style="font-family:var(--font-mono);color:var(--text);">do...while</code>, <code style="font-family:var(--font-mono);color:var(--text);">while</code>-a
+      çox bənzəyir, amma fərqli yerdə şərt yoxlanılır: gövdə <strong>əvvəlcə bir dəfə icra olunur</strong>, sonra şərt yoxlanılır.
+    </p>
+    <div class="code-block">
+      <div class="code-head"><span>syntax</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">do</span> {
+  <span class="tok-cm">// gövdə — ən azı 1 dəfə icra olunur</span>
+} <span class="tok-kw">while</span> (şərt);</code></pre>
+    </div>
+    <p><strong style="color:var(--text)">Nümunə — şərt başlanğıcdan yalan olsa belə:</strong></p>
+    <div class="code-block">
+      <div class="code-head"><span>do-while-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">let</span> i = <span class="tok-num">10</span>;
+<span class="tok-kw">do</span> {
+  console.log(i);
+  i++;
+} <span class="tok-kw">while</span> (i &lt; <span class="tok-num">5</span>);
+<span class="tok-cm">// Çıxış: 10  (şərt (10 &lt; 5) yalandır, amma gövdə yenə də 1 dəfə işləyib)</span></code></pre>
+    </div>
+    <p><strong style="color:var(--text)">Nə vaxt istifadə et:</strong> gövdənin şərtdən asılı olmayaraq <strong>ən azı bir dəfə</strong> icra olunmalı olduğu hallarda — məsələn istifadəçidən ilk dəfə mütləq soruşulmalı olan menyu seçimi kimi.</p>
+  </div>
+</section>
+
+<!-- ================= MÜQAYİSƏ ================= -->
+<section id="muqayise">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 05 · Müqayisə</span>
+    <h2>Üç dövrün müqayisəsi</h2>
+    <p class="lead">Hansı dövrü nə vaxt seçəcəyini bilmək üçün əsas fərqlərə nəzər sal:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Xüsusiyyət</th><th>for</th><th>while</th><th>do...while</th></tr></thead>
+        <tbody>
+          <tr><td>Şərtin yoxlanma vaxtı</td><td><strong>Əvvəl</strong></td><td><strong>Əvvəl</strong></td><td><strong>Sonra</strong></td></tr>
+          <tr><td>Minimum icra sayı</td><td>0</td><td>0</td><td><strong>1</strong></td></tr>
+          <tr><td>Addımlama</td><td>Sintaksisin içində</td><td>Gövdə daxilində əl ilə</td><td>Gövdə daxilində əl ilə</td></tr>
+          <tr><td>Ən uyğun olduğu hal</td><td>Say məlumdur</td><td>Say məlum deyil</td><td>Ən azı 1 icra lazımdır</td></tr>
+          <tr><td>Oxunaqlılıq (sayğacla işdə)</td><td><strong>Yüksək</strong></td><td>Orta</td><td>Orta</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BREAK / CONTINUE ================= -->
+<section id="break-continue">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 06 · Nəzarət</span>
+    <h2><code style="font-family:var(--font-mono);">break</code> və <code style="font-family:var(--font-mono);">continue</code></h2>
+    <p class="lead">Bu iki açar söz dövrün normal axınına müdaxilə etməyə imkan verir.</p>
+    <div class="section-grid">
+      <div>
+        <h3 style="font-size:1rem;color:var(--coral);">break — dövrü tamamilə dayandırır</h3>
+        <div class="code-block">
+          <div class="code-head"><span>break-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">1</span>; i &lt;= <span class="tok-num">100</span>; i++) {
+  <span class="tok-kw">if</span> (i % <span class="tok-num">7</span> === <span class="tok-num">0</span>) {
+    console.log(<span class="tok-str">"Tapıldı:"</span>, i);
+    <span class="tok-kw">break</span>; <span class="tok-cm">// dövr dərhal dayanır</span>
+  }
+}
+<span class="tok-cm">// Çıxış: Tapıldı: 7</span></code></pre>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:1rem;color:var(--teal);">continue — cari addımı ötürür</h3>
+        <div class="code-block">
+          <div class="code-head"><span>continue-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">1</span>; i &lt;= <span class="tok-num">10</span>; i++) {
+  <span class="tok-kw">if</span> (i % <span class="tok-num">2</span> === <span class="tok-num">0</span>) <span class="tok-kw">continue</span>;
+  console.log(i);
+}
+<span class="tok-cm">// Çıxış: 1 3 5 7 9  (cüt ədədlər keçilir)</span></code></pre>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:8px;">İç-içə dövrlərdə (aşağıda) bu açar sözlərdən çox istifadə həddindən artıq istifadə kodun izlənməsini çətinləşdirə bilər — ölçülü istifadə et.</p>
+  </div>
+</section>
+
+<!-- ================= İÇ-İÇƏ ================= -->
+<section id="ic-ice">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 07 · İç-içə dövrlər</span>
+    <h2>Nested loops (iç-içə dövrlər)</h2>
+    <p class="lead">Bir dövrün gövdəsində başqa bir dövr yerləşdirmək olar. Klassik nümunə — vurma cədvəli:</p>
+    <div class="code-block">
+      <div class="code-head"><span>nested-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">1</span>; i &lt;= <span class="tok-num">5</span>; i++) {
+  <span class="tok-kw">let</span> setir = <span class="tok-str">""</span>;
+  <span class="tok-kw">for</span> (<span class="tok-kw">let</span> j = <span class="tok-num">1</span>; j &lt;= <span class="tok-num">5</span>; j++) {
+    setir += (i * j) + <span class="tok-str">"\t"</span>;
+  }
+  console.log(setir);
+}
+<span class="tok-cm">// 5x5 vurma cədvəlini sətir-sətir çap edir</span></code></pre>
+    </div>
+    <p><strong style="color:var(--coral)">Diqqət:</strong> iç-içə dövrlər mürəkkəbliyi sürətlə artırır (2 dövr → O(n²)). Böyük massivlərdə performans üçün ehtiyatlı ol, mümkünsə alternativ üsul (məs. axtarış üçün obyekt/Map) düşün.</p>
+  </div>
+</section>
+
+<!-- ================= XƏTALAR ================= -->
+<section id="xetalar">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 08 · Diqqət!</span>
+    <h2>Ola biləcək xətalar və bug-lar</h2>
+    <p class="lead">Dövrlərlə işləyərkən yeni başlayanların (və təcrübəlilərin belə) ən çox rastlaşdığı 7 problem:</p>
+
+    <div class="bug-list">
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">01</span><h3>Sonsuz dövr (Infinite Loop)</h3></div>
+        <p>Şərt heç vaxt <code style="font-family:var(--font-mono);">false</code> olmadıqda dövr sonsuza qədər işləyir və səhifə/brauzer donur.</p>
+        <div class="code-block">
+          <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">0</span>; i &lt; <span class="tok-num">10</span>; i--) {
+  console.log(i);
+}
+<span class="tok-cm">// i azalır, amma şərt (i &lt; 10) HƏMİŞƏ true qalır → sonsuz dövr!</span></code></pre>
+        </div>
+        <div class="bug-fix"><strong>Həll:</strong> addımlamanın şərtlə eyni istiqamətdə işlədiyinə əmin ol (<code style="font-family:var(--font-mono);">i++</code> ↔ <code style="font-family:var(--font-mono);">i &lt; N</code>), kodu yazdıqdan sonra addım-addım "əlində" icra et.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">02</span><h3>Off-by-one xətası</h3></div>
+        <p><code style="font-family:var(--font-mono);">&lt;</code> əvəzinə <code style="font-family:var(--font-mono);">&lt;=</code> (və ya əksinə) istifadə etmək bir addım artıq/az icraya səbəb olur.</p>
+        <div class="code-block">
+          <pre><code><span class="tok-kw">const</span> meyveler = [<span class="tok-str">"alma"</span>, <span class="tok-str">"armud"</span>, <span class="tok-str">"gilas"</span>];
+<span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">0</span>; i &lt; meyveler.length - <span class="tok-num">1</span>; i++) {
+  console.log(meyveler[i]);
+}
+<span class="tok-cm">// "gilas" heç vaxt çap olunmur — length-dən 1 artıq çıxılıb!</span></code></pre>
+        </div>
+        <div class="bug-fix"><strong>Həll:</strong> massiv gəzərkən şərti <code style="font-family:var(--font-mono);">i &lt; massiv.length</code> şəklində yaz (indeks 0-dan başladığı üçün <code style="font-family:var(--font-mono);">&lt;=</code> lazım deyil).</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">03</span><h3><code style="font-family:var(--font-mono);">=</code> və <code style="font-family:var(--font-mono);">==</code>/<code style="font-family:var(--font-mono);">===</code> qarışdırılması</h3></div>
+        <p>Şərt daxilində müqayisə əvəzinə təyinetmə operatoru yazmaq — şərti həmişə "doğru" edir.</p>
+        <div class="code-block">
+          <pre><code><span class="tok-kw">let</span> i = <span class="tok-num">0</span>;
+<span class="tok-kw">if</span> (i = <span class="tok-num">5</span>) { <span class="tok-cm">// === yerinə = yazılıb!</span>
+  console.log(<span class="tok-str">"Bu həmişə icra olunur"</span>);
+}</code></pre>
+        </div>
+        <div class="bug-fix"><strong>Həll:</strong> şərtlərdə həmişə <code style="font-family:var(--font-mono);">===</code> (və ya <code style="font-family:var(--font-mono);">==</code>) istifadə et, tək <code style="font-family:var(--font-mono);">=</code> yalnız dəyər mənimsətmək üçündür.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">04</span><h3><code style="font-family:var(--font-mono);">var</code> ilə closure problemi</h3></div>
+        <p><code style="font-family:var(--font-mono);">var</code> funksiya-səviyyəli (function-scoped) olduğu üçün, gecikmiş kodlarda (məs. <code style="font-family:var(--font-mono);">setTimeout</code>) gözlənilməz nəticələr verir.</p>
+        <div class="code-block">
+          <pre><code><span class="tok-kw">for</span> (<span class="tok-kw">var</span> i = <span class="tok-num">1</span>; i &lt;= <span class="tok-num">3</span>; i++) {
+  setTimeout(() =&gt; console.log(i), <span class="tok-num">100</span>);
+}
+<span class="tok-cm">// Nəticə: 4, 4, 4  (gözlənilən 1, 2, 3 əvəzinə)</span></code></pre>
+        </div>
+        <div class="bug-fix"><strong>Həll:</strong> <code style="font-family:var(--font-mono);">var</code> əvəzinə <code style="font-family:var(--font-mono);">let</code> istifadə et — hər təkrarda öz blok-səviyyəli nüsxəsini yaradır: <code style="font-family:var(--font-mono);">for (let i = 1; ...)</code> → nəticə düzgün olaraq 1, 2, 3.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">05</span><h3>Sayğacı gövdə daxilində əl ilə dəyişmək</h3></div>
+        <p><code style="font-family:var(--font-mono);">for</code> dövründə <code style="font-family:var(--font-mono);">i</code> dəyişənini gövdənin içində əlavə olaraq dəyişmək kodun məntiqini izləməyi çətinləşdirir və gözlənilməz sonsuz dövrlərə yol aça bilər.</p>
+        <div class="bug-fix"><strong>Həll:</strong> sayğacı yalnız dövrün öz "addım" hissəsində dəyiş; gövdə daxilində fərqli məqsəd üçün yeni dəyişən istifadə et.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">06</span><h3>Hər addımda təkrar hesablama (performans)</h3></div>
+        <p>Şərtdə mürəkkəb ifadəni hər dəfə yenidən hesablatmaq (böyük massiv/DOM sorğusu və s.) böyük datasetlərdə yavaşlığa səbəb ola bilər.</p>
+        <div class="code-block">
+          <pre><code><span class="tok-cm">// Daha yaxşı:</span>
+<span class="tok-kw">const</span> uzunluq = massiv.length; <span class="tok-cm">// əvvəlcədən saxlanılır</span>
+<span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">0</span>; i &lt; uzunluq; i++) {
+  console.log(massiv[i]);
+}</code></pre>
+        </div>
+        <div class="bug-fix"><strong>Həll:</strong> dəyişməyəcək dəyərləri dövrdən əvvəl bir dəfə hesablayıb dəyişənə yaz.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">07</span><h3><code style="font-family:var(--font-mono);">do...while</code> ilə gözlənilməz ilk icra</h3></div>
+        <p>Gövdə şərtdən əvvəl icra olunduğu üçün, başlanğıc data hazır olmasa belə kod bir dəfə işləyəcək — bu bəzən istənilməyən yan effektə (məs. boş məlumatla əməliyyat) səbəb olur.</p>
+        <div class="bug-fix"><strong>Həll:</strong> <code style="font-family:var(--font-mono);">do...while</code>-i yalnız "ən azı 1 dəfə icra lazımdır" məntiqi aydın olduqda seç, əks halda adi <code style="font-family:var(--font-mono);">while</code> daha təhlükəsizdir.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= BEST PRACTICES ================= -->
+<section id="best-practices">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 09 · Daha yaxşı necə edək?</span>
+    <h2>Ən yaxşı təcrübələr</h2>
+    <p class="lead">Yuxarıdakı bug-ların qarşısını almaq və daha təmiz kod yazmaq üçün bu tövsiyələrə əməl et:</p>
+    <div class="bp-list">
+      <div class="bp-item"><div class="bp-icon">let</div><div><h4>var yox, let/const istifadə et</h4><p>Blok-səviyyəli scope closure problemlərinin qarşısını alır və kodu daha proqnozlaşdırıla bilən edir.</p></div></div>
+      <div class="bp-item"><div class="bp-icon">Aa</div><div><h4>Mənalı dəyişən adları ver</h4><p>Sadə sayğaclar üçün i, j qəbul edilir, amma məzmunlu massivlərdə <code style="font-family:var(--font-mono);">itemIndex</code> kimi adlar daha oxunaqlıdır.</p></div></div>
+      <div class="bp-item"><div class="bp-icon">?</div><div><h4>Şərti sadə saxla</h4><p>Mürəkkəb məntiqi ayrıca bir funksiyaya çıxar: <code style="font-family:var(--font-mono);">while (hazirdirmi())</code> oxumağı asanlaşdırır.</p></div></div>
+      <div class="bp-item"><div class="bp-icon">∞</div><div><h4>Sonsuz dövrü əvvəlcədən yoxla</h4><p>Kodu yazdıqdan sonra addımlama məntiqini test et — şərt həqiqətən nə vaxtsa false olacaqmı?</p></div></div>
+      <div class="bp-item"><div class="bp-icon">[]</div><div><h4>Massivlərdə hazır metodlardan yararlan</h4><p>Sadə gəzinti üçün <code style="font-family:var(--font-mono);">for...of</code>, transformasiya üçün <code style="font-family:var(--font-mono);">map/filter/reduce</code> daha oxunaqlı ola bilər.</p></div></div>
+      <div class="bp-item"><div class="bp-icon">▦</div><div><h4>İç-içə dövrlərdən ehtiyatlı istifadə et</h4><p>Mümkünsə alternativ struktur (obyekt, Map, Set) axtararaq O(n²) mürəkkəbliyindən qaç.</p></div></div>
+      <div class="bp-item"><div class="bp-icon">log</div><div><h4>console.log ilə izlə</h4><p>Dövr düzgün işləmirsə, sayğacın və şərtin dəyərini hər addımda çap edərək "debug" et.</p></div></div>
+      <div class="bp-item"><div class="bp-icon">B/C</div><div><h4>break/continue-u ölçülü istifadə et</h4><p>Faydalıdırlar, amma çox iç-içə istifadə olunanda kodun axınını izləmək çətinləşir.</p></div></div>
+    </div>
+
+    <p style="margin-top:28px;"><strong style="color:var(--text)">Bonus — for...of və for...in fərqi:</strong></p>
+    <div class="section-grid">
+      <div>
+        <div class="code-block">
+          <div class="code-head"><span>for-of.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> reqler = [<span class="tok-str">"qırmızı"</span>, <span class="tok-str">"yaşıl"</span>, <span class="tok-str">"mavi"</span>];
+<span class="tok-kw">for</span> (<span class="tok-kw">const</span> reng <span class="tok-kw">of</span> reqler) {
+  console.log(reng);
+}</code></pre>
+        </div>
+        <p style="font-size:0.87rem;">Massiv/iterable <strong>dəyərlərini</strong> birbaşa gəzmək üçün — ən çox tövsiyə olunan üsul.</p>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="code-head"><span>for-in.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="tok-kw">const</span> insan = { ad: <span class="tok-str">"Aysel"</span>, yas: <span class="tok-num">25</span> };
+<span class="tok-kw">for</span> (<span class="tok-kw">const</span> acar <span class="tok-kw">in</span> insan) {
+  console.log(acar, <span class="tok-str">":"</span>, insan[acar]);
+}</code></pre>
+        </div>
+        <p style="font-size:0.87rem;">Obyektin <strong>açarlarını (key)</strong> gəzmək üçün. Massivlərdə istifadəsi tövsiyə olunmur.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLAYGROUND ================= -->
+<section id="playground">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 10 · Praktika</span>
+    <h2>Canlı kod meydançası</h2>
+    <p class="lead">Aşağıdakı kodu redaktə et və "İşə sal" düyməsini bas. <code style="font-family:var(--font-mono);color:var(--text);">console.log()</code> nəticələri sağda görünəcək. Kod ayrıca "worker" daxilində icra olunur — əgər sonsuz dövr yazsan, 2 saniyə sonra avtomatik dayandırılacaq (bunu sınamaqdan çəkinmə!).</p>
+    <div class="playground">
+      <div class="pg-toolbar">
+        <span>playground.js</span>
+        <div class="pg-toolbar-actions">
+          <button class="btn btn-ghost btn-sm" id="pgReset">Sıfırla</button>
+          <button class="btn btn-accent btn-sm" id="pgRun">▶ İşə sal</button>
+        </div>
+      </div>
+      <div class="pg-body">
+        <textarea id="pgInput" spellcheck="false">for (let i = 1; i <= 5; i++) {
+  console.log("Addım:", i);
+}</textarea>
+        <div class="pg-output-col">
+          <span class="pg-output-label">Çıxış</span>
+          <div id="pgOutput"><span class="empty">Nəticə burada görünəcək...</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= QUIZ ================= -->
+<section id="quiz">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 11 · Özünü yoxla</span>
+    <h2>Kiçik test</h2>
+    <p class="lead">Öyrəndiklərini bir neçə sual ilə möhkəmləndir. Cavabına klikləyəndə dərhal nəticəni görəcəksən.</p>
+    <div class="quiz-list" id="quizList"></div>
+    <div class="quiz-score" id="quizScore" style="display:none;"></div>
+  </div>
+</section>
+
+<!-- ================= XÜLASƏ ================= -->
+<section id="xulase">
+  <div class="wrap">
+    <span class="eyebrow small">Bölmə 12 · Xülasə</span>
+    <h2>Sürətli istinad (cheat sheet)</h2>
+    <div class="cheat-grid">
+      <div class="cheat-card">
+        <h3>for</h3>
+        <ul>
+          <li>Say əvvəlcədən məlum olduqda</li>
+          <li>Başlanğıc/şərt/addım bir sətirdə</li>
+          <li>Massiv gəzintisi üçün klassik seçim</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h3>while</h3>
+        <ul>
+          <li>Say məlum olmadıqda</li>
+          <li>Şərt öncədən yoxlanılır</li>
+          <li>Addımlamağı unutma!</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h3>do...while</h3>
+        <ul>
+          <li>Ən azı 1 dəfə icra lazımdırsa</li>
+          <li>Şərt gövdədən sonra yoxlanılır</li>
+          <li>Nadir hallarda istifadə olunur</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:24px;"><strong style="color:var(--text)">Yadda saxla:</strong> <code style="font-family:var(--font-mono);color:var(--text);">let</code>-dən istifadə et, addımlamanı yoxla, şərtini sadə saxla və sonsuz dövrdən qorxma — onu tanımağı öyrəndin! 🎉</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  JavaScript Dövrlər Dərsi — for, while, do...while. Öyrənməyə davam et! 💛
+</footer>
+
+<button class="backtop" id="backTop" aria-label="Yuxarı qayıt">↑</button>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- nav toggle ---------- */
+  var navToggle = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', function(){
+    navLinks.classList.toggle('open');
+  });
+  navLinks.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){ navLinks.classList.remove('open'); });
+  });
+
+  /* ---------- scrollspy ---------- */
+  var sections = document.querySelectorAll('main section[id]');
+  var navA = navLinks.querySelectorAll('a');
+  if ('IntersectionObserver' in window){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          navA.forEach(function(a){
+            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px' });
+    sections.forEach(function(s){ obs.observe(s); });
+  }
+
+  /* ---------- back to top ---------- */
+  var backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', function(){
+    backTop.classList.toggle('show', window.scrollY > 600);
+  });
+  backTop.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+
+  /* ---------- hero loop visualizer ---------- */
+  var diagram = document.getElementById('lvDiagram');
+  var nodes = diagram.querySelectorAll('.lv-node');
+  var codeParts = document.querySelectorAll('.lv-code [data-part]');
+  var lvI = document.getElementById('lvI');
+  var lvCond = document.getElementById('lvCond');
+  var lvStage = document.getElementById('lvStage');
+  var lvOutput = document.getElementById('lvOutput');
+  var lvStepBtn = document.getElementById('lvStep');
+  var lvResetBtn = document.getElementById('lvReset');
+
+  var LIMIT = 5;
+  var state = { i: null, stage: 'idle', done: false };
+
+  function positionNodes(){
+    var w = diagram.clientWidth;
+    var r = w * 0.42;
+    var cx = w/2, cy = w/2;
+    var order = { init:-90, cond:0, body:90, step:180 };
+    nodes.forEach(function(n){
+      var angleDeg = order[n.dataset.stage];
+      var rad = angleDeg * Math.PI/180;
+      var x = cx + r*Math.cos(rad);
+      var y = cy + r*Math.sin(rad);
+      n.style.left = x + 'px';
+      n.style.top = y + 'px';
+    });
+  }
+  positionNodes();
+  window.addEventListener('resize', debounce(positionNodes, 150));
+
+  function debounce(fn, ms){
+    var t;
+    return function(){
+      clearTimeout(t);
+      var args = arguments;
+      t = setTimeout(function(){ fn.apply(null,args); }, ms);
+    };
+  }
+
+  function setActive(stage){
+    nodes.forEach(function(n){ n.classList.toggle('active', n.dataset.stage === stage); });
+    codeParts.forEach(function(p){ p.classList.toggle('active', p.dataset.part === stage); });
+    var names = { init:'Başlanğıc', cond:'Şərt', body:'Gövdə', step:'Addım' };
+    lvStage.textContent = names[stage] || '—';
+  }
+
+  function resetViz(){
+    state = { i:null, stage:'idle', done:false };
+    lvI.textContent = '—';
+    lvCond.textContent = '—';
+    lvStage.textContent = '—';
+    lvOutput.innerHTML = '<span class="lv-output-empty">Çıxış burada görünəcək... "Növbəti addım"-a klikləyin.</span>';
+    nodes.forEach(function(n){ n.classList.remove('active'); });
+    codeParts.forEach(function(p){ p.classList.remove('active'); });
+    lvStepBtn.textContent = 'Növbəti addım →';
+    lvStepBtn.disabled = false;
+  }
+
+  function appendOutput(text){
+    if (lvOutput.querySelector('.lv-output-empty')) lvOutput.innerHTML = '';
+    var row = document.createElement('div');
+    row.textContent = text;
+    lvOutput.appendChild(row);
+    lvOutput.scrollTop = lvOutput.scrollHeight;
+  }
+
+  function stepViz(){
+    if (state.done){ resetViz(); return; }
+
+    if (state.i === null){
+      // başlanğıc
+      state.i = 1;
+      state.stage = 'init';
+      setActive('init');
+      lvI.textContent = state.i;
+      lvCond.textContent = '—';
+      return;
+    }
+
+    if (state.stage === 'init' || state.stage === 'step'){
+      // şərt yoxlanışı
+      state.stage = 'cond';
+      setActive('cond');
+      var ok = state.i <= LIMIT;
+      lvCond.textContent = ok ? 'true' : 'false';
+      if (!ok){
+        state.done = true;
+        lvStepBtn.textContent = '↺ Yenidən başla';
+        appendOutput('— dövr bitdi (şərt: false) —');
+      }
+      return;
+    }
+
+    if (state.stage === 'cond'){
+      state.stage = 'body';
+      setActive('body');
+      appendOutput(String(state.i));
+      return;
+    }
+
+    if (state.stage === 'body'){
+      state.stage = 'step';
+      setActive('step');
+      state.i = state.i + 1;
+      lvI.textContent = state.i;
+      return;
+    }
+  }
+
+  lvStepBtn.addEventListener('click', stepViz);
+  lvResetBtn.addEventListener('click', resetViz);
+  resetViz();
+
+  /* ---------- playground (Web Worker sandboxed) ---------- */
+  var pgInput = document.getElementById('pgInput');
+  var pgOutput = document.getElementById('pgOutput');
+  var pgRun = document.getElementById('pgRun');
+  var pgReset = document.getElementById('pgReset');
+  var DEFAULT_CODE = pgInput.value;
+
+  var workerSrc = [
+    'self.onmessage = function(e){',
+    '  var logs = [];',
+    '  var console = { log: function(){',
+    '    var args = Array.prototype.slice.call(arguments);',
+    '    logs.push(args.map(function(a){',
+    '      try { return typeof a === "object" ? JSON.stringify(a) : String(a); }',
+    '      catch(err){ return String(a); }',
+    '    }).join(" "));',
+    '  }};',
+    '  try {',
+    '    var fn = new Function("console", e.data);',
+    '    fn(console);',
+    '    self.postMessage({ type: "done", logs: logs });',
+    '  } catch(err){',
+    '    self.postMessage({ type: "error", logs: logs, message: err.message });',
+    '  }',
+    '};'
+  ].join('\n');
+
+  function runPlayground(){
+    pgOutput.innerHTML = '<span class="warn">⏳ İcra olunur...</span>';
+    var code = pgInput.value;
+    var blob = new Blob([workerSrc], { type: 'application/javascript' });
+    var url = URL.createObjectURL(blob);
+    var worker = new Worker(url);
+    var finished = false;
+
+    var timeoutId = setTimeout(function(){
+      if (!finished){
+        finished = true;
+        worker.terminate();
+        URL.revokeObjectURL(url);
+        pgOutput.innerHTML = '<span class="err">⚠️ Sonsuz dövr aşkarlandı — 2 saniyədən çox icra olundu, kod dayandırıldı.\nŞərt və addımlama məntiqini yoxla (yuxarıdakı "Xətalar" bölməsinə bax).</span>';
+      }
+    }, 2000);
+
+    worker.onmessage = function(e){
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeoutId);
+      URL.revokeObjectURL(url);
+      worker.terminate();
+      var out = e.data.logs || [];
+      var html = '';
+      if (out.length){
+        html += out.map(function(l){ return escapeHtml(l); }).join('\n');
+      }
+      if (e.data.type === 'error'){
+        html += (html ? '\n' : '') + '<span class="err">Xəta: ' + escapeHtml(e.data.message) + '</span>';
+      }
+      pgOutput.innerHTML = html || '<span class="empty">(console.log çağırılmadı, çıxış yoxdur)</span>';
+    };
+
+    worker.onerror = function(err){
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeoutId);
+      URL.revokeObjectURL(url);
+      pgOutput.innerHTML = '<span class="err">Xəta: ' + escapeHtml(err.message || 'naməlum xəta') + '</span>';
+    };
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  pgRun.addEventListener('click', runPlayground);
+  pgReset.addEventListener('click', function(){
+    pgInput.value = DEFAULT_CODE;
+    pgOutput.innerHTML = '<span class="empty">Nəticə burada görünəcək...</span>';
+  });
+
+  /* ---------- quiz ---------- */
+  var QUESTIONS = [
+    {
+      q: '1. Hansı dövr, şərt yalan olsa belə, gövdəni ən azı bir dəfə icra edir?',
+      opts: ['for', 'while', 'do...while', 'Heç biri'],
+      correct: 2,
+      explain: 'do...while dövründə şərt gövdədən SONRA yoxlanılır, ona görə gövdə ən azı 1 dəfə işləyir.'
+    },
+    {
+      q: '2. Bu kod sonsuz dövrdürmü? — for (let i = 0; i < 5; i--) { console.log(i); }',
+      opts: ['Bəli, sonsuz dövrdür', 'Xeyr, 5 dəfə işləyir', 'Xeyr, heç işləmir'],
+      correct: 0,
+      explain: 'i azalır (i--), amma şərt (i < 5) i azaldıqca həmişə true qalır — deməli dövr heç vaxt dayanmır.'
+    },
+    {
+      q: '3. continue açar sözü nə edir?',
+      opts: ['Dövrü tamamilə dayandırır', 'Yalnız cari təkrarı ötürüb növbəti addıma keçir', 'Proqramı bağlayır'],
+      correct: 1,
+      explain: 'continue cari təkrarın qalan hissəsini keçib, dövrün növbəti addımına keçir (dövrü dayandırmır).'
+    },
+    {
+      q: '4. var-ın setTimeout ilə yaratdığı closure problemini hansı açar söz həll edir?',
+      opts: ['var', 'let', 'function'],
+      correct: 1,
+      explain: 'let blok-səviyyəli (block-scoped) olduğu üçün hər təkrarda öz nüsxəsini yaradır və gözlənilən nəticəni verir.'
+    },
+    {
+      q: '5. for (let i = 0; i <= 5; i++) { ... } neçə dəfə icra olunur?',
+      opts: ['5', '6', '4'],
+      correct: 1,
+      explain: 'i, 0-dan 5-ə qədər (daxil olmaqla) dəyər alır: 0,1,2,3,4,5 — cəmi 6 dəfə.'
+    }
+  ];
+
+  var quizList = document.getElementById('quizList');
+  var quizScore = document.getElementById('quizScore');
+  var answered = 0, correctCount = 0;
+
+  QUESTIONS.forEach(function(item, qi){
+    var card = document.createElement('div');
+    card.className = 'quiz-card';
+
+    var qEl = document.createElement('div');
+    qEl.className = 'quiz-q';
+    qEl.textContent = item.q;
+    card.appendChild(qEl);
+
+    var optsEl = document.createElement('div');
+    optsEl.className = 'quiz-opts';
+
+    var explainEl = document.createElement('div');
+    explainEl.className = 'quiz-explain';
+    explainEl.textContent = item.explain;
+
+    item.opts.forEach(function(optText, oi){
+      var btn = document.createElement('button');
+      btn.className = 'quiz-opt';
+      btn.type = 'button';
+      btn.textContent = optText;
+      btn.addEventListener('click', function(){
+        var buttons = optsEl.querySelectorAll('.quiz-opt');
+        buttons.forEach(function(b){ b.disabled = true; });
+        if (oi === item.correct){
+          btn.classList.add('correct');
+          correctCount++;
+        } else {
+          btn.classList.add('incorrect');
+          buttons[item.correct].classList.add('correct');
+        }
+        explainEl.style.display = 'block';
+        answered++;
+        if (answered === QUESTIONS.length){
+          quizScore.style.display = 'block';
+          quizScore.textContent = 'Nəticə: ' + correctCount + ' / ' + QUESTIONS.length + ' düzgün cavab.';
+        }
+      });
+      optsEl.appendChild(btn);
+    });
+
+    card.appendChild(optsEl);
+    card.appendChild(explainEl);
+    quizList.appendChild(card);
+  });
+
+})();
+</script>
+</body>
+</html>

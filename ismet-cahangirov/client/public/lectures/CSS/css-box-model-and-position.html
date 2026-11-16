@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Box Model & Position — Azərbaycan Dərsliyi</title>
+<meta name="description" content="CSS Box Model (margin, padding, border, content, box-sizing) və Position xassəsinin ətraflı Azərbaycan dilindəki dərsliyi.">
+<link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
+<link href="https://fonts.cdnfonts.com/css/dejavu-sans" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/dejavu-sans-mono" rel="stylesheet">
+
+<style>
+/* ============================================================
+   RESET & CSS VARIABLES
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #070C18;
+  --surface:   #0D1423;
+  --surface-2: #132035;
+  --surface-3: #1A2B48;
+  --border:    #1E3050;
+  --text:      #E2EAF8;
+  --text-2:    #8BA3CC;
+  --text-3:    #4A6080;
+
+  --blue:   #5BA5FF;
+  --purple: #9D7CF8;
+  --green:  #2ECC99;
+  --amber:  #F5C44A;
+  --coral:  #F07272;
+  --orange: #FB913A;
+
+  /* Box Model Layer Colors */
+  --c-margin:  #F97316;
+  --c-border:  #A78BFA;
+  --c-padding: #4ADE80;
+  --c-content: #60A5FA;
+
+  --font: 'DejaVu Sans', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'DejaVu Sans Mono', 'Courier New', monospace;
+  --r:    10px;
+  --r-sm: 6px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.78;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1 { font-size: clamp(1.9rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.18; }
+h2 { font-size: clamp(1.45rem, 3vw, 2rem);  font-weight: 700; line-height: 1.25; }
+h3 { font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 600; }
+h4 { font-size: 1rem; font-weight: 600; }
+p  { color: var(--text-2); margin-bottom: .9rem; }
+p:last-child { margin-bottom: 0; }
+strong { color: var(--text); font-weight: 600; }
+ul, ol { padding-left: 1.4rem; color: var(--text-2); }
+ul li, ol li { margin-bottom: .35rem; }
+
+code {
+  font-family: var(--mono);
+  font-size: .85em;
+  background: var(--surface-3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--amber);
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; width: 100%;
+  background: rgba(7,12,24,.93);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  z-index: 1000;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 0 1.5rem; height: 58px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem;
+}
+.nav-brand {
+  font-weight: 700; font-size: .95rem;
+  color: var(--text); white-space: nowrap;
+  display: flex; align-items: center; gap: .45rem;
+}
+.nav-brand .dot {
+  width: 8px; height: 8px;
+  background: var(--blue); border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:.5; transform:scale(.8); }
+}
+.nav-links {
+  display: flex; list-style: none;
+  gap: .15rem; overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display:none; }
+.nav-links a {
+  display: block; padding: .3rem .65rem;
+  border-radius: var(--r-sm); font-size: .78rem;
+  color: var(--text-2); white-space: nowrap;
+  transition: all .2s; text-decoration: none;
+}
+.nav-links a:hover, .nav-links a.active {
+  background: var(--surface-2); color: var(--text);
+}
+.hamburger {
+  display: none;
+  background: none; border: 1px solid var(--border);
+  color: var(--text); border-radius: var(--r-sm);
+  padding: .4rem .65rem; cursor: pointer; font-size: 1rem;
+}
+.mobile-menu {
+  display: none; flex-direction: column;
+  gap: .2rem; padding: .75rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  padding: .45rem .75rem; border-radius: var(--r-sm);
+  color: var(--text-2); display: block;
+  transition: all .2s; text-decoration: none; font-size: .9rem;
+}
+.mobile-menu a:hover { background: var(--surface-2); color: var(--text); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  padding: 120px 1.5rem 80px;
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4rem; align-items: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .28rem .8rem;
+  background: rgba(91,165,255,.1);
+  border: 1px solid rgba(91,165,255,.3);
+  border-radius: 100px; font-size: .78rem;
+  color: var(--blue); margin-bottom: 1.25rem;
+}
+.hero-title { margin-bottom: 1.1rem; }
+.hero-title .grad {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-desc { font-size: 1.05rem; color: var(--text-2); margin-bottom: 1.75rem; }
+.hero-tags { display: flex; flex-wrap: wrap; gap: .45rem; }
+.hero-tags span {
+  padding: .3rem .8rem; border-radius: 100px;
+  font-size: .78rem; font-family: var(--mono); border: 1px solid;
+}
+.hero-tags .t1 { color:var(--c-content); border-color:rgba(96,165,250,.4); background:rgba(96,165,250,.08); }
+.hero-tags .t2 { color:var(--c-padding); border-color:rgba(74,222,128,.4);  background:rgba(74,222,128,.08); }
+.hero-tags .t3 { color:var(--c-border);  border-color:rgba(167,139,250,.4); background:rgba(167,139,250,.08); }
+.hero-tags .t4 { color:var(--c-margin);  border-color:rgba(249,115,22,.4);  background:rgba(249,115,22,.08); }
+.hero-tags .t5 { color:var(--amber);     border-color:rgba(245,196,74,.4);  background:rgba(245,196,74,.08); }
+.hero-tags .t6 { color:var(--coral);     border-color:rgba(240,114,114,.4); background:rgba(240,114,114,.08); }
+
+/* Mini box model vizualı */
+.hero-visual { display:flex; align-items:center; justify-content:center; }
+.bm-mini { position:relative; text-align:center; }
+.bm-ring {
+  padding: 18px; border-radius: 10px; position:relative;
+  transition: filter .3s;
+}
+.bm-ring:hover { filter: brightness(1.18); cursor: default; }
+.bm-ring-label {
+  position: absolute; top: -9px; left: 10px;
+  font-size: .65rem; font-family: var(--mono);
+  padding: 1px 7px; border-radius: 3px; font-weight:700;
+  letter-spacing:.5px;
+}
+.rm { background: rgba(249,115,22,.12); border:2px dashed rgba(249,115,22,.55); }
+.rm .bm-ring-label { background:var(--c-margin); color:#000; }
+.rb { background: rgba(167,139,250,.08); border:3px solid rgba(167,139,250,.7); border-radius:8px; }
+.rb .bm-ring-label { background:var(--c-border); color:#fff; }
+.rp { background: rgba(74,222,128,.1); border:2px dashed rgba(74,222,128,.5); border-radius:6px; }
+.rp .bm-ring-label { background:var(--c-padding); color:#000; }
+.rc {
+  background: rgba(96,165,250,.22); border-radius:5px;
+  padding: 18px 30px;
+  font-family:var(--mono); font-size:.88rem;
+  color:var(--c-content); font-weight:600; position:relative;
+}
+.rc .bm-ring-label { background:var(--c-content); color:#000; }
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+main { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ============================================================
+   SECTIONS
+   ============================================================ */
+.section { padding: 75px 0; border-top: 1px solid var(--border); }
+.section-header {
+  display: flex; align-items: center; gap: .9rem; margin-bottom: 1.5rem;
+}
+.s-icon {
+  width: 42px; height: 42px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; flex-shrink: 0;
+}
+.s-model    .s-icon { background:rgba(91,165,255,.12);  color:var(--blue);   }
+.s-content  .s-icon { background:rgba(96,165,250,.12);  color:var(--c-content); }
+.s-padding  .s-icon { background:rgba(74,222,128,.12);  color:var(--c-padding); }
+.s-border   .s-icon { background:rgba(167,139,250,.12); color:var(--c-border);  }
+.s-margin   .s-icon { background:rgba(249,115,22,.12);  color:var(--c-margin);  }
+.s-boxsizing .s-icon{ background:rgba(245,196,74,.12);  color:var(--amber);     }
+.s-position .s-icon { background:rgba(240,114,114,.12); color:var(--coral);     }
+.s-zindex   .s-icon { background:rgba(46,204,153,.12);  color:var(--green);     }
+
+.section-intro {
+  font-size: 1rem; color: var(--text-2);
+  margin-bottom: 2.25rem; max-width: 820px;
+  line-height: 1.82;
+}
+
+/* ============================================================
+   CARD / GRID
+   ============================================================ */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.6rem;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.35rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+
+/* ============================================================
+   CODE BLOCKS
+   ============================================================ */
+.code-wrap {
+  background: #050910; border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden; margin: 1.4rem 0;
+}
+.code-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: .5rem 1rem;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.code-lang { font-size: .72rem; font-family: var(--mono); color: var(--text-3); }
+.copy-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--text-2); font-family: var(--mono);
+  font-size: .7rem; padding: .2rem .55rem;
+  border-radius: 4px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--surface-2); color: var(--text); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+pre {
+  padding: 1.15rem 1.4rem; overflow-x: auto;
+  font-family: var(--mono); font-size: .83rem; line-height: 1.72;
+}
+/* syntax colors */
+.kw   { color: #C792EA; }
+.prop { color: #80CBC4; }
+.val  { color: #C3E88D; }
+.num  { color: #F78C6C; }
+.cmm  { color: #546E7A; font-style: italic; }
+.sel  { color: #FFCB6B; }
+.punc { color: #89DDFF; }
+.str  { color: #C3E88D; }
+.tag  { color: #F07178; }
+.atr  { color: #FFCB6B; }
+
+/* ============================================================
+   INFO BOXES
+   ============================================================ */
+.ib {
+  display: flex; gap: .85rem; padding: .9rem 1.1rem;
+  border-radius: var(--r-sm); margin: 1.25rem 0;
+  font-size: .9rem; line-height: 1.65;
+}
+.ib-icon { font-size: 1rem; flex-shrink: 0; margin-top:2px; }
+.ib p { color: inherit; margin: 0; }
+.ib.tip  { background:rgba(46,204,153,.08);  border:1px solid rgba(46,204,153,.25);  color:var(--green); }
+.ib.warn { background:rgba(245,196,74,.08);  border:1px solid rgba(245,196,74,.25);  color:var(--amber); }
+.ib.note { background:rgba(91,165,255,.08);  border:1px solid rgba(91,165,255,.25);  color:var(--blue);  }
+.ib.imp  { background:rgba(240,114,114,.08); border:1px solid rgba(240,114,114,.25); color:var(--coral); }
+
+/* ============================================================
+   PROPERTY TABLE
+   ============================================================ */
+.prop-tbl {
+  width: 100%; border-collapse: collapse;
+  font-size: .85rem; margin: 1.1rem 0;
+}
+.prop-tbl th {
+  text-align: left; padding: .5rem .9rem;
+  background: var(--surface-2); color: var(--text-3);
+  font-size: .72rem; font-weight:600;
+  text-transform: uppercase; letter-spacing: .5px;
+  border-bottom: 1px solid var(--border);
+}
+.prop-tbl td {
+  padding: .6rem .9rem; border-bottom: 1px solid var(--border);
+  color: var(--text-2); vertical-align: top;
+}
+.prop-tbl tr:last-child td { border-bottom:none; }
+.prop-tbl td:first-child {
+  font-family: var(--mono); font-size: .8rem;
+  color: var(--amber); white-space: nowrap;
+}
+
+/* ============================================================
+   INTERACTIVE BOX MODEL DIAGRAM
+   ============================================================ */
+.bm-diagram {
+  display: flex; gap: 2rem; align-items: stretch;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.75rem;
+  flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.bm-visual { flex:1; min-width:260px; display:flex; align-items:center; justify-content:center; }
+.bm-layers { flex:1; min-width:260px; display:flex; flex-direction:column; justify-content:center; gap:.5rem; }
+.bm-layer {
+  display:flex; align-items:center; gap:.85rem;
+  padding: .65rem .9rem; border-radius: var(--r-sm);
+  cursor: pointer; transition: all .25s;
+  border: 1px solid transparent;
+}
+.bm-layer:hover { transform: translateX(4px); }
+.bm-layer-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+.bm-layer-info strong { display:block; font-size:.88rem; }
+.bm-layer-info span { font-size:.8rem; color:var(--text-3); }
+.bl-m  { background:rgba(249,115,22,.1);  border-color:rgba(249,115,22,.25); }
+.bl-m .bm-layer-dot  { background:var(--c-margin); }
+.bl-m:hover  { background:rgba(249,115,22,.18);  border-color:rgba(249,115,22,.5); }
+.bl-b  { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.25); }
+.bl-b .bm-layer-dot  { background:var(--c-border); }
+.bl-b:hover  { background:rgba(167,139,250,.18); border-color:rgba(167,139,250,.5); }
+.bl-p  { background:rgba(74,222,128,.1);  border-color:rgba(74,222,128,.25); }
+.bl-p .bm-layer-dot  { background:var(--c-padding); }
+.bl-p:hover  { background:rgba(74,222,128,.18);  border-color:rgba(74,222,128,.5); }
+.bl-c  { background:rgba(96,165,250,.1);  border-color:rgba(96,165,250,.25); }
+.bl-c .bm-layer-dot  { background:var(--c-content); }
+.bl-c:hover  { background:rgba(96,165,250,.18);  border-color:rgba(96,165,250,.5); }
+
+/* Nested box rings in diagram */
+.bm-box-outer {
+  width: 100%; max-width: 280px; text-align:center;
+}
+.bm-box-m {
+  background: rgba(249,115,22,.12);
+  border: 2px dashed rgba(249,115,22,.55);
+  border-radius: 9px; padding: 16px; position: relative;
+}
+.bm-box-b {
+  background: rgba(167,139,250,.07);
+  border: 4px solid rgba(167,139,250,.65);
+  border-radius: 7px; padding: 12px; position: relative;
+}
+.bm-box-p {
+  background: rgba(74,222,128,.1);
+  border: 2px dashed rgba(74,222,128,.5);
+  border-radius: 5px; padding: 12px; position: relative;
+}
+.bm-box-c {
+  background: rgba(96,165,250,.22);
+  border-radius: 4px; padding: 12px;
+  font-family: var(--mono); font-size: .82rem;
+  color: var(--c-content); font-weight:600;
+  text-align: center;
+}
+.bm-box-tag {
+  position:absolute; top:-8px; left:8px;
+  font-size:.6rem; font-family:var(--mono); font-weight:700;
+  padding:1px 6px; border-radius:3px; letter-spacing:.4px;
+}
+.t-m { background:var(--c-margin);  color:#000; }
+.t-b { background:var(--c-border);  color:#fff; }
+.t-p { background:var(--c-padding); color:#000; }
+.t-c { background:var(--c-content); color:#000; }
+
+/* ============================================================
+   SHORTHAND GRID
+   ============================================================ */
+.shorthand-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 1rem; margin: 1.25rem 0;
+}
+.sh-item {
+  background: var(--surface-2); border-radius: var(--r-sm);
+  padding: 1rem; border: 1px solid var(--border);
+}
+.sh-item .sh-title {
+  font-family: var(--mono); font-size: .78rem;
+  color: var(--amber); margin-bottom: .5rem;
+  font-weight: 600;
+}
+.sh-item .sh-desc { font-size: .82rem; color: var(--text-2); margin: 0; }
+
+/* ============================================================
+   BORDER STYLES DEMO
+   ============================================================ */
+.border-styles {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+  gap: .85rem; margin: 1.25rem 0;
+}
+.bs-item {
+  background: var(--surface-2); border-radius: var(--r-sm);
+  padding: .75rem; text-align:center;
+  font-size: .78rem; font-family: var(--mono); color: var(--text-2);
+}
+.bs-box { height: 36px; border-radius: 4px; margin-bottom: .5rem; }
+.b-solid  { border: 3px solid  var(--c-border); }
+.b-dashed { border: 3px dashed var(--c-border); }
+.b-dotted { border: 3px dotted var(--c-border); }
+.b-double { border: 5px double var(--c-border); }
+.b-groove { border: 4px groove var(--c-border); }
+.b-ridge  { border: 4px ridge  var(--c-border); }
+.b-inset  { border: 4px inset  var(--c-border); }
+.b-outset { border: 4px outset var(--c-border); }
+
+/* ============================================================
+   MARGIN COLLAPSING DEMO
+   ============================================================ */
+.collapse-demo {
+  background: var(--surface-2); border-radius: var(--r-sm); padding: 1.25rem;
+}
+.collapse-compare { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:.75rem; }
+.cc-box {
+  background: rgba(249,115,22,.15);
+  border: 1px solid rgba(249,115,22,.4); border-radius:5px;
+  padding: .6rem .85rem; text-align:center;
+  font-family:var(--mono); font-size:.78rem; color:var(--orange);
+}
+.cc-gap-label {
+  text-align:center; font-size:.72rem; font-family:var(--mono);
+  color: var(--text-3); padding:.2rem 0;
+  background: rgba(249,115,22,.06);
+  border-left:2px solid rgba(249,115,22,.3);
+  border-right:2px solid rgba(249,115,22,.3);
+}
+.cc-title { font-size:.8rem; font-family:var(--mono); color:var(--text-3); margin-bottom:.75rem; text-align:center; }
+
+/* ============================================================
+   BOX-SIZING COMPARISON
+   ============================================================ */
+.bs-compare { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+.bs-card {
+  background: var(--surface-2); border-radius:var(--r-sm);
+  padding:1.25rem; border:1px solid var(--border);
+}
+.bs-card h4 { font-family:var(--mono); font-size:.88rem; margin-bottom:.9rem; }
+.bs-demo-inner {
+  height:64px; display:flex; align-items:center;
+  justify-content:center; border-radius:5px;
+  font-family:var(--mono); font-size:.75rem; margin-bottom:.6rem;
+}
+.bs-cb {
+  box-sizing:content-box; width:100%;
+  padding:12px 18px; border:4px solid rgba(240,114,114,.6);
+  background:rgba(240,114,114,.12); color:var(--coral);
+}
+.bs-bb {
+  box-sizing:border-box; width:100%;
+  padding:12px 18px; border:4px solid rgba(74,222,128,.6);
+  background:rgba(74,222,128,.12); color:var(--green);
+}
+.bs-note { font-size:.77rem; color:var(--text-3); font-family:var(--mono); }
+
+/* ============================================================
+   POSITION TABS & DEMOS
+   ============================================================ */
+.pos-tabs {
+  display:flex; gap:.35rem; flex-wrap:wrap; margin-bottom:1.4rem;
+}
+.pos-tab {
+  padding:.32rem .8rem; border-radius:100px;
+  border:1px solid var(--border); background:none;
+  color:var(--text-2); font-family:var(--mono);
+  font-size:.78rem; cursor:pointer; transition:all .2s;
+}
+.pos-tab:hover { background:var(--surface-2); color:var(--text); }
+.pos-tab.active { border-color:var(--coral); color:var(--coral); background:rgba(240,114,114,.08); }
+
+.pos-panel { display:none; }
+.pos-panel.active { display:block; }
+
+.pos-demo-area {
+  background: var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:1.5rem; margin-bottom:1.35rem;
+}
+.pos-desc { font-size:.92rem; color:var(--text-2); margin-bottom:1rem; line-height:1.72; }
+.pos-desc strong { color:var(--text); }
+
+/* static demo */
+.static-demo .flow-box {
+  background:rgba(91,165,255,.15); border:1px solid rgba(91,165,255,.35);
+  border-radius:5px; padding:.7rem 1rem; text-align:center;
+  font-family:var(--mono); font-size:.8rem; color:var(--blue);
+  margin-bottom:.6rem;
+}
+
+/* relative demo */
+.rel-scene {
+  background:var(--surface-2); border-radius:8px;
+  padding:1rem; position:relative; min-height:130px;
+}
+.rel-norm {
+  background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3);
+  border-radius:5px; padding:.65rem 1rem;
+  font-family:var(--mono); font-size:.8rem; color:var(--purple);
+  margin-bottom:.6rem; text-align:center;
+}
+.rel-ghost {
+  background:transparent; border:1px dashed rgba(167,139,250,.25);
+  border-radius:5px; padding:.65rem 1rem;
+  font-family:var(--mono); font-size:.8rem; color:rgba(167,139,250,.3);
+  margin-bottom:.6rem; text-align:center;
+}
+.rel-moved {
+  position:relative; top:14px; left:24px;
+  background:rgba(167,139,250,.28); border:2px solid rgba(167,139,250,.7);
+  border-radius:5px; padding:.65rem 1rem;
+  font-family:var(--mono); font-size:.8rem; color:var(--purple);
+  margin-bottom:.6rem; text-align:center;
+}
+
+/* absolute demo */
+.abs-scene {
+  background:var(--surface-2); border-radius:8px;
+  padding:1.25rem; position:relative; min-height:140px;
+}
+.abs-parent {
+  background:rgba(46,204,153,.08); border:2px solid rgba(46,204,153,.3);
+  border-radius:6px; padding:2.5rem 1rem 1rem;
+  position:relative; min-height:100px;
+}
+.abs-parent-lbl {
+  position:absolute; top:8px; left:12px;
+  font-family:var(--mono); font-size:.72rem; color:rgba(46,204,153,.7);
+}
+.abs-child {
+  position:absolute; top:8px; right:8px;
+  background:rgba(46,204,153,.25); border:1px solid rgba(46,204,153,.6);
+  border-radius:4px; padding:.35rem .75rem;
+  font-family:var(--mono); font-size:.75rem; color:var(--green);
+}
+.abs-note { font-family:var(--mono); font-size:.8rem; color:var(--text-3); margin-top:.75rem; }
+
+/* fixed demo */
+.fixed-scene {
+  background:var(--surface-2); border-radius:8px;
+  overflow:hidden; height:140px; position:relative;
+}
+.fixed-bar {
+  position:absolute; top:0; left:0; right:0;
+  background:rgba(240,114,114,.22); border-bottom:1px solid rgba(240,114,114,.4);
+  padding:.4rem 1rem;
+  font-family:var(--mono); font-size:.75rem; color:var(--coral); z-index:5;
+  display:flex; align-items:center; gap:.5rem;
+}
+.fixed-scroll {
+  height:100%; overflow-y:auto; padding:48px 1rem 1rem;
+}
+.fixed-page-content { color:var(--text-3); font-size:.82rem; line-height:1.7; }
+
+/* sticky demo */
+.sticky-scene {
+  background:var(--surface-2); border-radius:8px;
+  height:170px; overflow-y:auto;
+}
+.sticky-hdr {
+  position:sticky; top:0;
+  background:rgba(245,196,74,.18);
+  border-bottom:1px solid rgba(245,196,74,.4);
+  padding:.45rem 1rem;
+  font-family:var(--mono); font-size:.78rem; color:var(--amber);
+  z-index:5;
+}
+.sticky-content { padding:.85rem 1rem; color:var(--text-3); font-size:.83rem; line-height:1.7; }
+
+/* ============================================================
+   Z-INDEX DEMO
+   ============================================================ */
+.z-scene {
+  background:var(--surface-2); border-radius:8px;
+  height:160px; position:relative; overflow:hidden;
+}
+.z-box {
+  position:absolute; width:110px; height:75px;
+  border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:.75rem; font-weight:700;
+  flex-direction:column; gap:2px;
+}
+.z-box span { font-size:.65rem; font-weight:400; opacity:.8; }
+.z1 { background:rgba(96,165,250,.55);  border:2px solid var(--blue);   color:var(--blue);   left:20px; top:45px; z-index:1; }
+.z2 { background:rgba(240,114,114,.55); border:2px solid var(--coral);  color:var(--coral);  left:65px; top:25px; z-index:2; }
+.z3 { background:rgba(46,204,153,.55);  border:2px solid var(--green);  color:var(--green);  left:110px;top:60px; z-index:3; }
+
+/* ============================================================
+   CHEATSHEET
+   ============================================================ */
+.cheat-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+  gap:1.1rem;
+}
+.cheat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:1.25rem;
+}
+.cheat-card h4 {
+  margin-bottom:.85rem; font-family:var(--mono);
+  font-size:.88rem; display:flex; align-items:center; gap:.5rem;
+}
+.cheat-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.cheat-row {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:.35rem 0; border-bottom:1px solid var(--border);
+  gap:.5rem; font-size:.8rem;
+}
+.cheat-row:last-child { border-bottom:none; }
+.cheat-k { font-family:var(--mono); color:var(--amber); white-space:nowrap; }
+.cheat-v { color:var(--text-2); text-align:right; line-height:1.4; }
+
+/* ============================================================
+   SIDE-BY-SIDE DEMO (code + demo)
+   ============================================================ */
+.demo-split {
+  display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;
+  align-items:start; margin:1.35rem 0;
+}
+.demo-box-wrap {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:1.5rem;
+  display:flex; align-items:center; justify-content:center; min-height:160px;
+}
+
+/* Padding demo visual */
+.pd-demo {
+  background:rgba(74,222,128,.12); border:2px solid rgba(74,222,128,.35);
+  border-radius:6px; padding:30px;
+  font-family:var(--mono); font-size:.82rem; color:var(--green);
+  text-align:center; position:relative;
+}
+.pd-demo-inner {
+  background:rgba(74,222,128,.2); border-radius:4px;
+  padding:.5rem 1rem; font-size:.78rem;
+}
+.pd-badge {
+  position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+  background:var(--c-padding); color:#000; font-size:.63rem;
+  font-family:var(--mono); padding:1px 7px; border-radius:3px; white-space:nowrap;
+}
+
+/* Content size demo */
+.content-size-demo {
+  display:flex; gap:.75rem; flex-direction:column; width:100%;
+}
+.csd-item {
+  border-radius:5px; display:flex; align-items:center;
+  justify-content:center; font-family:var(--mono);
+  font-size:.75rem; color:var(--c-content);
+  background:rgba(96,165,250,.15); border:1px solid rgba(96,165,250,.3);
+}
+
+/* Margin demo */
+.margin-vis-wrap {
+  background:var(--surface-3); border-radius:8px; padding:1rem; width:100%;
+}
+.margin-box {
+  background:rgba(249,115,22,.18); border:1px solid rgba(249,115,22,.4);
+  border-radius:5px; padding:1rem; text-align:center;
+  font-family:var(--mono); font-size:.8rem; color:var(--orange);
+  margin:20px;
+}
+
+/* Footer */
+footer {
+  border-top:1px solid var(--border); padding:2.5rem 1.5rem;
+  text-align:center; color:var(--text-3); font-size:.83rem;
+}
+footer code { background:transparent; color:var(--text-3); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .hero { grid-template-columns:1fr; gap:2.5rem; padding-top:95px; }
+  .hero-visual { order:-1; }
+  .grid-2 { grid-template-columns:1fr; }
+  .grid-3 { grid-template-columns:1fr 1fr; }
+  .bs-compare { grid-template-columns:1fr; }
+  .demo-split { grid-template-columns:1fr; }
+  .collapse-compare { grid-template-columns:1fr; }
+  .bm-diagram { flex-direction:column; }
+}
+@media (max-width: 600px) {
+  .section { padding:50px 0; }
+  .grid-3 { grid-template-columns:1fr; }
+  .shorthand-grid { grid-template-columns:1fr 1fr; }
+  .border-styles { grid-template-columns:repeat(3,1fr); }
+  .cheat-grid { grid-template-columns:1fr; }
+  .bm-mini { transform:scale(.82); }
+  .hero { padding-top:85px; }
+}
+
+/* Highlights inline */
+.hl-m { color:var(--c-margin);  font-weight:600; }
+.hl-b { color:var(--c-border);  font-weight:600; }
+.hl-p { color:var(--c-padding); font-weight:600; }
+.hl-c { color:var(--c-content); font-weight:600; }
+.hl-a { color:var(--amber);     font-weight:600; }
+.hl-r { color:var(--coral);     font-weight:600; }
+.hl-g { color:var(--green);     font-weight:600; }
+
+/* Section number badge */
+.s-num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:50%;
+  font-size:.78rem; font-family:var(--mono); font-weight:700;
+  background:var(--surface-3); color:var(--text-2); flex-shrink:0;
+}
+
+/* Key values pill */
+.kv-pill {
+  display:inline-block; font-family:var(--mono); font-size:.78rem;
+  background:var(--surface-3); border:1px solid var(--border);
+  border-radius:100px; padding:.15rem .6rem; color:var(--amber); margin:.1rem;
+}
+
+/* Sub-heading with color bar */
+.sub-heading {
+  display:flex; align-items:center; gap:.6rem;
+  margin:1.75rem 0 .75rem; font-size:1.05rem; font-weight:600;
+}
+.sub-heading::before {
+  content:''; width:3px; height:1.1em; border-radius:2px;
+  background: currentColor; display:block;
+}
+
+/* Toc dots (right side) */
+.toc-dots {
+  position:fixed; right:1.2rem; top:50%;
+  transform:translateY(-50%);
+  display:flex; flex-direction:column; gap:.45rem; z-index:200;
+}
+.toc-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:var(--border); cursor:pointer;
+  transition:all .3s;
+}
+.toc-dot.active { background:var(--blue); transform:scale(1.5); }
+.toc-dot[title]:hover::after {
+  content:attr(title);
+  position:absolute; right:16px;
+  background:var(--surface-2); border:1px solid var(--border);
+  color:var(--text-2); font-size:.72rem; font-family:var(--mono);
+  padding:2px 8px; border-radius:4px; white-space:nowrap;
+}
+@media (max-width:1100px) { .toc-dots { display:none; } }
+</style>
+</head>
+
+<body>
+
+<!-- ==================== NAVİQASİYA ==================== -->
+<nav class="nav" id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="dot"></span>
+      CSS Dərsliyi
+    </div>
+    <ul class="nav-links">
+      <li><a href="#box-model">Box Model</a></li>
+      <li><a href="#content">Content</a></li>
+      <li><a href="#padding">Padding</a></li>
+      <li><a href="#border">Border</a></li>
+      <li><a href="#margin">Margin</a></li>
+      <li><a href="#box-sizing">Box-sizing</a></li>
+      <li><a href="#position">Position</a></li>
+      <li><a href="#zindex">Z-index</a></li>
+      <li><a href="#cheatsheet">Xülasə</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menyu">☰</button>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#box-model" class="mm-link">📦 Box Model</a>
+    <a href="#content"   class="mm-link">🟦 Content</a>
+    <a href="#padding"   class="mm-link">🟩 Padding</a>
+    <a href="#border"    class="mm-link">🟪 Border</a>
+    <a href="#margin"    class="mm-link">🟧 Margin</a>
+    <a href="#box-sizing" class="mm-link">📐 Box-sizing</a>
+    <a href="#position"  class="mm-link">📍 Position</a>
+    <a href="#zindex"    class="mm-link">🔢 Z-index</a>
+    <a href="#cheatsheet" class="mm-link">📋 Xülasə</a>
+  </div>
+</nav>
+
+<!-- Toc dots -->
+<div class="toc-dots" id="toc-dots">
+  <div class="toc-dot" data-target="box-model"  title="Box Model"></div>
+  <div class="toc-dot" data-target="content"    title="Content"></div>
+  <div class="toc-dot" data-target="padding"    title="Padding"></div>
+  <div class="toc-dot" data-target="border"     title="Border"></div>
+  <div class="toc-dot" data-target="margin"     title="Margin"></div>
+  <div class="toc-dot" data-target="box-sizing" title="Box-sizing"></div>
+  <div class="toc-dot" data-target="position"   title="Position"></div>
+  <div class="toc-dot" data-target="zindex"     title="Z-index"></div>
+  <div class="toc-dot" data-target="cheatsheet" title="Xülasə"></div>
+</div>
+
+<!-- ==================== HERO ==================== -->
+<header class="hero">
+  <div class="hero-text">
+    <div class="hero-badge">🎓 Azərbaycan dilindəki CSS dərsliyi</div>
+    <h1 class="hero-title">
+      CSS <span class="grad">Box Model</span><br>& Position
+    </h1>
+    <p class="hero-desc">
+      Hər bir HTML elementinin brauzer tərəfindən necə görüntüləndiyini,
+      yer tutduğunu və digər elementlərlə necə əlaqəli olduğunu vizual
+      nümunələrlə addım-addım öyrənirik.
+    </p>
+    <div class="hero-tags">
+      <span class="t1">content</span>
+      <span class="t2">padding</span>
+      <span class="t3">border</span>
+      <span class="t4">margin</span>
+      <span class="t5">box-sizing</span>
+      <span class="t6">position</span>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="bm-mini">
+      <div class="bm-ring rm">
+        <div class="bm-ring-label t-m">MARGIN</div>
+        <div class="bm-ring rb">
+          <div class="bm-ring-label t-b">BORDER</div>
+          <div class="bm-ring rp">
+            <div class="bm-ring-label t-p">PADDING</div>
+            <div class="rc">
+              <div class="bm-ring-label t-c">CONTENT</div>
+              Məzmun
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================================================
+     1. BOX MODEL NƏDİR?
+     ============================================================ -->
+<section id="box-model" class="section s-model">
+  <div class="section-header">
+    <div class="s-icon">📦</div>
+    <h2>CSS Box Model nədir?</h2>
+  </div>
+
+  <p class="section-intro">
+    CSS Box Model (Qutu Modeli) — brauzer hər bir HTML elementini render edərkən
+    istifadə etdiyi fundamental bir anlayışdır. Brauzer hər elementi <strong>dörd
+    qatdan</strong> ibarət qutu kimi qəbul edir. Bu qatlar içəridən xaricə doğru
+    belə sıralanır: <span class="hl-c">content</span> → <span class="hl-p">padding</span>
+    → <span class="hl-b">border</span> → <span class="hl-m">margin</span>.
+    Elementin ümumi yer tutması, görünüşü və qonşu elementlərlə məsafəsi
+    məhz bu model vasitəsilə idarə olunur.
+  </p>
+
+  <!-- Interaktiv Diagram -->
+  <div class="bm-diagram">
+    <div class="bm-visual">
+      <div class="bm-box-outer">
+        <div class="bm-box-m">
+          <div class="bm-box-tag t-m">MARGIN</div>
+          <div class="bm-box-b">
+            <div class="bm-box-tag t-b">BORDER</div>
+            <div class="bm-box-p">
+              <div class="bm-box-tag t-p">PADDING</div>
+              <div class="bm-box-c">
+                <div class="bm-box-tag t-c">CONTENT</div>
+                Məzmun<br><small style="opacity:.7">width × height</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bm-layers">
+      <p style="font-size:.8rem;color:var(--text-3);margin-bottom:.6rem;font-family:var(--mono);">
+        ← Hər qatın üzərindən keçin:
+      </p>
+      <div class="bm-layer bl-c">
+        <div class="bm-layer-dot"></div>
+        <div class="bm-layer-info">
+          <strong style="color:var(--c-content)">Content — Məzmun</strong>
+          <span>Mətn, şəkil, video — əsl məzmun buradadır.</span>
+        </div>
+      </div>
+      <div class="bm-layer bl-p">
+        <div class="bm-layer-dot"></div>
+        <div class="bm-layer-info">
+          <strong style="color:var(--c-padding)">Padding — Daxili Boşluq</strong>
+          <span>Məzmun ilə border arasındakı şəffaf boşluq. Arxa rəng buraya da tətbiq olunur.</span>
+        </div>
+      </div>
+      <div class="bm-layer bl-b">
+        <div class="bm-layer-dot"></div>
+        <div class="bm-layer-info">
+          <strong style="color:var(--c-border)">Border — Kənar Xətt</strong>
+          <span>Elementi əhatə edən xətt. Genişlik, stil, rəng ilə idarə olunur.</span>
+        </div>
+      </div>
+      <div class="bm-layer bl-m">
+        <div class="bm-layer-dot"></div>
+        <div class="bm-layer-info">
+          <strong style="color:var(--c-margin)">Margin — Xarici Boşluq</strong>
+          <span>Elementin xaricindəki şəffaf sahə. Qonşu elementlərlə məsafəni tənzimləyir.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ib note">
+    <span class="ib-icon">🛠️</span>
+    <p>
+      <strong>DevTools ipucu:</strong> Brauzerdə hər hansı elementi sağ klikləyin →
+      <strong>İncele (Inspect)</strong> → Elements bölməsinin altındakı <strong>Computed</strong>
+      tabında box modeli vizual şəkildə görə bilərsiniz.
+    </p>
+  </div>
+
+  <!-- Ümumi ölçü hesablaması -->
+  <h3 class="sub-heading" style="color:var(--blue)">Ümumi Genişlik Necə Hesablanır?</h3>
+  <p>
+    Standart (<code>content-box</code>) rejimdə elementin brauzer tərəfindən
+    ayrılan ümumi eni bu düsturla hesablanır:
+  </p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">formula</span>
+    </div>
+    <pre><span class="cmm">/* Ümumi eni */</span>
+total-width = width + padding-left + padding-right
+            + border-left + border-right
+            + margin-left + margin-right
+
+<span class="cmm">/* Nümunə */</span>
+<span class="sel">.element</span> {
+  <span class="prop">width</span>:          <span class="num">200px</span><span class="punc">;</span>
+  <span class="prop">padding</span>:        <span class="num">20px</span><span class="punc">;</span>  <span class="cmm">/* sol+sağ = 40px */</span>
+  <span class="prop">border</span>:         <span class="num">5px</span> <span class="val">solid</span> <span class="val">#333</span><span class="punc">;</span> <span class="cmm">/* sol+sağ = 10px */</span>
+  <span class="prop">margin</span>:         <span class="num">15px</span><span class="punc">;</span>
+}
+<span class="cmm">/* Ümumi eni = 200 + 40 + 10 = 250px */</span></pre>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     2. CONTENT
+     ============================================================ -->
+<section id="content" class="section s-content">
+  <div class="section-header">
+    <div class="s-icon">🟦</div>
+    <h2>Content — Məzmun</h2>
+  </div>
+
+  <p class="section-intro">
+    <strong>Content</strong> Box Model-in ən daxili hissəsidir.
+    Mətn, şəkil, video, digər elementlər — yəni əsl görünəcək məzmun buradadır.
+    <code>width</code> və <code>height</code> xassələri birbaşa bu sahəni ölçür
+    (<code>content-box</code> rejimində).
+  </p>
+
+  <div class="demo-split">
+    <div>
+      <div class="code-wrap" style="margin:0">
+        <div class="code-header">
+          <span class="code-lang">css</span>
+          <button class="copy-btn" data-code="content-code">Kopyala</button>
+        </div>
+        <pre id="content-code"><span class="sel">.qutu</span> {
+  <span class="prop">width</span>:       <span class="num">250px</span><span class="punc">;</span>
+  <span class="prop">height</span>:      <span class="num">80px</span><span class="punc">;</span>
+  <span class="prop">min-width</span>:   <span class="num">100px</span><span class="punc">;</span>
+  <span class="prop">max-width</span>:   <span class="num">400px</span><span class="punc">;</span>
+  <span class="prop">min-height</span>:  <span class="num">50px</span><span class="punc">;</span>
+  <span class="prop">max-height</span>:  <span class="num">200px</span><span class="punc">;</span>
+  <span class="prop">overflow</span>:    <span class="val">hidden</span><span class="punc">;</span>
+}</pre>
+      </div>
+    </div>
+    <div class="demo-box-wrap">
+      <div class="content-size-demo">
+        <div class="csd-item" style="width:100%;height:45px;">width: 100% / height: 45px</div>
+        <div class="csd-item" style="width:60%;height:35px;">width: 60% / height: 35px</div>
+        <div class="csd-item" style="width:40%;height:30px;">width: 40%</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-content)">Əsas Xassələr</h3>
+  <table class="prop-tbl">
+    <thead>
+      <tr><th>Xassə</th><th>Standart Dəyər</th><th>İzah</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>width</td>          <td><code>auto</code></td>         <td>Elementin eni</td></tr>
+      <tr><td>height</td>         <td><code>auto</code></td>         <td>Elementin hündürlüyü</td></tr>
+      <tr><td>min-width</td>      <td><code>0</code></td>            <td>Minimum en — element bundan dar olmaz</td></tr>
+      <tr><td>max-width</td>      <td><code>none</code></td>         <td>Maksimum en — element bundan geniş olmaz</td></tr>
+      <tr><td>min-height</td>     <td><code>0</code></td>            <td>Minimum hündürlük</td></tr>
+      <tr><td>max-height</td>     <td><code>none</code></td>         <td>Maksimum hündürlük</td></tr>
+      <tr><td>overflow</td>       <td><code>visible</code></td>      <td>Sığmayan məzmunla nə ediləcəyi: <code>hidden</code>, <code>scroll</code>, <code>auto</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="ib tip">
+    <span class="ib-icon">💡</span>
+    <p>
+      <strong>width: 100%</strong> ilə <strong>width: auto</strong> arasındakı
+      fərq: <code>100%</code> valideynin enini götürür, amma padding/border əlavə
+      olunduqda taşabilir. <code>auto</code> isə mövcud sahəyə uyğunlaşır.
+      Responsive dizaynda <code>max-width</code> çox istifadə olunur.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     3. PADDING
+     ============================================================ -->
+<section id="padding" class="section s-padding">
+  <div class="section-header">
+    <div class="s-icon">🟩</div>
+    <h2>Padding — Daxili Boşluq</h2>
+  </div>
+
+  <p class="section-intro">
+    <strong>Padding</strong> — məzmun (content) ilə border arasındakı daxili
+    boşluqdur. Elementin <code>background-color</code>-u padding sahəsinə
+    <em>tətbiq olunur</em> — bu xüsusiyyət onu <strong>margin</strong>-dən
+    fərqləndirir. Padding elementin görünüşünü böyüdür, lakin <em>ətrafındakı
+    elementlərə məsafə</em> qoymur.
+  </p>
+
+  <div class="demo-split">
+    <div>
+      <div class="code-wrap" style="margin:0">
+        <div class="code-header">
+          <span class="code-lang">css</span>
+          <button class="copy-btn" data-code="pad-code">Kopyala</button>
+        </div>
+        <pre id="pad-code"><span class="cmm">/* 1 dəyər: 4 tərəf bərabər */</span>
+<span class="sel">.el</span> { <span class="prop">padding</span>: <span class="num">20px</span><span class="punc">;</span> }
+
+<span class="cmm">/* 2 dəyər: üst-alt | sol-sağ */</span>
+<span class="sel">.el</span> { <span class="prop">padding</span>: <span class="num">10px</span> <span class="num">20px</span><span class="punc">;</span> }
+
+<span class="cmm">/* 3 dəyər: üst | sol-sağ | alt */</span>
+<span class="sel">.el</span> { <span class="prop">padding</span>: <span class="num">10px</span> <span class="num">20px</span> <span class="num">15px</span><span class="punc">;</span> }
+
+<span class="cmm">/* 4 dəyər: üst | sağ | alt | sol (saat istiqaməti) */</span>
+<span class="sel">.el</span> { <span class="prop">padding</span>: <span class="num">10px</span> <span class="num">20px</span> <span class="num">15px</span> <span class="num">5px</span><span class="punc">;</span> }
+
+<span class="cmm">/* Tərəflər ayrı-ayrı */</span>
+<span class="sel">.el</span> {
+  <span class="prop">padding-top</span>:    <span class="num">10px</span><span class="punc">;</span>
+  <span class="prop">padding-right</span>:  <span class="num">20px</span><span class="punc">;</span>
+  <span class="prop">padding-bottom</span>: <span class="num">15px</span><span class="punc">;</span>
+  <span class="prop">padding-left</span>:   <span class="num">5px</span><span class="punc">;</span>
+}</pre>
+      </div>
+    </div>
+    <div class="demo-box-wrap">
+      <div style="text-align:center">
+        <div class="pd-demo">
+          <div class="pd-badge">padding: 30px (yaşıl sahə)</div>
+          <div class="pd-demo-inner">Content</div>
+        </div>
+        <p style="font-size:.78rem;color:var(--text-3);margin-top:.75rem;font-family:var(--mono)">
+          Arxa rəng padding-ə də şamil olur ↑
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-padding)">Shorthand Qaydaları</h3>
+  <div class="shorthand-grid">
+    <div class="sh-item">
+      <div class="sh-title">padding: A;</div>
+      <p class="sh-desc">Bütün 4 tərəf <strong>A</strong> dəyərini alır</p>
+    </div>
+    <div class="sh-item">
+      <div class="sh-title">padding: A B;</div>
+      <p class="sh-desc"><strong>A</strong> = üst+alt, <strong>B</strong> = sol+sağ</p>
+    </div>
+    <div class="sh-item">
+      <div class="sh-title">padding: A B C;</div>
+      <p class="sh-desc"><strong>A</strong> = üst, <strong>B</strong> = sol+sağ, <strong>C</strong> = alt</p>
+    </div>
+    <div class="sh-item">
+      <div class="sh-title">padding: A B C D;</div>
+      <p class="sh-desc">Saat istiqaməti: <strong>üst → sağ → alt → sol</strong></p>
+    </div>
+  </div>
+
+  <div class="ib warn">
+    <span class="ib-icon">⚠️</span>
+    <p>
+      <strong>Nəzərə alın:</strong> <code>padding</code> mənfi dəyər (<em>negative value</em>)
+      qəbul etmir. Mənfi dəyər vermək istəyirsinizsə, bunun əvəzinə
+      <code>margin</code>-dən istifadə edin.
+    </p>
+  </div>
+
+  <div class="ib tip">
+    <span class="ib-icon">💡</span>
+    <p>
+      <strong>% dəyəri:</strong> <code>padding: 50%</code> kimi faiz dəyər veriləndə
+      bu həm üst-alt, həm sol-sağ üçün <em>valideynin enindən</em> hesablanır.
+      Bu xüsusiyyət aspect-ratio saxlamaq üçün istifadə olunur.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     4. BORDER
+     ============================================================ -->
+<section id="border" class="section s-border">
+  <div class="section-header">
+    <div class="s-icon">🟪</div>
+    <h2>Border — Kənar Xətt</h2>
+  </div>
+
+  <p class="section-intro">
+    <strong>Border</strong> padding-i əhatə edən xəttdir. Üç əsas xassəsi var:
+    <span class="hl-b">genişlik (width)</span>, <span class="hl-b">stil (style)</span>
+    və <span class="hl-b">rəng (color)</span>. Bunları shorthand ilə birlikdə
+    yazmaq mümkündür. <code>border-radius</code> ilə küncləri yuvarlatmaq olar.
+  </p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">css</span>
+      <button class="copy-btn" data-code="bord-code">Kopyala</button>
+    </div>
+    <pre id="bord-code"><span class="cmm">/* Shorthand: genişlik | stil | rəng */</span>
+<span class="sel">.el</span> { <span class="prop">border</span>: <span class="num">2px</span> <span class="val">solid</span> <span class="str">#A78BFA</span><span class="punc">;</span> }
+
+<span class="cmm">/* Tərəflər ayrı-ayrı */</span>
+<span class="sel">.el</span> {
+  <span class="prop">border-top</span>:    <span class="num">3px</span> <span class="val">dashed</span> <span class="str">#60A5FA</span><span class="punc">;</span>
+  <span class="prop">border-right</span>:  <span class="num">3px</span> <span class="val">solid</span>  <span class="str">#4ADE80</span><span class="punc">;</span>
+  <span class="prop">border-bottom</span>: <span class="num">3px</span> <span class="val">dotted</span> <span class="str">#F97316</span><span class="punc">;</span>
+  <span class="prop">border-left</span>:   <span class="num">0</span><span class="punc">;</span>
+}
+
+<span class="cmm">/* Xassələr ayrı-ayrı */</span>
+<span class="sel">.el</span> {
+  <span class="prop">border-width</span>: <span class="num">2px</span><span class="punc">;</span>
+  <span class="prop">border-style</span>: <span class="val">solid</span><span class="punc">;</span>
+  <span class="prop">border-color</span>: <span class="str">#A78BFA</span><span class="punc">;</span>
+}
+
+<span class="cmm">/* Yuvarlanmış küncler */</span>
+<span class="sel">.el</span> {
+  <span class="prop">border-radius</span>: <span class="num">8px</span><span class="punc">;</span>          <span class="cmm">/* hamısı bərabər */</span>
+  <span class="prop">border-radius</span>: <span class="num">50%</span><span class="punc">;</span>         <span class="cmm">/* dairə */</span>
+  <span class="prop">border-radius</span>: <span class="num">8px</span> <span class="num">0</span> <span class="num">8px</span> <span class="num">0</span><span class="punc">;</span> <span class="cmm">/* üst-sol, üst-sağ, alt-sağ, alt-sol */</span>
+}</pre>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-border)">Border Stilləri</h3>
+  <div class="border-styles">
+    <div class="bs-item"><div class="bs-box b-solid"></div>solid</div>
+    <div class="bs-item"><div class="bs-box b-dashed"></div>dashed</div>
+    <div class="bs-item"><div class="bs-box b-dotted"></div>dotted</div>
+    <div class="bs-item"><div class="bs-box b-double"></div>double</div>
+    <div class="bs-item"><div class="bs-box b-groove"></div>groove</div>
+    <div class="bs-item"><div class="bs-box b-ridge"></div>ridge</div>
+    <div class="bs-item"><div class="bs-box b-inset"></div>inset</div>
+    <div class="bs-item"><div class="bs-box b-outset"></div>outset</div>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--c-border)">border-radius nümunələri</h3>
+  <div class="grid-3" style="margin-top:.5rem">
+    <div class="card" style="text-align:center">
+      <div style="width:70px;height:70px;border:3px solid var(--c-border);margin:0 auto 1rem;background:rgba(167,139,250,.15);"></div>
+      <code style="font-size:.8rem">border-radius: 0</code>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="width:70px;height:70px;border:3px solid var(--c-border);margin:0 auto 1rem;background:rgba(167,139,250,.15);border-radius:12px;"></div>
+      <code style="font-size:.8rem">border-radius: 12px</code>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="width:70px;height:70px;border:3px solid var(--c-border);margin:0 auto 1rem;background:rgba(167,139,250,.15);border-radius:50%;"></div>
+      <code style="font-size:.8rem">border-radius: 50%</code>
+    </div>
+  </div>
+
+  <div class="ib note">
+    <span class="ib-icon">📌</span>
+    <p>
+      <code>border-style: none</code> standart dəyərdir — yəni
+      <code>border-color</code> və ya <code>border-width</code> versəniz belə,
+      <strong>style göstərməsəniz border görünməz</strong>.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     5. MARGIN
+     ============================================================ -->
+<section id="margin" class="section s-margin">
+  <div class="section-header">
+    <div class="s-icon">🟧</div>
+    <h2>Margin — Xarici Boşluq</h2>
+  </div>
+
+  <p class="section-intro">
+    <strong>Margin</strong> — elementin <em>xarici</em> boşluğudur, yəni
+    border-dan kənardakı şəffaf sahədir. Qonşu elementlər arasındakı məsafəni
+    tənzimləyir. Margin <strong>həmişə şəffafdır</strong> — <code>background-color</code>
+    buraya tətbiq olunmur.
+  </p>
+
+  <div class="demo-split">
+    <div>
+      <div class="code-wrap" style="margin:0">
+        <div class="code-header">
+          <span class="code-lang">css</span>
+          <button class="copy-btn" data-code="mar-code">Kopyala</button>
+        </div>
+        <pre id="mar-code"><span class="cmm">/* Shorthand (padding kimi eyni qayda) */</span>
+<span class="sel">.el</span> { <span class="prop">margin</span>: <span class="num">20px</span><span class="punc">;</span> }
+<span class="sel">.el</span> { <span class="prop">margin</span>: <span class="num">10px</span> <span class="num">20px</span><span class="punc">;</span> }
+<span class="sel">.el</span> { <span class="prop">margin</span>: <span class="num">10px</span> <span class="num">20px</span> <span class="num">15px</span> <span class="num">5px</span><span class="punc">;</span> }
+
+<span class="cmm">/* Elementi mərkəzləmək üçün */</span>
+<span class="sel">.el</span> {
+  <span class="prop">width</span>:  <span class="num">300px</span><span class="punc">;</span>
+  <span class="prop">margin</span>: <span class="num">0</span> <span class="val">auto</span><span class="punc">;</span> <span class="cmm">/* sol+sağ auto = mərkəz */</span>
+}
+
+<span class="cmm">/* Mənfi margin */</span>
+<span class="sel">.el</span> { <span class="prop">margin-top</span>: <span class="num">-20px</span><span class="punc">;</span> }
+
+<span class="cmm">/* Tərəflər ayrı-ayrı */</span>
+<span class="sel">.el</span> {
+  <span class="prop">margin-top</span>:    <span class="num">10px</span><span class="punc">;</span>
+  <span class="prop">margin-right</span>:  <span class="num">20px</span><span class="punc">;</span>
+  <span class="prop">margin-bottom</span>: <span class="num">15px</span><span class="punc">;</span>
+  <span class="prop">margin-left</span>:   <span class="num">5px</span><span class="punc">;</span>
+}</pre>
+      </div>
+    </div>
+    <div class="demo-box-wrap">
+      <div class="margin-vis-wrap">
+        <div class="margin-box">
+          margin: 20px<br>
+          <small style="opacity:.7">(narıncı sahə = margin)</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Margin Collapsing -->
+  <h3 class="sub-heading" style="color:var(--c-margin)">⚠️ Margin Collapsing — Marjin Yığılması</h3>
+  <p>
+    CSS-in ən çaşdırıcı davranışlarından biri — iki şaquli (vertical) blok elementin
+    marjinləri <strong>toplanmır, sadəcə böyük olanı qəbul edilir</strong>.
+    Bu fenomenə <em>Margin Collapsing</em> deyilir.
+  </p>
+
+  <div class="collapse-demo">
+    <div class="collapse-compare">
+      <div>
+        <p class="cc-title">❌ Gözlənilən (50+30=80px)</p>
+        <div class="cc-box">Birinci qutu<br><small>margin-bottom: 50px</small></div>
+        <div class="cc-gap-label" style="height:80px;line-height:80px;">80px boşluq ??</div>
+        <div class="cc-box">İkinci qutu<br><small>margin-top: 30px</small></div>
+      </div>
+      <div>
+        <p class="cc-title">✅ Əslində olan (max=50px)</p>
+        <div class="cc-box">Birinci qutu<br><small>margin-bottom: 50px</small></div>
+        <div class="cc-gap-label" style="height:50px;line-height:50px;">50px (böyük olan)</div>
+        <div class="cc-box">İkinci qutu<br><small>margin-top: 30px</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ib imp">
+    <span class="ib-icon">🚨</span>
+    <p>
+      <strong>Margin collapsing yalnız şaquli (vertical) istiqamətdə</strong> baş verir.
+      Üfüqi (horizontal) marginlər həmişə toplanır. Ayrıca, <code>flex</code> və ya
+      <code>grid</code> container-larında margin collapsing <em>baş vermir</em>.
+    </p>
+  </div>
+
+  <div class="ib tip">
+    <span class="ib-icon">💡</span>
+    <p>
+      <strong>margin: 0 auto</strong> — elementi üfüqi olaraq mərkəzləşdirməyin
+      klassik üsulu. Bunun işləməsi üçün elementin mütləq <code>width</code> dəyəri
+      olmalıdır, həm də <code>display: block</code> olmalıdır.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     6. BOX-SIZING
+     ============================================================ -->
+<section id="box-sizing" class="section s-boxsizing">
+  <div class="section-header">
+    <div class="s-icon">📐</div>
+    <h2>Box-sizing</h2>
+  </div>
+
+  <p class="section-intro">
+    <code>box-sizing</code> xassəsi brauzerə <strong>width/height-in nəyi
+    əhatə etdiyini</strong> bildirir. Bu xassənin iki dəyəri var:
+    <span class="hl-a">content-box</span> (standart, köhnə davranış) və
+    <span class="hl-g">border-box</span> (müasir, tövsiyə edilən).
+    Fərqi anlamaq <em>responsive dizaynın</em> açarıdır.
+  </p>
+
+  <div class="bs-compare">
+    <div class="bs-card">
+      <h4 style="color:var(--coral)">❌ content-box (standart)</h4>
+      <p style="font-size:.85rem;color:var(--text-2);margin-bottom:1rem;">
+        <code>width</code> yalnız məzmunu ölçür. Padding və border əlavə
+        olunduqda element daha <em>geniş</em> olur.
+      </p>
+      <div class="bs-demo-inner bs-cb">width:100% + padding + border → DAŞIR!</div>
+      <p class="bs-note">
+        width: 100% olsa da, padding (12+12=24px) +<br>
+        border (4+4=8px) əlavə olunur → <strong>132px</strong>
+      </p>
+    </div>
+    <div class="bs-card">
+      <h4 style="color:var(--green)">✅ border-box (tövsiyə edilən)</h4>
+      <p style="font-size:.85rem;color:var(--text-2);margin-bottom:1rem;">
+        <code>width</code> padding + border-u <em>özündə saxlayır</em>.
+        Element həmişə tam olaraq göstərilən eni tutur.
+      </p>
+      <div class="bs-demo-inner bs-bb">width:100% = tam sahə ✓</div>
+      <p class="bs-note">
+        width: 100% — padding və border buraya daxildir.<br>
+        <strong>Heç vaxt daşmır.</strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <span class="code-lang">css</span>
+      <button class="copy-btn" data-code="bs-code">Kopyala</button>
+    </div>
+    <pre id="bs-code"><span class="cmm">/* content-box (standart — problematik) */</span>
+<span class="sel">.content-box-el</span> {
+  <span class="prop">box-sizing</span>: <span class="val">content-box</span><span class="punc">;</span> <span class="cmm">/* standart dəyər */</span>
+  <span class="prop">width</span>:       <span class="num">200px</span><span class="punc">;</span>
+  <span class="prop">padding</span>:     <span class="num">20px</span><span class="punc">;</span>
+  <span class="prop">border</span>:      <span class="num">5px</span> <span class="val">solid</span><span class="punc">;</span>
+  <span class="cmm">/* Real eni = 200 + 40 + 10 = 250px */</span>
+}
+
+<span class="cmm">/* border-box (tövsiyə edilən) */</span>
+<span class="sel">.border-box-el</span> {
+  <span class="prop">box-sizing</span>: <span class="val">border-box</span><span class="punc">;</span>
+  <span class="prop">width</span>:       <span class="num">200px</span><span class="punc">;</span>
+  <span class="prop">padding</span>:     <span class="num">20px</span><span class="punc">;</span>
+  <span class="prop">border</span>:      <span class="num">5px</span> <span class="val">solid</span><span class="punc">;</span>
+  <span class="cmm">/* Real eni = həmişə 200px */</span>
+}
+
+<span class="cmm">/* 🌟 Global Reset — bütün proyektlərdə tövsiyə edilir */</span>
+<span class="sel">*, *::before, *::after</span> {
+  <span class="prop">box-sizing</span>: <span class="val">border-box</span><span class="punc">;</span>
+}</pre>
+  </div>
+
+  <div class="ib tip">
+    <span class="ib-icon">🌟</span>
+    <p>
+      <strong>Ən yaxşı təcrübə:</strong> Hər proyektin başında
+      <code>*, *::before, *::after { box-sizing: border-box; }</code> yazın.
+      Bütün müasir CSS framework-lər (Bootstrap, Tailwind) bunu edir. Bu qayda
+      olmadan <code>width: 50%</code> + <code>padding: 20px</code> elementi
+      gözlənilmədən daşıdır.
+    </p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     7. POSITION
+     ============================================================ -->
+<section id="position" class="section s-position">
+  <div class="section-header">
+    <div class="s-icon">📍</div>
+    <h2>Position — Mövqe Xassəsi</h2>
+  </div>
+
+  <p class="section-intro">
+    <code>position</code> xassəsi HTML elementinin <strong>brauzerdə necə
+    mövqeləndirildiyin</strong>i müəyyən edir. Hansı mövqedə olacağını
+    <code>top</code>, <code>right</code>, <code>bottom</code>, <code>left</code>
+    xassələri ilə dəqiqləşdiririk. 5 dəyəri var:
+    <span class="kv-pill">static</span>
+    <span class="kv-pill">relative</span>
+    <span class="kv-pill">absolute</span>
+    <span class="kv-pill">fixed</span>
+    <span class="kv-pill">sticky</span>
+  </p>
+
+  <div class="pos-tabs">
+    <button class="pos-tab active" data-tab="static">static</button>
+    <button class="pos-tab"        data-tab="relative">relative</button>
+    <button class="pos-tab"        data-tab="absolute">absolute</button>
+    <button class="pos-tab"        data-tab="fixed">fixed</button>
+    <button class="pos-tab"        data-tab="sticky">sticky</button>
+  </div>
+
+  <!-- STATIC -->
+  <div class="pos-panel active" id="tab-static">
+    <div class="pos-demo-area">
+      <p class="pos-desc">
+        <strong>position: static</strong> — standart dəyərdir. Elementlər normal
+        sənəd axını (<em>document flow</em>) ilə yerləşir.
+        <code>top</code>, <code>right</code>, <code>bottom</code>, <code>left</code>
+        xassələri <strong>heç bir effekt vermir</strong>. <code>z-index</code> də işləmir.
+      </p>
+      <div class="static-demo">
+        <div class="flow-box">🔵 Birinci qutu — position: static (standart)</div>
+        <div class="flow-box">🔵 İkinci qutu — normal axın</div>
+        <div class="flow-box">🔵 Üçüncü qutu — top: 50px yazmaq bir şey dəyişdirmir</div>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">css</span>
+        <button class="copy-btn" data-code="static-code">Kopyala</button>
+      </div>
+      <pre id="static-code"><span class="sel">.el</span> {
+  <span class="prop">position</span>: <span class="val">static</span><span class="punc">;</span>  <span class="cmm">/* standart — yazmağa ehtiyac yoxdur */</span>
+  <span class="prop">top</span>:      <span class="num">50px</span><span class="punc">;</span>   <span class="cmm">/* ❌ heç bir effekt yoxdur */</span>
+  <span class="prop">left</span>:     <span class="num">20px</span><span class="punc">;</span>   <span class="cmm">/* ❌ heç bir effekt yoxdur */</span>
+}</pre>
+    </div>
+    <div class="ib note">
+      <span class="ib-icon">📌</span>
+      <p>Bütün elementlər yaradılanda <code>position: static</code> ilə gəlir. Xüsusi mövqeləndirmə lazım olmadıqda bu dəyəri dəyişdirməyin.</p>
+    </div>
+  </div>
+
+  <!-- RELATIVE -->
+  <div class="pos-panel" id="tab-relative">
+    <div class="pos-demo-area">
+      <p class="pos-desc">
+        <strong>position: relative</strong> — element öz <em>normal mövqeyindən</em>
+        nisbi olaraq köçürülür. Ən vacib məqam: <strong>orijinal sahə sənəddə qalır</strong>
+        (ghost kimi), digər elementlər sanki o element hələ orada dayanırmış kimi davranır.
+        <code>top</code>, <code>right</code>, <code>bottom</code>, <code>left</code> işləyir.
+      </p>
+      <div class="rel-scene">
+        <div class="rel-norm">Normal qutu</div>
+        <div class="rel-ghost">← Bu yer boş qalır (orijinal mövqe)</div>
+        <div class="rel-moved">↘ position: relative + top:14px + left:24px</div>
+        <div class="rel-norm">Sonrakı qutu — yuxarıdakı boşluğu hiss edir</div>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">css</span>
+        <button class="copy-btn" data-code="rel-code">Kopyala</button>
+      </div>
+      <pre id="rel-code"><span class="sel">.el</span> {
+  <span class="prop">position</span>: <span class="val">relative</span><span class="punc">;</span>
+  <span class="prop">top</span>:      <span class="num">14px</span><span class="punc">;</span>  <span class="cmm">/* normal mövqeyindən 14px aşağı */</span>
+  <span class="prop">left</span>:     <span class="num">24px</span><span class="punc">;</span>  <span class="cmm">/* normal mövqeyindən 24px sağa */</span>
+}
+<span class="cmm">/* ✅ Orijinal yer dokümanda qalır */</span>
+<span class="cmm">/* ✅ absolute child üçün ata/əcdad kimi istifadə olunur */</span></pre>
+    </div>
+    <div class="ib tip">
+      <span class="ib-icon">💡</span>
+      <p>
+        <code>position: relative</code>-nin ən geniş istifadəsi özü köçürülmək deyil,
+        <code>position: absolute</code> olan <em>uşaq elementlər üçün çərçivə (containing block)
+        yaratmaqdır</em>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ABSOLUTE -->
+  <div class="pos-panel" id="tab-absolute">
+    <div class="pos-demo-area">
+      <p class="pos-desc">
+        <strong>position: absolute</strong> — element normal sənəd axınından
+        <em>tamamilə çıxır</em>. Ən yaxın <strong>position: relative</strong>
+        (və ya absolute/fixed/sticky) olan əcdad elementinə <em>nisbətən</em>
+        mövqelənir. Belə əcdad tapılmazsa, <code>&lt;html&gt;</code> elementinə
+        görə yerləşir. Digər elementlər sanki bu element mövcud deyilmiş kimi davranır.
+      </p>
+      <div class="abs-scene">
+        <div class="abs-parent">
+          <span class="abs-parent-lbl">position: relative olan valideyn</span>
+          Bu valideyn elementin içindəyik.<br>
+          Aşağıdakı uşaq element mütləq mövqedədir.
+          <div class="abs-child">position: absolute<br>top:8px / right:8px</div>
+        </div>
+        <p class="abs-note">↑ Yaşıl qutu valideyninin sağ üst küncünə yapışıb</p>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">css</span>
+        <button class="copy-btn" data-code="abs-code">Kopyala</button>
+      </div>
+      <pre id="abs-code"><span class="sel">.valideyn</span> {
+  <span class="prop">position</span>: <span class="val">relative</span><span class="punc">;</span> <span class="cmm">/* çərçivə yaradır */</span>
+}
+
+<span class="sel">.usaq</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span><span class="punc">;</span>
+  <span class="prop">top</span>:      <span class="num">8px</span><span class="punc">;</span>   <span class="cmm">/* valideyndən 8px aşağı */</span>
+  <span class="prop">right</span>:    <span class="num">8px</span><span class="punc">;</span>   <span class="cmm">/* valideyndən 8px soldan */</span>
+}
+<span class="cmm">/* Sənəd axınından çıxır — yer tutmur */</span>
+<span class="cmm">/* İstifadə: tooltip, dropdown, badge, overlay */</span></pre>
+    </div>
+    <div class="ib warn">
+      <span class="ib-icon">⚠️</span>
+      <p>
+        <code>position: absolute</code> element <strong>normal axından çıxır</strong>,
+        yəni digər elementlər onun yerini tutmaz. Valideyn elementin ölçüsünə
+        də daxil olmur — valideyn darala bilər.
+      </p>
+    </div>
+  </div>
+
+  <!-- FIXED -->
+  <div class="pos-panel" id="tab-fixed">
+    <div class="pos-demo-area">
+      <p class="pos-desc">
+        <strong>position: fixed</strong> — element sənəd axınından çıxır və
+        <em>viewport-a</em> (görünən ekrana) nisbətən mövqelənir. Sürüşdürmə
+        (<em>scroll</em>) zamanı <strong>yerindən hərəkət etmir</strong>.
+        Naviqasiya çubuqları, "Yuxarı qayıt" düymələri, bildiriş çubuqları
+        üçün istifadə olunur.
+      </p>
+      <div class="fixed-scene">
+        <div class="fixed-bar">📌 position: fixed navbar — scroll etsəniz də qalır</div>
+        <div class="fixed-scroll">
+          <div class="fixed-page-content">
+            Scroll edin → yuxarıdakı navbar sabit qalır...<br><br>
+            Məzmun sürüşür...<br><br>
+            Navbar hara getsəniz orada...<br><br>
+            Bu CSS-in ən çox istifadə olunan xüsusiyyətlərindən biridir.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">css</span>
+        <button class="copy-btn" data-code="fix-code">Kopyala</button>
+      </div>
+      <pre id="fix-code"><span class="sel">.navbar</span> {
+  <span class="prop">position</span>: <span class="val">fixed</span><span class="punc">;</span>
+  <span class="prop">top</span>:      <span class="num">0</span><span class="punc">;</span>
+  <span class="prop">left</span>:     <span class="num">0</span><span class="punc">;</span>
+  <span class="prop">width</span>:    <span class="num">100%</span><span class="punc">;</span>
+  <span class="prop">z-index</span>:  <span class="num">1000</span><span class="punc">;</span>
+}
+<span class="cmm">/* Viewport-a görə mövqelənir */</span>
+<span class="cmm">/* Scroll-da yerindən tərpənmir */</span>
+<span class="cmm">/* İstifadə: navbar, cookie banner, chat widget */</span></pre>
+    </div>
+    <div class="ib note">
+      <span class="ib-icon">📌</span>
+      <p>
+        Fixed element sənəd axınından çıxdığı üçün arxasındakı məzmunu örtə bilər.
+        <code>body</code>-ə <code>padding-top</code> əlavə edərək bunu həll edin.
+      </p>
+    </div>
+  </div>
+
+  <!-- STICKY -->
+  <div class="pos-panel" id="tab-sticky">
+    <div class="pos-demo-area">
+      <p class="pos-desc">
+        <strong>position: sticky</strong> — <code>relative</code> ilə
+        <code>fixed</code>-in birləşməsidir. Element əvvəlcə normal axında
+        qalır, lakin scroll edərək müəyyən <em>həddi keçdikdə</em> yapışır.
+        <code>top</code>, <code>bottom</code> dəyəri məcburidir.
+        Valideyn konteyner görünən olduğu müddətdə yapışqan qalır.
+      </p>
+      <div class="sticky-scene">
+        <div style="padding:.6rem 1rem;color:var(--text-3);font-size:.82rem;">Scroll ↓ edin:</div>
+        <div class="sticky-hdr">📌 Sticky Başlıq — position: sticky + top: 0</div>
+        <div class="sticky-content">
+          Məzmun 1 — Normal axında başlayır...<br><br>
+          Məzmun 2 — Scroll edərkən başlıq yapışır...<br><br>
+          Məzmun 3 — Başlıq yuxarıda qalır...<br><br>
+          Məzmun 4 — Valideyn bitənə qədər...<br><br>
+          Məzmun 5 — Sonra da gedir.
+        </div>
+      </div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">css</span>
+        <button class="copy-btn" data-code="stick-code">Kopyala</button>
+      </div>
+      <pre id="stick-code"><span class="sel">.sticky-header</span> {
+  <span class="prop">position</span>: <span class="val">sticky</span><span class="punc">;</span>
+  <span class="prop">top</span>:      <span class="num">0</span><span class="punc">;</span>    <span class="cmm">/* viewport-dan 0px-dən aşağı düşmür */</span>
+  <span class="prop">z-index</span>:  <span class="num">10</span><span class="punc">;</span>
+}
+<span class="cmm">/* ✅ Normal axında qalır — sənəd quruluşunu pozmur */</span>
+<span class="cmm">/* ✅ Valideyn bitdikdə yapışqanlıq da sona çatır */</span>
+<span class="cmm">/* İstifadə: bölmə başlıqları, cədvəl başlıqları */</span>
+
+<span class="cmm">/* ⚠️ Valideynin overflow: hidden/auto olması sticky-ni sındırır! */</span></pre>
+    </div>
+    <div class="ib warn">
+      <span class="ib-icon">⚠️</span>
+      <p>
+        <strong>Sticky işləmir?</strong> Yoxlayın: 1) <code>top</code> dəyəri
+        verilib mi? 2) Valideyn elementdə <code>overflow: hidden</code> var mi?
+        3) Valideynin scroll edəcək qədər hündürlüyü varmı?
+      </p>
+    </div>
+  </div>
+
+  <!-- Position müqayisə cədvəli -->
+  <h3 class="sub-heading" style="color:var(--coral)">Position Müqayisəsi</h3>
+  <div style="overflow-x:auto">
+    <table class="prop-tbl">
+      <thead>
+        <tr>
+          <th>Dəyər</th>
+          <th>Sənəd Axını</th>
+          <th>Mövqe Əsası</th>
+          <th>top/left işləyir?</th>
+          <th>Scroll ilə hərəkət?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>static</td>
+          <td>Normal axın</td>
+          <td>—</td>
+          <td>❌ Xeyr</td>
+          <td>Hərəkət edir</td>
+        </tr>
+        <tr>
+          <td>relative</td>
+          <td>Normal axın (yer qalır)</td>
+          <td>Öz normal mövqeyi</td>
+          <td>✅ Bəli</td>
+          <td>Hərəkət edir</td>
+        </tr>
+        <tr>
+          <td>absolute</td>
+          <td>Axından çıxır</td>
+          <td>Ən yaxın position əcdad</td>
+          <td>✅ Bəli</td>
+          <td>Hərəkət edir</td>
+        </tr>
+        <tr>
+          <td>fixed</td>
+          <td>Axından çıxır</td>
+          <td>Viewport (ekran)</td>
+          <td>✅ Bəli</td>
+          <td>❌ Hərəkət etmir</td>
+        </tr>
+        <tr>
+          <td>sticky</td>
+          <td>Normal axın + yapışır</td>
+          <td>Scroll container</td>
+          <td>✅ Bəli (məcburi)</td>
+          <td>Hədddə qədər yapışır</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     8. Z-INDEX
+     ============================================================ -->
+<section id="zindex" class="section s-zindex">
+  <div class="section-header">
+    <div class="s-icon">🔢</div>
+    <h2>Z-index — Qat Sırası</h2>
+  </div>
+
+  <p class="section-intro">
+    <code>z-index</code> üst-üstə düşən elementlər arasında <strong>hansının
+    önddə, hansının arxada</strong> görünəcəyini müəyyən edir. Z oxu
+    ekrana perpendikulyar istiqamətdir. <strong>Yalnız</strong>
+    <code>position</code> dəyəri <code>static</code>-dən fərqli olan
+    elementlərə tətbiq olunur.
+  </p>
+
+  <div class="grid-2">
+    <div>
+      <div class="z-scene">
+        <div class="z-box z1">z-index: 1 <span>arxada</span></div>
+        <div class="z-box z2">z-index: 2 <span>ortada</span></div>
+        <div class="z-box z3">z-index: 3 <span>öndə</span></div>
+      </div>
+      <p style="font-size:.78rem;color:var(--text-3);margin-top:.6rem;font-family:var(--mono)">
+        Böyük z-index = daha önddə
+      </p>
+    </div>
+    <div>
+      <div class="code-wrap" style="margin:0">
+        <div class="code-header">
+          <span class="code-lang">css</span>
+          <button class="copy-btn" data-code="z-code">Kopyala</button>
+        </div>
+        <pre id="z-code"><span class="sel">.arxada</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span><span class="punc">;</span>
+  <span class="prop">z-index</span>:  <span class="num">1</span><span class="punc">;</span>  <span class="cmm">/* ən arxada */</span>
+}
+
+<span class="sel">.ortada</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span><span class="punc">;</span>
+  <span class="prop">z-index</span>:  <span class="num">2</span><span class="punc">;</span>  <span class="cmm">/* ortada */</span>
+}
+
+<span class="sel">.onde</span> {
+  <span class="prop">position</span>: <span class="val">absolute</span><span class="punc">;</span>
+  <span class="prop">z-index</span>:  <span class="num">3</span><span class="punc">;</span>  <span class="cmm">/* ən öndə */</span>
+}
+
+<span class="cmm">/* ❌ Yanlış — static üçün işləmir */</span>
+<span class="sel">.yanlis</span> {
+  <span class="prop">position</span>: <span class="val">static</span><span class="punc">;</span> <span class="cmm">/* z-index effektsiz */</span>
+  <span class="prop">z-index</span>:  <span class="num">999</span><span class="punc">;</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="ib warn" style="margin-top:1.5rem">
+    <span class="ib-icon">⚠️</span>
+    <p>
+      <strong>Stacking Context (Yığım Konteksti):</strong> Bəzi CSS xassələri
+      (<code>opacity &lt; 1</code>, <code>transform</code>, <code>filter</code>)
+      yeni stacking context yaradır. Bu halda həmin elementin uşaqlarının
+      z-index-i yalnız <em>öz kontekstindəki</em> elementlərlə müqayisə olunur —
+      xarici elementlərə görə deyil. Bu, z-index-in "işləməməsi"-nin ən
+      geniş yayılmış səbəbidir.
+    </p>
+  </div>
+
+  <h3 class="sub-heading" style="color:var(--green)">Tövsiyə olunan z-index sistemi</h3>
+  <div class="grid-3">
+    <div class="card" style="text-align:center">
+      <div style="font-size:1.5rem;margin-bottom:.5rem">1–10</div>
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--text-2)">Normal elementlər</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:1.5rem;margin-bottom:.5rem">100–200</div>
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--text-2)">Dropdown, tooltip</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:1.5rem;margin-bottom:.5rem">1000+</div>
+      <div style="font-family:var(--mono);font-size:.8rem;color:var(--text-2)">Navbar, modal, overlay</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     9. XÜLASƏ / CHEATSHEET
+     ============================================================ -->
+<section id="cheatsheet" class="section">
+  <div class="section-header">
+    <div class="s-icon">📋</div>
+    <h2>Xülasə — Sürətli Baxış</h2>
+  </div>
+  <p class="section-intro">
+    Bütün öyrəndiklərinizip bir yerdə sürətli istinad cədvəli.
+    Bu səhifəni yadda saxlayın — hər dəfə kodu yazmadan öncə buraya baxın!
+  </p>
+
+  <div class="cheat-grid">
+    <!-- Box Model -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--blue)"></span>
+        Box Model Qatları
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">content</span><span class="cheat-v">Əsl məzmun sahəsi</span></div>
+      <div class="cheat-row"><span class="cheat-k">padding</span><span class="cheat-v">Daxili boşluq, arxa rəng tətbiq olur</span></div>
+      <div class="cheat-row"><span class="cheat-k">border</span><span class="cheat-v">Kənar xətt, genişlik+stil+rəng</span></div>
+      <div class="cheat-row"><span class="cheat-k">margin</span><span class="cheat-v">Xarici boşluq, həmişə şəffaf</span></div>
+    </div>
+
+    <!-- Content -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--c-content)"></span>
+        Content Xassələri
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">width / height</span><span class="cheat-v">Ölçü</span></div>
+      <div class="cheat-row"><span class="cheat-k">min/max-width</span><span class="cheat-v">Ən az/çox en</span></div>
+      <div class="cheat-row"><span class="cheat-k">min/max-height</span><span class="cheat-v">Ən az/çox hündürlük</span></div>
+      <div class="cheat-row"><span class="cheat-k">overflow</span><span class="cheat-v">hidden / scroll / auto</span></div>
+    </div>
+
+    <!-- Padding -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--c-padding)"></span>
+        Padding Shorthand
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">padding: A</span><span class="cheat-v">4 tərəf bərabər</span></div>
+      <div class="cheat-row"><span class="cheat-k">padding: A B</span><span class="cheat-v">üst-alt / sol-sağ</span></div>
+      <div class="cheat-row"><span class="cheat-k">padding: A B C</span><span class="cheat-v">üst / sol-sağ / alt</span></div>
+      <div class="cheat-row"><span class="cheat-k">padding: A B C D</span><span class="cheat-v">üst → sağ → alt → sol</span></div>
+    </div>
+
+    <!-- Border -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--c-border)"></span>
+        Border Xassələri
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">border</span><span class="cheat-v">width style color (shorthand)</span></div>
+      <div class="cheat-row"><span class="cheat-k">border-style</span><span class="cheat-v">solid, dashed, dotted, double...</span></div>
+      <div class="cheat-row"><span class="cheat-k">border-radius</span><span class="cheat-v">Küncləri yuvarlat</span></div>
+      <div class="cheat-row"><span class="cheat-k">border: 0</span><span class="cheat-v">Kənarı sil</span></div>
+    </div>
+
+    <!-- Margin -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--c-margin)"></span>
+        Margin Xüsusiyyətləri
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">margin: 0 auto</span><span class="cheat-v">Üfüqi mərkəzləmə</span></div>
+      <div class="cheat-row"><span class="cheat-k">margin: 0</span><span class="cheat-v">Bütün marjinləri sıfırla</span></div>
+      <div class="cheat-row"><span class="cheat-k">mənfi dəyər</span><span class="cheat-v">İzin verilir! Elementi çəkir</span></div>
+      <div class="cheat-row"><span class="cheat-k">collapsing</span><span class="cheat-v">Şaquli marjinlər yığılır</span></div>
+    </div>
+
+    <!-- Box-sizing -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--amber)"></span>
+        Box-sizing
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">content-box</span><span class="cheat-v">width = yalnız content (standart)</span></div>
+      <div class="cheat-row"><span class="cheat-k">border-box</span><span class="cheat-v">width = content+padding+border</span></div>
+      <div class="cheat-row"><span class="cheat-k">* { border-box }</span><span class="cheat-v">Global reset (tövsiyə edilir)</span></div>
+    </div>
+
+    <!-- Position -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--coral)"></span>
+        Position Dəyərləri
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">static</span><span class="cheat-v">Normal axın (standart)</span></div>
+      <div class="cheat-row"><span class="cheat-k">relative</span><span class="cheat-v">Öz mövqeyindən köçür</span></div>
+      <div class="cheat-row"><span class="cheat-k">absolute</span><span class="cheat-v">Ata elementə görə (axından çıxır)</span></div>
+      <div class="cheat-row"><span class="cheat-k">fixed</span><span class="cheat-v">Viewport-a yapışır, scroll-da qalır</span></div>
+      <div class="cheat-row"><span class="cheat-k">sticky</span><span class="cheat-v">Hədddə çatanda yapışır</span></div>
+    </div>
+
+    <!-- Z-index -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--green)"></span>
+        Z-index Qaydaları
+      </h4>
+      <div class="cheat-row"><span class="cheat-k">böyük dəyər</span><span class="cheat-v">Daha öndə görünür</span></div>
+      <div class="cheat-row"><span class="cheat-k">static-də işləmir</span><span class="cheat-v">position lazımdır</span></div>
+      <div class="cheat-row"><span class="cheat-k">z-index: -1</span><span class="cheat-v">Arxa plana keçir</span></div>
+      <div class="cheat-row"><span class="cheat-k">auto</span><span class="cheat-v">Standart — valideyndən alır</span></div>
+    </div>
+
+    <!-- Global Reset -->
+    <div class="cheat-card">
+      <h4>
+        <span class="cheat-dot" style="background:var(--purple)"></span>
+        Tövsiyə olunan Global CSS
+      </h4>
+      <div class="code-wrap" style="margin:0;font-size:.8rem">
+        <pre style="padding:.85rem 1rem"><span class="sel">*, *::before, *::after</span> {
+  <span class="prop">box-sizing</span>: <span class="val">border-box</span><span class="punc">;</span>
+  <span class="prop">margin</span>:     <span class="num">0</span><span class="punc">;</span>
+  <span class="prop">padding</span>:    <span class="num">0</span><span class="punc">;</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer>
+  <p>
+    CSS Box Model & Position Dərsliyi •
+    Azərbaycan dilindəki CSS öyrəncilər üçün hazırlanmışdır
+  </p>
+  <p style="margin-top:.5rem;font-size:.75rem;opacity:.6">
+    <code>DejaVu Sans</code> şrifti ilə hazırlanmışdır
+  </p>
+</footer>
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+/* ---- Mobile Menu ---- */
+const ham = document.getElementById('hamburger');
+const mMenu = document.getElementById('mobile-menu');
+ham.addEventListener('click', () => {
+  mMenu.classList.toggle('open');
+  ham.textContent = mMenu.classList.contains('open') ? '✕' : '☰';
+});
+document.querySelectorAll('.mm-link').forEach(a => {
+  a.addEventListener('click', () => {
+    mMenu.classList.remove('open');
+    ham.textContent = '☰';
+  });
+});
+
+/* ---- Position Tabs ---- */
+document.querySelectorAll('.pos-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pos-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.pos-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = document.getElementById('tab-' + btn.dataset.tab);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+/* ---- Copy Code Buttons ---- */
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.code;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const text = el.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Kopyalandı';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Kopyala';
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  });
+});
+
+/* ---- Active Nav Link on Scroll ---- */
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const tocDots  = document.querySelectorAll('.toc-dot');
+
+function setActive() {
+  let current = '';
+  sections.forEach(sec => {
+    const top = sec.getBoundingClientRect().top;
+    if (top <= 100) current = sec.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+  tocDots.forEach(d => {
+    d.classList.toggle('active', d.dataset.target === current);
+  });
+}
+window.addEventListener('scroll', setActive, { passive: true });
+setActive();
+
+/* ---- Toc Dot Click ---- */
+tocDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    const sec = document.getElementById(dot.dataset.target);
+    if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+/* ---- Smooth reveal on scroll (optional) ---- */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.07 });
+
+document.querySelectorAll('.card, .code-wrap, .bm-diagram, .pos-demo-area, .cheat-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(18px)';
+  el.style.transition = 'opacity .45s ease, transform .45s ease';
+  observer.observe(el);
+});
+</script>
+
+</body>
+</html>

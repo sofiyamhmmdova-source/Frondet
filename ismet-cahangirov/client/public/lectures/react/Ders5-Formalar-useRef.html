@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 5 — Formalar, Controlled Components və useRef</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e17;
+    --bg-panel:#111826;
+    --bg-panel-2:#141d2e;
+    --bg-code:#0c1220;
+    --border:#232e42;
+    --border-soft:#1a2434;
+    --text:#e7ecf4;
+    --text-dim:#93a2bd;
+    --text-faint:#5c6b85;
+    --cyan:#5eead4;
+    --blue:#7dd3fc;
+    --amber:#fbbf24;
+    --red:#fb7185;
+    --green:#86efac;
+    --purple:#c4b5fd;
+    --radius:14px;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Manrope', sans-serif;
+    --font-code:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(124,211,252,0.06), transparent 60%);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:var(--font-display); font-weight:700; letter-spacing:-0.01em; margin:0;}
+  a{color:var(--cyan);}
+  p{margin:0 0 14px 0;}
+  ::selection{background:rgba(94,234,212,0.25);}
+
+  /* ===== TOP BAR (mobile) ===== */
+  .topbar{
+    display:none;
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,14,23,0.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+    padding:14px 18px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .topbar .brand{font-family:var(--font-display); font-weight:700; font-size:15px; color:var(--text);}
+  .topbar .brand span{color:var(--cyan);}
+  .menu-btn{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:9px;
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--text);
+  }
+  .menu-btn svg{width:18px; height:18px;}
+
+  /* ===== LAYOUT ===== */
+  .layout{
+    display:grid;
+    grid-template-columns:280px minmax(0,1fr);
+    max-width:1360px;
+    margin:0 auto;
+    align-items:start;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar{
+    position:sticky; top:0;
+    height:100vh;
+    overflow-y:auto;
+    padding:32px 22px 40px 32px;
+    border-right:1px solid var(--border-soft);
+  }
+  .sidebar-brand{
+    font-family:var(--font-display); font-weight:700; font-size:16px;
+    margin-bottom:4px; color:var(--text);
+  }
+  .sidebar-brand span{color:var(--cyan);}
+  .sidebar-sub{font-size:12.5px; color:var(--text-faint); margin-bottom:26px;}
+  .toc-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.12em;
+    color:var(--text-faint); margin-bottom:12px; font-weight:600;
+  }
+  .toc{list-style:none; margin:0; padding:0;}
+  .toc li{margin-bottom:2px;}
+  .toc a{
+    display:flex; gap:10px; align-items:baseline;
+    text-decoration:none; color:var(--text-dim); font-size:13.5px;
+    padding:8px 10px; border-radius:8px; border-left:2px solid transparent;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .toc a:hover{background:var(--bg-panel); color:var(--text);}
+  .toc a.active{color:var(--cyan); border-left-color:var(--cyan); background:rgba(94,234,212,0.06);}
+  .toc .num{font-family:var(--font-code); color:var(--text-faint); font-size:11.5px; min-width:16px;}
+  .toc a.active .num{color:var(--cyan);}
+
+  /* ===== MAIN ===== */
+  main{padding:56px 48px 100px 48px; min-width:0;}
+
+  /* HERO */
+  .hero{margin-bottom:60px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-code); font-size:12px; color:var(--cyan);
+    background:rgba(94,234,212,0.08); border:1px solid rgba(94,234,212,0.25);
+    padding:6px 12px; border-radius:100px; margin-bottom:20px;
+  }
+  .hero h1{font-size:clamp(30px, 4vw, 46px); line-height:1.12; margin-bottom:16px;}
+  .hero h1 em{
+    font-style:normal; color:var(--cyan);
+    background:linear-gradient(180deg, transparent 62%, rgba(94,234,212,0.22) 62%);
+  }
+  .hero .lead{font-size:17px; color:var(--text-dim); max-width:680px; margin-bottom:26px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px;}
+  .meta-chip{
+    display:flex; align-items:center; gap:7px;
+    font-size:12.5px; color:var(--text-dim);
+    background:var(--bg-panel); border:1px solid var(--border);
+    padding:8px 13px; border-radius:9px; font-family:var(--font-code);
+  }
+
+  /* SECTION */
+  section.block{margin-bottom:64px; scroll-margin-top:24px;}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px;}
+  .sec-num{
+    font-family:var(--font-code); color:var(--cyan); font-size:13px;
+    background:rgba(94,234,212,0.08); border:1px solid rgba(94,234,212,0.2);
+    padding:3px 9px; border-radius:6px;
+  }
+  .sec-head h2{font-size:26px;}
+  .sec-desc{color:var(--text-dim); font-size:15.5px; max-width:720px; margin:14px 0 22px 0;}
+
+  h3.sub{font-size:17px; margin:28px 0 10px 0; color:var(--text);}
+  h3.sub .dot{color:var(--cyan);}
+
+  /* CODE BLOCK */
+  .code-window{
+    background:var(--bg-code);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin:16px 0 20px 0;
+    box-shadow:0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  .code-titlebar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px; background:var(--bg-panel-2);
+    border-bottom:1px solid var(--border);
+  }
+  .code-dots{display:flex; gap:6px;}
+  .code-dots span{width:9px; height:9px; border-radius:50%; display:block;}
+  .code-dots span:nth-child(1){background:#fb7185;}
+  .code-dots span:nth-child(2){background:#fbbf24;}
+  .code-dots span:nth-child(3){background:#86efac;}
+  .code-filename{font-family:var(--font-code); font-size:12px; color:var(--text-faint);}
+  .copy-btn{
+    font-family:var(--font-code); font-size:11px; color:var(--text-dim);
+    background:transparent; border:1px solid var(--border); padding:4px 10px;
+    border-radius:6px; cursor:pointer; transition:all .15s;
+  }
+  .copy-btn:hover{color:var(--cyan); border-color:var(--cyan);}
+  pre{
+    margin:0; padding:18px 20px; overflow-x:auto;
+    font-family:var(--font-code); font-size:13.2px; line-height:1.7;
+    color:#c3cde0;
+  }
+  code{
+    font-family:var(--font-code);
+    background:rgba(94,234,212,0.09);
+    color:var(--cyan);
+    padding:2px 7px;
+    border-radius:5px;
+    font-size:0.87em;
+    white-space:nowrap;
+  }
+  pre code{
+    font-family:inherit; background:none; color:inherit;
+    padding:0; border-radius:0; font-size:inherit; white-space:pre;
+  }
+  .tk-kw{color:var(--purple);}
+  .tk-str{color:var(--green);}
+  .tk-cm{color:var(--text-faint); font-style:italic;}
+  .tk-tag{color:var(--blue);}
+  .tk-hook{color:var(--cyan); font-weight:600;}
+  .tk-num{color:var(--amber);}
+
+  /* TABLE */
+  .table-wrap{
+    overflow-x:auto; border:1px solid var(--border); border-radius:12px;
+    margin:16px 0 24px 0;
+  }
+  table{width:100%; border-collapse:collapse; font-size:14px; min-width:520px;}
+  thead th{
+    text-align:left; padding:12px 16px; background:var(--bg-panel-2);
+    color:var(--cyan); font-family:var(--font-code); font-weight:500;
+    font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;
+    border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:13px 16px; border-bottom:1px solid var(--border-soft); color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td:first-child{color:var(--text); font-weight:600;}
+  tbody tr:hover{background:rgba(255,255,255,0.015);}
+
+  /* CALLOUTS */
+  .callout{
+    border-radius:12px; padding:18px 20px; margin:18px 0;
+    border:1px solid; display:flex; gap:14px;
+  }
+  .callout .ic{font-size:18px; line-height:1;}
+  .callout .body strong{display:block; margin-bottom:4px; font-family:var(--font-display); font-size:14.5px;}
+  .callout .body p{margin:0; font-size:14px; color:var(--text-dim);}
+  .callout.info{background:rgba(125,211,252,0.06); border-color:rgba(125,211,252,0.25);}
+  .callout.info strong{color:var(--blue);}
+  .callout.warn{background:rgba(251,191,36,0.06); border-color:rgba(251,191,36,0.25);}
+  .callout.warn strong{color:var(--amber);}
+  .callout.good{background:rgba(134,239,172,0.06); border-color:rgba(134,239,172,0.25);}
+  .callout.good strong{color:var(--green);}
+
+  /* BUG CARDS */
+  .bug-grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:18px;}
+  .bug-card{
+    background:var(--bg-panel); border:1px solid var(--border); border-left:3px solid var(--red);
+    border-radius:10px; padding:16px 18px;
+  }
+  .bug-card .err-line{
+    font-family:var(--font-code); font-size:12px; color:var(--red);
+    display:flex; align-items:center; gap:8px; margin-bottom:8px;
+  }
+  .bug-card h4{font-size:15px; color:var(--text); margin-bottom:6px;}
+  .bug-card p{font-size:14px; color:var(--text-dim); margin:0;}
+  .bug-card .fix{
+    margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);
+    font-size:13.5px; color:var(--green);
+  }
+  .bug-card .fix b{color:var(--green); font-family:var(--font-code); font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em;}
+
+  /* BEST PRACTICE LIST */
+  .bp-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px;}
+  .bp-card{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:12px;
+    padding:18px 20px;
+  }
+  .bp-card .num{
+    font-family:var(--font-code); color:var(--green); font-size:12px;
+    background:rgba(134,239,172,0.1); border:1px solid rgba(134,239,172,0.25);
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:10px;
+  }
+  .bp-card h4{font-size:14.5px; color:var(--text); margin-bottom:6px;}
+  .bp-card p{font-size:13.5px; color:var(--text-dim); margin:0;}
+
+  /* FAQ */
+  .faq-item{
+    border:1px solid var(--border); border-radius:12px; margin-bottom:12px;
+    background:var(--bg-panel); overflow:hidden;
+  }
+  .faq-q{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:17px 20px; cursor:pointer; user-select:none;
+  }
+  .faq-q h4{font-size:15px; color:var(--text); font-family:var(--font-body); font-weight:700;}
+  .faq-q .chev{color:var(--cyan); transition:transform .2s; font-size:14px; flex-shrink:0;}
+  .faq-item.open .faq-q .chev{transform:rotate(45deg);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height .25s ease;}
+  .faq-a-inner{padding:0 20px 18px 20px; font-size:14.5px; color:var(--text-dim);}
+  .faq-a-inner p{margin:0 0 10px 0;}
+  .faq-a-inner p:last-child{margin-bottom:0;}
+
+  /* TASK BOX */
+  .task-box{
+    background:linear-gradient(160deg, rgba(94,234,212,0.07), rgba(124,211,252,0.03));
+    border:1px solid rgba(94,234,212,0.28);
+    border-radius:16px; padding:28px 30px; margin-top:18px;
+  }
+  .task-box .tag{
+    font-family:var(--font-code); font-size:11.5px; color:var(--cyan);
+    text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px; display:block;
+  }
+  .task-box h3{font-size:19px; margin-bottom:12px; color:var(--text);}
+  .task-box ul{margin:0 0 16px 0; padding-left:20px; color:var(--text-dim); font-size:14.5px;}
+  .task-box li{margin-bottom:7px;}
+  .task-box li::marker{color:var(--cyan);}
+  .bonus{
+    margin-top:16px; padding-top:16px; border-top:1px dashed rgba(94,234,212,0.3);
+    font-size:14px; color:var(--text-dim);
+  }
+  .bonus b{color:var(--amber);}
+
+  /* FOOTER */
+  footer{
+    border-top:1px solid var(--border-soft); padding:30px 48px; text-align:center;
+    color:var(--text-faint); font-size:13px;
+  }
+
+  /* MOBILE */
+  @media (max-width:900px){
+    .topbar{display:flex;}
+    .layout{grid-template-columns:1fr; max-width:100%;}
+    .sidebar{
+      position:fixed; top:0; left:0; height:100vh; width:80%; max-width:300px;
+      background:var(--bg); z-index:60; transform:translateX(-100%);
+      transition:transform .25s ease; border-right:1px solid var(--border);
+      padding-top:70px;
+    }
+    .sidebar.open{transform:translateX(0);}
+    .overlay{
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:55;
+    }
+    .overlay.show{display:block;}
+    main{padding:32px 20px 80px 20px;}
+    .hero h1{font-size:28px;}
+    .bp-grid{grid-template-columns:1fr;}
+    .sec-head h2{font-size:22px;}
+    footer{padding:24px 20px;}
+  }
+  @media (min-width:901px){
+    .overlay{display:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Dərs 5 · <span>Formalar &amp; useRef</span></div>
+  <button class="menu-btn" id="menuBtn" aria-label="Mündəricatı aç">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">React <span>· Dərs 5</span></div>
+    <div class="sidebar-sub">Formalar, Controlled Components və useRef</div>
+    <div class="toc-label">Mündəricat</div>
+    <ul class="toc" id="toc">
+      <li><a href="#controlled" class="active"><span class="num">01</span> Controlled vs Uncontrolled</a></li>
+      <li><a href="#form-state"><span class="num">02</span> Formun state idarəsi</a></li>
+      <li><a href="#validation"><span class="num">03</span> Validasiya prinsipləri</a></li>
+      <li><a href="#useref"><span class="num">04</span> useRef Hook</a></li>
+      <li><a href="#useref-vs-usestate"><span class="num">05</span> useRef vs useState</a></li>
+      <li><a href="#practical"><span class="num">06</span> Praktiki: Qeydiyyat forması</a></li>
+      <li><a href="#task"><span class="num">07</span> Tapşırıq: Login forması</a></li>
+      <li><a href="#bugs"><span class="num">08</span> Xətalar və Buglar</a></li>
+      <li><a href="#best-practices"><span class="num">09</span> Yaxşı təcrübələr</a></li>
+      <li><a href="#faq"><span class="num">10</span> Tez-tez verilən suallar</a></li>
+    </ul>
+  </aside>
+
+  <main>
+
+    <section class="hero">
+      <span class="eyebrow">⚛ React · Praktiki Dərs Seriyası</span>
+      <h1>Formalar, <em>Controlled Components</em> və useRef</h1>
+      <p class="lead">İstifadəçidən məlumat almaq React tətbiqlərinin ən çox rast gəlinən vəzifələrindən biridir. Bu dərsdə form dəyərlərini state ilə necə idarə edəcəyimizi, real-vaxtda validasiya aparmağı və DOM elementlərinə useRef vasitəsilə birbaşa müraciət etməyi addım-addım öyrənəcəyik.</p>
+      <div class="meta-row">
+        <div class="meta-chip">⏱ ≈2 saat</div>
+        <div class="meta-chip">🎯 Səviyyə: Orta</div>
+        <div class="meta-chip">🧩 Praktiki tapşırıq: Login forması</div>
+        <div class="meta-chip">📦 Tələb olunur: useState biliyi</div>
+      </div>
+    </section>
+
+    <!-- 01 CONTROLLED VS UNCONTROLLED -->
+    <section class="block" id="controlled">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Controlled vs Uncontrolled Input</h2></div>
+      <p class="sec-desc">React-də form elementləri (input, textarea, select) iki cür idarə oluna bilər: <b>controlled</b> (nəzarət olunan) və <b>uncontrolled</b> (nəzarətsiz). Bu fərq bütün form işinin təməlidir.</p>
+
+      <h3 class="sub"><span class="dot">▸</span> Controlled Input</h3>
+      <p>Controlled input-da elementin dəyəri (<code>value</code>) tamamilə React state-dən gəlir. İstifadəçi nə yazırsa yazsın, DOM özü heç nə "yadda saxlamır" — hər dəyişiklik <code>onChange</code> vasitəsilə state-ə ötürülür, state yenilənir, React isə yeni dəyəri yenidən input-a "geri qaytarır". Yəni React "yeganə həqiqət mənbəyi" (single source of truth) rolunu oynayır.</p>
+
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">ControlledInput.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">function ControlledInput() {
+  const [ad, setAd] = useState("");
+
+  const handleChange = (e) =&gt; {
+    setAd(e.target.value);
+  };
+
+  return (
+    &lt;input
+      type="text"
+      value={ad}
+      onChange={handleChange}
+      placeholder="Adınızı daxil edin"
+    /&gt;
+  );
+}</code></pre>
+      </div>
+
+      <h3 class="sub"><span class="dot">▸</span> Uncontrolled Input</h3>
+      <p>Uncontrolled input-da dəyər DOM-un öz daxili yaddaşında saxlanılır — brauzer bunu özü idarə edir. React yalnız lazım olduqda (məsələn, submit anında) <code>useRef</code> vasitəsilə həmin dəyəri "gedib oxuyur". Real-vaxt validasiya və ya şərti məntiq üçün əlverişli deyil, çünki hər simvol dəyişəndə React xəbərdar olmur.</p>
+
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">UncontrolledInput.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">function UncontrolledInput() {
+  const inputRef = useRef(null);
+
+  const handleSubmit = () =&gt; {
+    // Dəyəri yalnız lazım olanda DOM-dan oxuyuruq
+    alert(`Daxil edilən dəyər: ${inputRef.current.value}`);
+  };
+
+  return (
+    &lt;&gt;
+      &lt;input type="text" ref={inputRef} defaultValue="" /&gt;
+      &lt;button onClick={handleSubmit}&gt;Göstər&lt;/button&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Xüsusiyyət</th><th>Controlled</th><th>Uncontrolled</th></tr></thead>
+          <tbody>
+            <tr><td>Dəyərin mənbəyi</td><td>React state</td><td>DOM (brauzer)</td></tr>
+            <tr><td>Real-vaxt validasiya</td><td>Asan və təbii</td><td>Çətin, əlavə məntiq tələb edir</td></tr>
+            <tr><td>Kod həcmi</td><td>Bir az daha çox</td><td>Daha az</td></tr>
+            <tr><td>Dəyəri proqramla dəyişmək</td><td>Sadə (setState)</td><td>Çətin (DOM-a müdaxilə)</td></tr>
+            <tr><td>Test etmək</td><td>Asan</td><td>Nisbətən çətin</td></tr>
+            <tr><td>Tövsiyə olunan hal</td><td>Əksər formalar, validasiya lazım olduqda</td><td>Fayl seçimi (<code>input type="file"</code>), sadə birdəfəlik formalar</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <div class="ic">💡</div>
+        <div class="body"><strong>Qayda</strong><p>Ümumi tövsiyə: form validasiyası, şərti göstərmə (bir sahə digərindən asılıdırsa) və ya dəyəri kənardan dəyişmək lazımdırsa — <b>controlled</b> yanaşmadan istifadə edin. Yalnız DOM-a bir dəfəlik müraciət (məsələn fokuslanma, fayl seçimi) lazımdırsa — <b>uncontrolled</b> + <code>useRef</code> kifayətdir.</p></div>
+      </div>
+    </section>
+
+    <!-- 02 FORM STATE -->
+    <section class="block" id="form-state">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Formun state ilə idarə olunması</h2></div>
+      <p class="sec-desc">Formda bir neçə sahə olduqda, onları necə saxlamaq lazımdır: hər biri üçün <b>ayrıca useState</b>, yoxsa <b>bir obyekt</b> daxilində?</p>
+
+      <h3 class="sub"><span class="dot">▸</span> Yanaşma 1: Ayrı-ayrı state</h3>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">separate-state.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">const [ad, setAd] = useState("");
+const [email, setEmail] = useState("");
+const [parol, setParol] = useState("");
+
+// Hər input üçün ayrı onChange handler lazımdır
+&lt;input value={ad} onChange={(e) =&gt; setAd(e.target.value)} /&gt;
+&lt;input value={email} onChange={(e) =&gt; setEmail(e.target.value)} /&gt;
+&lt;input value={parol} onChange={(e) =&gt; setParol(e.target.value)} /&gt;</code></pre>
+      </div>
+      <p>2–3 sahəlik kiçik formalarda bu yanaşma sadə və oxunaqlıdır. Amma sahələrin sayı artdıqca (4, 5, 10 sahə) kod təkrarlanmağa başlayır.</p>
+
+      <h3 class="sub"><span class="dot">▸</span> Yanaşma 2: Tək obyekt (tövsiyə olunur)</h3>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">object-state.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">const [form, setForm] = useState({
+  ad: "",
+  email: "",
+  parol: "",
+});
+
+// Bir universal handler bütün sahələr üçün işləyir
+const handleChange = (e) =&gt; {
+  const { name, value } = e.target;
+  setForm((prev) =&gt; ({ ...prev, [name]: value }));
+};
+
+&lt;input name="ad" value={form.ad} onChange={handleChange} /&gt;
+&lt;input name="email" value={form.email} onChange={handleChange} /&gt;
+&lt;input name="parol" value={form.parol} onChange={handleChange} type="password" /&gt;</code></pre>
+      </div>
+      <p>Burada hər <code>input</code>-un <code>name</code> atributu state obyektindəki açarla (key) uyğun gəlir. Bu üsul, sahə sayı artsa belə, yalnız bir <code>handleChange</code> funksiyası ilə idarə olunmasını təmin edir — kod təkrarlanmır və genişlənməsi asandır.</p>
+
+      <div class="callout warn">
+        <div class="ic">⚠️</div>
+        <div class="body"><strong>Diqqət: spread operatoru unutmayın</strong><p><code>setForm({ [name]: value })</code> yazsanız, digər bütün sahələr itiriləcək! Həmişə <code>{ ...prev, [name]: value }</code> şəklində əvvəlki state-i qoruyun.</p></div>
+      </div>
+    </section>
+
+    <!-- 03 VALIDATION -->
+    <section class="block" id="validation">
+      <div class="sec-head"><span class="sec-num">03</span><h2>Form validasiyası prinsipləri</h2></div>
+      <p class="sec-desc">Validasiya iki əsas mərhələdən ibarətdir: <b>boş sahə yoxlanışı</b> və <b>format yoxlanışı</b>. Bunlara əlavə olaraq, validasiyanın <b>nə vaxt</b> göstərilməsi də UX baxımından vacibdir.</p>
+
+      <h3 class="sub"><span class="dot">▸</span> 1. Boş sahə yoxlanışı</h3>
+      <p>Sahənin doldurulub-doldurulmadığını yoxlamaq üçün <code>.trim()</code> istifadə edilir ki, yalnız boşluqlardan ibarət dəyər də "boş" hesab olunsun.</p>
+
+      <h3 class="sub"><span class="dot">▸</span> 2. Format yoxlanışı</h3>
+      <p>E-poçt, telefon nömrəsi kimi sahələr üçün müəyyən formata uyğunluq <b>regular expression (regex)</b> ilə yoxlanılır.</p>
+
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">validate.js</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateField(name, value) {
+  switch (name) {
+    case "email":
+      if (!value.trim()) return "E-poçt tələb olunur";
+      if (!EMAIL_REGEX.test(value)) return "E-poçt formatı yanlışdır";
+      return "";
+
+    case "parol":
+      if (!value) return "Parol tələb olunur";
+      if (value.length &lt; 6) return "Parol ən azı 6 simvol olmalıdır";
+      return "";
+
+    default:
+      return "";
+  }
+}</code></pre>
+      </div>
+
+      <h3 class="sub"><span class="dot">▸</span> 3. Validasiyanın vaxtlaması (UX üçün vacibdir)</h3>
+      <p>Xətanı istifadəçi hələ ilk dəfə yazarkən göstərmək pis təcrübədir — insan "e" hərfini yazan kimi "E-poçt formatı yanlışdır" görmək istəməz. Ən yaxşı praktika:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mərhələ</th><th>Nə baş verir</th></tr></thead>
+          <tbody>
+            <tr><td>İlk yazı zamanı</td><td>Xəta göstərilmir, sahə sadəcə doldurulur</td></tr>
+            <tr><td>onBlur (fokus itəndə)</td><td>Sahə ilk dəfə yoxlanılır, lazım olsa xəta görünür</td></tr>
+            <tr><td>Xəta göründükdən sonra</td><td>onChange zamanı davamlı yenidən yoxlanılır ki, düzələn kimi xəta yox olsun</td></tr>
+            <tr><td>Submit zamanı</td><td>Bütün sahələr bir daha yoxlanılır, boş qalanlar da aşkarlanır</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 04 USEREF -->
+    <section class="block" id="useref">
+      <div class="sec-head"><span class="sec-num">04</span><h2>useRef Hook</h2></div>
+      <p class="sec-desc"><code>useRef</code> — React-in DOM elementinə birbaşa müraciət etmək və ya render-lər arasında saxlanan, lakin UI-ni yeniləməyən dəyər saxlamaq üçün istifadə etdiyi hook-dur.</p>
+
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">syntax.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">const myRef = useRef(initialValue);
+// myRef = { current: initialValue }
+
+// DOM elementinə bağlamaq üçün:
+&lt;input ref={myRef} /&gt;
+
+// Dəyərə müraciət:
+myRef.current // → DOM node və ya saxlanan dəyər</code></pre>
+      </div>
+
+      <p><code>useRef(initialValue)</code> <code>{ current: initialValue }</code> formasında bir obyekt qaytarır. Bu obyekt komponentin bütün "ömrü" boyu <b>eyni referans</b> olaraq qalır — yəni hər render-də yenidən yaradılmır.</p>
+
+      <h3 class="sub"><span class="dot">▸</span> Nümunə: input-a avtomatik fokuslanma</h3>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">AutoFocusInput.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">function AutoFocusInput() {
+  const emailRef = useRef(null);
+
+  useEffect(() =&gt; {
+    // Komponent ilk dəfə render olunanda inputa fokuslanır
+    emailRef.current.focus();
+  }, []);
+
+  return &lt;input ref={emailRef} type="email" placeholder="E-poçt" /&gt;;
+}</code></pre>
+      </div>
+
+      <div class="callout info">
+        <div class="ic">📌</div>
+        <div class="body"><strong>useRef nə üçün istifadə olunur?</strong>
+        <p>1) DOM elementinə birbaşa müraciət — fokus, scroll, ölçü ölçmə (<code>getBoundingClientRect</code>).<br>
+        2) Render-lər arasında "yaddaş" saxlamaq — məsələn əvvəlki dəyəri, timer ID-ni və ya sayğacı, bunlar UI-də göstərilmədiyi üçün useState lazım deyil.<br>
+        3) Mutable (dəyişən) dəyər saxlamaq — dəyəri dəyişmək render tələb etmir.</p></div>
+      </div>
+    </section>
+
+    <!-- 05 USEREF VS USESTATE -->
+    <section class="block" id="useref-vs-usestate">
+      <div class="sec-head"><span class="sec-num">05</span><h2>useRef vs useState: nə vaxt hansı?</h2></div>
+      <p class="sec-desc">Bu iki hook tez-tez qarışdırılır, çünki hər ikisi dəyər "saxlayır". Amma məqsədləri tamamilə fərqlidir.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Xüsusiyyət</th><th>useState</th><th>useRef</th></tr></thead>
+          <tbody>
+            <tr><td>Dəyər dəyişəndə render olur?</td><td>Bəli, həmişə</td><td>Xeyr, heç vaxt</td></tr>
+            <tr><td>Məqsəd</td><td>Ekranda göstərilən UI datası</td><td>DOM müraciəti / göstərilməyən mutable data</td></tr>
+            <tr><td>Dəyərə çatmaq</td><td>Birbaşa dəyişən (<code>ad</code>)</td><td><code>.current</code> vasitəsilə</td></tr>
+            <tr><td>Yenilənmə vaxtı</td><td>Növbəti render-də əks olunur</td><td>Dərhal, sinxron olaraq</td></tr>
+            <tr><td>Tipik istifadə</td><td>Form dəyərləri, checkbox, açıq/bağlı state</td><td>Fokus, scroll mövqeyi, timer ID, əvvəlki render dəyəri</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout good">
+        <div class="ic">✅</div>
+        <div class="body"><strong>Sadə qayda</strong><p>Sualı belə qoyun: <b>"Bu dəyər dəyişəndə istifadəçi nəyisə ekranda görməlidirmi?"</b> Cavab "bəli"dirsə — <code>useState</code>. Cavab "xeyr, sadəcə arxa planda lazımdır"dırsa — <code>useRef</code>.</p></div>
+      </div>
+    </section>
+
+    <!-- 06 PRACTICAL -->
+    <section class="block" id="practical">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Praktiki: Çoxsahəli qeydiyyat forması</h2></div>
+      <p class="sec-desc">İndi bütün öyrəndiklərimizi birləşdirib real-vaxt validasiyalı, useRef ilə avtomatik fokuslanan tam qeydiyyat forması quraq.</p>
+
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <div class="code-filename">RegisterForm.jsx</div>
+          <button class="copy-btn" data-copy>Kopyala</button>
+        </div>
+        <pre><code data-lang="jsx">import { useState, useRef, useEffect } from "react";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateField(name, value, form) {
+  switch (name) {
+    case "ad":
+      return value.trim() ? "" : "Ad tələb olunur";
+    case "email":
+      if (!value.trim()) return "E-poçt tələb olunur";
+      if (!EMAIL_REGEX.test(value)) return "E-poçt formatı yanlışdır";
+      return "";
+    case "parol":
+      if (!value) return "Parol tələb olunur";
+      if (value.length &lt; 6) return "Parol ən azı 6 simvol olmalıdır";
+      return "";
+    case "parolTekrar":
+      if (!value) return "Parolu təkrar daxil edin";
+      if (value !== form.parol) return "Parollar uyğun gəlmir";
+      return "";
+    default:
+      return "";
+  }
+}
+
+export default function RegisterForm() {
+  const [form, setForm] = useState({ ad: "", email: "", parol: "", parolTekrar: "" });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const adRef = useRef(null);
+
+  useEffect(() =&gt; {
+    adRef.current.focus(); // Səhifə açılanda ilk sahəyə fokuslan
+  }, []);
+
+  const handleChange = (e) =&gt; {
+    const { name, value } = e.target;
+    const updatedForm = { ...form, [name]: value };
+    setForm(updatedForm);
+
+    // Xəta artıq göstərilibsə, hər yazışda yenidən yoxla
+    if (touched[name]) {
+      setErrors((prev) =&gt; ({ ...prev, [name]: validateField(name, value, updatedForm) }));
+    }
+  };
+
+  const handleBlur = (e) =&gt; {
+    const { name, value } = e.target;
+    setTouched((prev) =&gt; ({ ...prev, [name]: true }));
+    setErrors((prev) =&gt; ({ ...prev, [name]: validateField(name, value, form) }));
+  };
+
+  const handleSubmit = (e) =&gt; {
+    e.preventDefault();
+    const newErrors = {};
+    Object.keys(form).forEach((key) =&gt; {
+      newErrors[key] = validateField(key, form[key], form);
+    });
+    setErrors(newErrors);
+    setTouched({ ad: true, email: true, parol: true, parolTekrar: true });
+
+    const hasError = Object.values(newErrors).some((msg) =&gt; msg !== "");
+    if (!hasError) {
+      alert("Qeydiyyat uğurludur!");
+    }
+  };
+
+  return (
+    &lt;form onSubmit={handleSubmit} noValidate&gt;
+      &lt;input
+        ref={adRef}
+        name="ad"
+        value={form.ad}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="Ad Soyad"
+      /&gt;
+      {touched.ad &amp;&amp; errors.ad &amp;&amp; &lt;span className="error"&gt;{errors.ad}&lt;/span&gt;}
+
+      &lt;input
+        name="email"
+        value={form.email}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="E-poçt"
+      /&gt;
+      {touched.email &amp;&amp; errors.email &amp;&amp; &lt;span className="error"&gt;{errors.email}&lt;/span&gt;}
+
+      &lt;input
+        type="password"
+        name="parol"
+        value={form.parol}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="Parol"
+      /&gt;
+      {touched.parol &amp;&amp; errors.parol &amp;&amp; &lt;span className="error"&gt;{errors.parol}&lt;/span&gt;}
+
+      &lt;input
+        type="password"
+        name="parolTekrar"
+        value={form.parolTekrar}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="Parolu təkrarlayın"
+      /&gt;
+      {touched.parolTekrar &amp;&amp; errors.parolTekrar &amp;&amp; &lt;span className="error"&gt;{errors.parolTekrar}&lt;/span&gt;}
+
+      &lt;button type="submit"&gt;Qeydiyyatdan keç&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</code></pre>
+      </div>
+
+      <div class="callout good">
+        <div class="ic">🔍</div>
+        <div class="body"><strong>Diqqət edin</strong><p><code>touched</code> obyekti hər sahənin "toxunulub-toxunulmadığını" izləyir — beləliklə xətalar yalnız istifadəçi həmin sahədən çıxdıqdan (blur) sonra göstərilir, ilk yazı zamanı yox.</p></div>
+      </div>
+    </section>
+
+    <!-- 07 TASK -->
+    <section class="block" id="task">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Tapşırıq: Login forması</h2></div>
+      <p class="sec-desc">Öyrəndiklərinizi tətbiq etmək üçün aşağıdakı tapşırığı yerinə yetirin.</p>
+
+      <div class="task-box">
+        <span class="tag">🎯 Praktiki Tapşırıq</span>
+        <h3>Email və parol validasiyalı Login forması qurun</h3>
+        <ul>
+          <li><b>İki controlled input</b> yaradın: <code>email</code> və <code>parol</code>, bir obyekt state-də saxlayın.</li>
+          <li><b>Email formatını</b> regex ilə yoxlayın; boşdursa və ya format yanlışdırsa müvafiq xəta mesajı göstərin.</li>
+          <li><b>Parolun</b> boş olmadığını və minimum 6 simvoldan ibarət olduğunu yoxlayın.</li>
+          <li>Xəta mesajları <b>real-vaxtda</b> (onBlur-dan sonra onChange ilə) yenilənməlidir.</li>
+          <li><b>Submit düyməsini</b> yalnız form tam düzgün doldurulanda aktiv edin (<code>disabled</code> atributu ilə).</li>
+          <li><b>useRef</b> istifadə edərək səhifə açılan kimi email sahəsinə avtomatik fokuslanma edin.</li>
+          <li>Form göndəriləndə <code>e.preventDefault()</code> çağırmağı unutmayın.</li>
+        </ul>
+        <div class="bonus">
+          <b>Bonus:</b> useRef ilə "parolu göstər/gizlət" düyməsi əlavə edin — düyməyə basanda parol input-unun <code>type</code> atributunu <code>"password"</code> ↔ <code>"text"</code> arasında dəyişdirin.
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 BUGS -->
+    <section class="block" id="bugs">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Ola biləcək xətalar və buglar</h2></div>
+      <p class="sec-desc">Formalarla işləyərkən başlanğıc səviyyədə tez-tez rast gəlinən problemlər və onların həlli.</p>
+
+      <div class="bug-grid">
+        <div class="bug-card">
+          <div class="err-line">⚠ Warning: A component is changing an uncontrolled input to be controlled</div>
+          <h4>Başlanğıc dəyər olmadan controlled input</h4>
+          <p>Əgər state-in başlanğıc dəyəri <code>undefined</code> olarsa (məsələn <code>useState()</code>), input əvvəlcə uncontrolled başlayır, sonra dəyər yazılanda controlled olur — React bu barədə xəbərdarlıq verir.</p>
+          <div class="fix"><b>Həll:</b> Həmişə başlanğıc dəyəri boş sətir olaraq təyin edin: <code>useState("")</code>.</div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ Səhifə submit zamanı yenilənir</div>
+          <h4>e.preventDefault() unudulub</h4>
+          <p>Form <code>submit</code> hadisəsi standart olaraq brauzeri səhifəni yeniləməyə vadar edir, bu da bütün React state-ini sıfırlayır.</p>
+          <div class="fix"><b>Həll:</b> <code>handleSubmit</code> funksiyasının ilk sətrində mütləq <code>e.preventDefault()</code> çağırın.</div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ Cannot read properties of null (reading 'focus')</div>
+          <h4>ref.current-ə render zamanı müraciət</h4>
+          <p>Komponent hələ DOM-a "mount" olunmamış vaxt <code>ref.current</code> hələ <code>null</code>-dur. Render funksiyası daxilində birbaşa <code>ref.current.focus()</code> çağırmaq xətaya səbəb olur.</p>
+          <div class="fix"><b>Həll:</b> DOM-a müraciəti yalnız <code>useEffect</code> içində və ya hadisə handler-lərində (məsələn <code>onClick</code>) edin.</div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ State düzgün yenilənmir</div>
+          <h4>name atributu unudulub</h4>
+          <p>Generic <code>handleChange</code> funksiyası <code>e.target.name</code>-dən istifadə edir. Əgər input-a <code>name</code> atributu verilməyibsə, bu dəyər <code>undefined</code> olacaq və state-də səhv açar yaranacaq.</p>
+          <div class="fix"><b>Həll:</b> Obyekt-əsaslı state istifadə edərkən hər input-a state-dəki açarla eyni <code>name</code> verməyi vərdiş edin.</div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ Checkbox işləmir / həmişə eyni qalır</div>
+          <h4>value əvəzinə checked lazımdır</h4>
+          <p>Checkbox input-larda <code>value</code> yox, <code>checked</code> atributu istifadə olunmalıdır — əks halda checkbox real vəziyyəti əks etdirmir.</p>
+          <div class="fix"><b>Həll:</b> <code>&lt;input type="checkbox" checked={form.qebul} onChange={...} /&gt;</code></div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ Pis UX: aqressiv xəta göstərmə</div>
+          <h4>Hər simvolda xəta göstərmək</h4>
+          <p>Real-vaxt validasiyanı ilk yazı anından aktiv etmək istifadəçini əsəbləşdirir — hələ sözü bitirməmiş "yanlış format" görmək qıcıqlandırıcıdır.</p>
+          <div class="fix"><b>Həll:</b> <code>touched</code> state ilə izləyin, xətanı yalnız sahədən <code>blur</code> olduqdan sonra göstərin.</div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ Ekran yenilənmir, amma dəyər dəyişib</div>
+          <h4>useRef-i UI göstərmək üçün istifadə etmək</h4>
+          <p><code>ref.current</code> dəyişəndə component yenidən render olunmur. Əgər həmin dəyəri ekranda göstərmək lazımdırsa, useRef bu iş üçün yanlış vasitədir.</p>
+          <div class="fix"><b>Həll:</b> Ekranda göstəriləcək hər hansı dəyər üçün <code>useState</code> istifadə edin, <code>useRef</code>-i yalnız "görünməz" datalar üçün saxlayın.</div>
+        </div>
+
+        <div class="bug-card">
+          <div class="err-line">⚠ Köhnə (stale) dəyər istifadə olunur</div>
+          <h4>setTimeout/closure daxilində köhnə state</h4>
+          <p><code>setTimeout</code> və ya asinxron funksiya daxilində istinad edilən state dəyəri, funksiya yaradıldığı andakı "donmuş" dəyərdir — sonradan state dəyişsə belə yenilənmir.</p>
+          <div class="fix"><b>Həll:</b> Ən son dəyərə ehtiyac varsa, ya funksional yeniləmə (<code>setState(prev =&gt; ...)</code>) istifadə edin, ya da lazım gələrsə useRef ilə ən son dəyəri paralel saxlayın.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 BEST PRACTICES -->
+    <section class="block" id="best-practices">
+      <div class="sec-head"><span class="sec-num">09</span><h2>Nələri etsək daha yaxşı olar</h2></div>
+      <p class="sec-desc">Formanı daha keyfiyyətli, əlçatan (accessible) və performanslı etmək üçün tövsiyələr.</p>
+
+      <div class="bp-grid">
+        <div class="bp-card">
+          <div class="num">1</div>
+          <h4>Validasiya funksiyasını komponentdən çıxarın</h4>
+          <p>Validasiya məntiqini komponent daxilində deyil, ayrıca fayl/funksiya kimi yazın ki, hər render-də yenidən yaradılmasın və test etmək asan olsun.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">2</div>
+          <h4>Custom hook — useForm</h4>
+          <p>Təkrarlanan form məntiqini (state, handleChange, validasiya) öz <code>useForm()</code> hook-unuza çıxarın ki, digər formalarda yenidən istifadə edə biləsiniz.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">3</div>
+          <h4>Əlçatanlıq (accessibility)</h4>
+          <p>Xəta mesajlarına <code>aria-live="polite"</code> əlavə edin ki, ekran oxuyucuları (screen reader) xətanı avtomatik səsləndirsin.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">4</div>
+          <h4>Submit düyməsini şərtləndirin</h4>
+          <p>Form tam düzgün doldurulmayıbsa, submit düyməsini <code>disabled</code> edin — istifadəçi səhv göndərişdən qorunsun.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">5</div>
+          <h4>Debounce ilə optimizasiya</h4>
+          <p>Əgər validasiya server sorğusu tələb edirsə (məsələn, e-poçtun artıq mövcudluğunu yoxlamaq), hər simvolda deyil, yazı dayandıqdan sonra (debounce) sorğu göndərin.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">6</div>
+          <h4>Başlanğıc dəyərləri həmişə təyin edin</h4>
+          <p>Controlled input-larda başlanğıc state dəyəri heç vaxt <code>undefined</code> olmamalıdır — həmişə <code>""</code>, <code>0</code> və ya <code>false</code> kimi konkret dəyər verin.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">7</div>
+          <h4>Parol sahələrinə diqqət</h4>
+          <p>Parolu heç vaxt console.log etməyin və ya lazımsız yerə state-də uzun müddət saxlamayın; type="password" istifadəsini qoruyun.</p>
+        </div>
+        <div class="bp-card">
+          <div class="num">8</div>
+          <h4>Böyük formalar üçün kitabxana düşünün</h4>
+          <p>Formada 8-10-dan çox sahə, mürəkkəb şərti validasiya varsa, <code>react-hook-form</code> kimi hazır həllər kodu xeyli sadələşdirir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 FAQ -->
+    <section class="block" id="faq">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Tez-tez verilən suallar</h2></div>
+
+      <div class="faq-item">
+        <div class="faq-q"><h4>useRef state kimi render-ə səbəb olurmu?</h4><span class="chev">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">
+          <p>Xeyr. <code>useRef</code>-in <code>.current</code> dəyəri dəyişəndə component <b>yenidən render olunmur</b>. Bu, <code>useState</code>-dən fərqli olaraq, useRef-i UI-yə birbaşa bağlı olmayan dəyərlər üçün ideal edir — DOM node referansı, timer ID, əvvəlki render-in dəyəri və s.</p>
+          <p>Əgər dəyişiklik nəticəsində ekranda nəsə görünməli, yenilənməlidirsə (mətn, say, sinif adı və s.) — <code>useState</code> istifadə etmək lazımdır, çünki yalnız state dəyişikliyi React-ə "yenidən render et" siqnalı verir.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><h4>Nə üçün controlled input-lar üstünlük təşkil edir?</h4><span class="chev">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">
+          <p>Controlled input-lar React state-i ilə tam sinxrondur, buna görə:</p>
+          <p>• Real-vaxt validasiya və xəta mesajları asanlıqla həyata keçirilir.<br>
+          • Bir sahənin dəyəri digərinə görə şərti dəyişə bilər (məsələn parol təkrarı yoxlanışı).<br>
+          • Dəyəri proqram daxilində sıfırlamaq, formatlamaq və ya əvvəlcədən doldurmaq sadədir.<br>
+          • Komponentin davranışını test etmək daha asandır, çünki hər şey state üzərindən idarə olunur.</p>
+          <p>Uncontrolled yanaşma daha az kod tələb edir, amma bu üstünlüklərin əksəriyyətini itirir.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q"><h4>Formda hər inputu ayrı state kimi saxlamaq, yoxsa bir obyektdə?</h4><span class="chev">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">
+          <p>Kiçik formalarda (2–3 sahə) ayrı-ayrı <code>useState</code> çağırışları sadə və başa düşüləndir.</p>
+          <p>Orta və böyük formalarda (4+ sahə), xüsusilə sahələr bir-birindən asılıdırsa və ya dinamik siyahı təşkil edirsə, <b>tək obyekt + generic handleChange</b> daha təmiz, genişlənə bilən və az təkrarlanan kod verir. Çox mürəkkəb hallarda (çoxlu qarşılıqlı asılılıq) <code>useReducer</code> hook-u da nəzərdən keçirilə bilər.</p>
+        </div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>Dərs 5 · Formalar, Controlled Components və useRef — React praktiki dərs materialı</footer>
+
+<script>
+  // Mobile sidebar toggle
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const menuBtn = document.getElementById('menuBtn');
+  function openSidebar(){ sidebar.classList.add('open'); overlay.classList.add('show'); }
+  function closeSidebar(){ sidebar.classList.remove('open'); overlay.classList.remove('show'); }
+  menuBtn && menuBtn.addEventListener('click', openSidebar);
+  overlay && overlay.addEventListener('click', closeSidebar);
+  document.querySelectorAll('.toc a').forEach(a => a.addEventListener('click', closeSidebar));
+
+  // Scrollspy for TOC
+  const sections = document.querySelectorAll('section.block');
+  const tocLinks = document.querySelectorAll('.toc a');
+  const spy = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const id = entry.target.getAttribute('id');
+      const link = document.querySelector('.toc a[href="#' + id + '"]');
+      if(!link) return;
+      if(entry.isIntersecting){
+        tocLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => spy.observe(s));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(other => {
+        if(other !== item){
+          other.classList.remove('open');
+          other.querySelector('.faq-a').style.maxHeight = null;
+        }
+      });
+      if(isOpen){
+        item.classList.remove('open');
+        a.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+
+  // Copy buttons
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('.code-window').querySelector('code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Kopyalandı ✓';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    });
+  });
+
+  // Lightweight syntax highlighter
+  function highlight(raw){
+    let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const pattern = /(\/\/[^\n]*)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`)|(&lt;\/?[A-Za-z][\w.-]*)|(\b(?:const|let|var|function|return|import|from|export|default|if|else|new|class|extends|async|await|try|catch|for|while|of|in|typeof|null|true|false|this|switch|case|break)\b)|(\buse[A-Z]\w*\b)|(\b\d+\b)/g;
+    return s.replace(pattern, (m,cm,str,tag,kw,hook,num) => {
+      if(cm) return '<span class="tk-cm">'+cm+'</span>';
+      if(str) return '<span class="tk-str">'+str+'</span>';
+      if(tag) return '<span class="tk-tag">'+tag+'</span>';
+      if(kw) return '<span class="tk-kw">'+kw+'</span>';
+      if(hook) return '<span class="tk-hook">'+hook+'</span>';
+      if(num) return '<span class="tk-num">'+num+'</span>';
+      return m;
+    });
+  }
+  document.querySelectorAll('pre code[data-lang]').forEach(block => {
+    block.innerHTML = highlight(block.textContent);
+  });
+</script>
+
+</body>
+</html>

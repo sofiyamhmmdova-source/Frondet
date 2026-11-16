@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CSS Transform, Filter və Overflow — Tam Dərslik</title>
+<meta name="description" content="CSS transform, filter və overflow xüsusiyyətlərinin canlı nümunələrlə, tipik xəta və buglarla izah olunduğu interaktiv dərslik.">
+<style>
+/* =========================================================
+   FONTLAR — DejaVu Sans (Azərbaycan hərfləri: ə ğ ı ö ş ü ç)
+   ========================================================= */
+@font-face{
+  font-family:'DejaVu Sans';
+  src:url(data:font/woff2;base64,__FONT_DVS_REGULAR__) format('woff2');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'DejaVu Sans';
+  src:url(data:font/woff2;base64,__FONT_DVS_BOLD__) format('woff2');
+  font-weight:700; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'DejaVu Sans Mono';
+  src:url(data:font/woff2;base64,__FONT_DVSM_REGULAR__) format('woff2');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'DejaVu Sans Mono';
+  src:url(data:font/woff2;base64,__FONT_DVSM_BOLD__) format('woff2');
+  font-weight:700; font-style:normal; font-display:swap;
+}
+
+/* =========================================================
+   DİZAYN TOKENLƏRİ
+   ========================================================= */
+:root{
+  --paper:#EDEFF1;
+  --paper-2:#E4E7EA;
+  --card:#FAFBFC;
+  --ink:#15171C;
+  --ink-soft:#4A4F58;
+  --ink-faint:#7A7F88;
+  --line:rgba(21,23,28,0.12);
+  --line-soft:rgba(21,23,28,0.07);
+
+  --stage:#17191F;
+  --stage-2:#1E2027;
+  --stage-line:rgba(255,255,255,0.08);
+  --stage-text:#EDEFF3;
+  --stage-text-soft:#A9AEB8;
+
+  --c-transform:#6C5CE7;
+  --c-transform-soft:#EDE9FE;
+  --c-filter:#FF8A3D;
+  --c-filter-soft:#FFEAD6;
+  --c-overflow:#1FB5A6;
+  --c-overflow-soft:#D8F5F0;
+  --c-bug:#E2433B;
+  --c-bug-soft:#FBE3E1;
+
+  --radius-sm:8px;
+  --radius-md:14px;
+  --radius-lg:26px;
+
+  --fs-h1:clamp(2.1rem, 5.6vw, 3.5rem);
+  --fs-h2:clamp(1.5rem, 4vw, 2.3rem);
+  --fs-h3:clamp(1.15rem, 2.6vw, 1.4rem);
+  --fs-eyebrow:0.8rem;
+
+  --shadow-card:0 1px 2px rgba(21,23,28,0.04), 0 8px 24px -8px rgba(21,23,28,0.10);
+  --maxw:1080px;
+}
+
+@media (prefers-color-scheme: dark){
+  /* Sənəd qəsdən tək rejimdə saxlanılır ki, tələbə brauzer
+     mövzusundan asılı olmayaraq eyni nümunəni görsün. */
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'DejaVu Sans', Arial, sans-serif;
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+h1,h2,h3,h4{
+  font-family:'DejaVu Sans', Arial, sans-serif;
+  font-weight:700;
+  line-height:1.18;
+  margin:0 0 0.5em 0;
+  letter-spacing:-0.01em;
+}
+p{margin:0 0 1em 0;}
+ul,ol{margin:0 0 1em 0; padding-left:1.3em;}
+li{margin-bottom:0.45em;}
+a{color:var(--c-transform); text-decoration-thickness:1.5px;}
+
+code,kbd,.mono{
+  font-family:'DejaVu Sans Mono','Courier New',monospace;
+  font-size:0.92em;
+}
+
+:focus-visible{
+  outline:3px solid var(--c-transform);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+.skip-link{
+  position:absolute; left:-9999px; top:0;
+  background:var(--ink); color:#fff; padding:10px 16px; border-radius:0 0 10px 0; z-index:999;
+}
+.skip-link:focus{left:0;}
+
+img,svg{display:block; max-width:100%;}
+
+.wrap{
+  max-width:var(--maxw);
+  margin:0 auto;
+  padding:0 24px;
+}
+
+/* =========================================================
+   OXUMA TƏRƏQQİSİ ZOLAĞI
+   ========================================================= */
+.progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg, var(--c-transform), var(--c-filter), var(--c-overflow));
+  z-index:1000;
+  transition:width 0.08s linear;
+}
+
+/* =========================================================
+   NAVİGASİYA
+   ========================================================= */
+.site-nav{
+  position:sticky; top:0; z-index:900;
+  background:rgba(237,239,241,0.92);
+  backdrop-filter:saturate(160%) blur(10px);
+  -webkit-backdrop-filter:saturate(160%) blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.site-nav-inner{
+  display:flex; align-items:center; gap:18px;
+  padding:12px 24px;
+  max-width:var(--maxw);
+  margin:0 auto;
+}
+.site-nav-brand{
+  font-weight:700; font-size:0.95rem; white-space:nowrap;
+  display:flex; align-items:center; gap:8px;
+  color:var(--ink);
+  flex:0 0 auto;
+}
+.site-nav-brand .dot{width:9px; height:9px; border-radius:50%; background:var(--c-transform); flex:0 0 auto;}
+.nav-pills{
+  display:flex; gap:8px; overflow-x:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  flex:1 1 auto;
+}
+.nav-pills::-webkit-scrollbar{display:none;}
+.nav-pill{
+  flex:0 0 auto;
+  font-family:inherit; font-size:0.85rem; font-weight:700;
+  color:var(--ink-soft);
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:999px;
+  padding:7px 14px;
+  white-space:nowrap;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background 0.15s, color 0.15s, border-color 0.15s;
+}
+.nav-pill:hover{background:var(--card); border-color:var(--line);}
+.nav-pill[data-active="true"]{
+  background:var(--ink); color:#fff; border-color:var(--ink);
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero{
+  background:
+    radial-gradient(ellipse 900px 500px at 18% -10%, rgba(108,92,231,0.35), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(255,138,61,0.25), transparent 55%),
+    var(--stage);
+  color:var(--stage-text);
+  position:relative;
+  overflow:hidden;
+  padding:64px 0 80px;
+}
+.hero::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), transparent 85%);
+  pointer-events:none;
+}
+.hero-inner{
+  position:relative; z-index:1;
+  display:grid;
+  grid-template-columns:1.15fr 0.85fr;
+  gap:48px;
+  align-items:center;
+}
+.hero-eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:var(--fs-eyebrow); font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--stage-text-soft);
+  margin-bottom:18px;
+}
+.hero-eyebrow .seg{color:var(--c-transform);}
+.hero-eyebrow .sep{opacity:0.4;}
+.hero-eyebrow .seg2{color:var(--c-filter);}
+.hero-eyebrow .seg3{color:var(--c-overflow);}
+.hero h1{
+  font-size:var(--fs-h1);
+  color:#fff;
+  margin-bottom:0.45em;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(95deg, var(--c-transform), var(--c-filter) 55%, var(--c-overflow));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero-lead{
+  font-size:1.08rem;
+  color:var(--stage-text-soft);
+  max-width:46ch;
+  margin-bottom:1.6em;
+}
+.hero-meta{
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+.hero-chip{
+  font-size:0.8rem; font-weight:700;
+  border:1px solid var(--stage-line);
+  border-radius:999px; padding:7px 13px;
+  color:var(--stage-text-soft);
+  display:inline-flex; align-items:center; gap:7px;
+}
+.hero-chip .sw{width:8px; height:8px; border-radius:50%;}
+
+.hero-stage{
+  position:relative;
+  aspect-ratio:1/1.05;
+  display:flex; align-items:center; justify-content:center;
+  perspective:900px;
+}
+.polaroid{
+  width:78%;
+  background:#F4F1E9;
+  padding:14px 14px 38px;
+  border-radius:6px;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,0.55), 0 6px 16px rgba(0,0,0,0.3);
+  transform:rotate(-6deg);
+  animation:polaroid-float 6s ease-in-out infinite;
+  position:relative;
+}
+@keyframes polaroid-float{
+  0%,100%{transform:rotate(-6deg) translateY(0);}
+  50%{transform:rotate(-3deg) translateY(-10px);}
+}
+.polaroid-photo{
+  aspect-ratio:1/1;
+  border-radius:2px;
+  overflow:hidden;
+  position:relative;
+  background:#cfe7e2;
+  filter:sepia(0.45) saturate(1.3) contrast(1.05);
+}
+.polaroid-caption{
+  text-align:center; margin-top:12px;
+  font-family:'DejaVu Sans', sans-serif;
+  font-size:0.8rem; color:#3a362c; font-weight:700;
+}
+.hero-callout{
+  position:absolute; bottom:-6px; left:50%;
+  transform:translateX(-50%);
+  background:var(--stage-2); border:1px solid var(--stage-line);
+  color:var(--stage-text-soft); font-size:0.74rem;
+  padding:8px 14px; border-radius:999px; white-space:nowrap;
+}
+
+@media (max-width:860px){
+  .hero-inner{grid-template-columns:1fr; gap:36px;}
+  .hero-stage{aspect-ratio:auto; padding-top:10px;}
+  .polaroid{width:62%;}
+}
+
+/* =========================================================
+   ÜMUMİ BÖLMƏ QURULUŞU
+   ========================================================= */
+.section{padding:80px 0;}
+.section-tight{padding:56px 0;}
+.section-band{
+  border-top:1px solid var(--line);
+}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:var(--fs-eyebrow); font-weight:700; text-transform:uppercase; letter-spacing:0.12em;
+  margin-bottom:14px;
+}
+.eyebrow .num{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:50%;
+  background:var(--accent); color:#fff; font-size:0.72rem;
+}
+.section-head{max-width:62ch; margin-bottom:36px;}
+.section-head h2{font-size:var(--fs-h2);}
+.section-head .lead{font-size:1.05rem; color:var(--ink-soft);}
+
+.section[data-topic="transform"]{--accent:var(--c-transform); --accent-soft:var(--c-transform-soft);}
+.section[data-topic="filter"]{--accent:var(--c-filter); --accent-soft:var(--c-filter-soft);}
+.section[data-topic="overflow"]{--accent:var(--c-overflow); --accent-soft:var(--c-overflow-soft);}
+.section[data-topic="combo"]{--accent:var(--ink); --accent-soft:var(--paper-2);}
+.eyebrow{color:var(--accent);}
+
+.prose h3{font-size:var(--fs-h3); margin-top:1.7em;}
+.prose p,.prose li{color:var(--ink-soft); max-width:72ch;}
+.prose strong{color:var(--ink);}
+.two-col{
+  display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:start;
+}
+@media (max-width:860px){
+  .two-col{grid-template-columns:1fr;}
+}
+
+.fn-list{
+  display:grid; gap:10px; margin:1.4em 0;
+  list-style:none; padding:0;
+}
+.fn-item{
+  display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:baseline;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius-sm);
+  padding:12px 16px;
+}
+.fn-item code{
+  font-weight:700; color:var(--accent); white-space:nowrap;
+}
+.fn-item span{color:var(--ink-soft); font-size:0.95rem;}
+
+/* =========================================================
+   KOD BLOKLARI (statik izah nümunələri)
+   ========================================================= */
+.code-block{
+  background:var(--stage);
+  color:var(--stage-text);
+  border-radius:var(--radius-md);
+  padding:18px 20px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin:1.4em 0;
+  box-shadow:var(--shadow-card);
+}
+.code-block pre{margin:0;}
+.code-block code{
+  font-size:0.88rem; line-height:1.7; white-space:pre;
+}
+.tok-sel{color:#7fd6c4;}
+.tok-prop{color:#9bb6ff;}
+.tok-val{color:#ffd28a;}
+.tok-cm{color:#7a7f88; font-style:italic;}
+.tok-punc{color:#cfd3da;}
+.code-label{
+  font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--stage-text-soft); margin-bottom:10px; display:block;
+}
+
+/* =========================================================
+   İNTERAKTİV DEMO PANELİ
+   ========================================================= */
+.demo-panel{
+  background:var(--stage);
+  border-radius:var(--radius-lg);
+  padding:28px;
+  margin:2em 0;
+  box-shadow:var(--shadow-card);
+  position:relative;
+  overflow:hidden;
+}
+.demo-panel::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image:radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size:18px 18px;
+  pointer-events:none;
+}
+.demo-title{
+  position:relative; z-index:1;
+  display:flex; align-items:center; gap:10px;
+  color:var(--stage-text); font-weight:700; font-size:0.95rem;
+  margin-bottom:18px;
+}
+.demo-title .ico{color:var(--accent);}
+.demo-grid{
+  position:relative; z-index:1;
+  display:grid; grid-template-columns:1fr 1fr; gap:26px;
+}
+@media (max-width:760px){
+  .demo-grid{grid-template-columns:1fr;}
+}
+.demo-preview{
+  background:var(--stage-2);
+  border:1px solid var(--stage-line);
+  border-radius:var(--radius-md);
+  min-height:240px;
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+.demo-preview.no-clip{overflow:visible;}
+.demo-subject{
+  width:104px; height:104px;
+  border-radius:16px;
+  background:linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #fff));
+  display:flex; align-items:center; justify-content:center;
+  color:rgba(0,0,0,0.55); font-weight:700; font-size:0.78rem; text-align:center;
+  box-shadow:0 14px 30px -8px rgba(0,0,0,0.45);
+  will-change:transform, filter;
+  transition:transform 0.15s ease, filter 0.15s ease;
+  user-select:none;
+}
+.controls{position:relative; z-index:1; display:flex; flex-direction:column; gap:14px;}
+.control-row{display:flex; flex-direction:column; gap:6px;}
+.control-row .crow-top{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:0.82rem; color:var(--stage-text-soft);
+}
+.control-row .crow-top b{color:var(--stage-text); font-weight:700;}
+.control-row output{
+  font-family:'DejaVu Sans Mono',monospace; color:var(--accent); font-weight:700;
+}
+input[type="range"]{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:6px; border-radius:999px;
+  background:var(--stage-line);
+  outline-offset:4px;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--accent);
+  border:3px solid var(--stage);
+  box-shadow:0 0 0 1px var(--stage-line);
+  cursor:pointer;
+}
+input[type="range"]::-moz-range-thumb{
+  width:18px; height:18px; border-radius:50%;
+  background:var(--accent); border:3px solid var(--stage);
+  cursor:pointer;
+}
+.code-output{
+  position:relative; z-index:1;
+  background:var(--stage-2);
+  border:1px solid var(--stage-line);
+  border-radius:var(--radius-sm);
+  padding:13px 15px;
+  margin-top:6px;
+  font-family:'DejaVu Sans Mono',monospace;
+  font-size:0.84rem;
+  color:#ffd28a;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+.btn{
+  font-family:inherit; font-size:0.82rem; font-weight:700;
+  background:var(--stage-2); color:var(--stage-text);
+  border:1px solid var(--stage-line); border-radius:999px;
+  padding:8px 14px; cursor:pointer;
+  transition:background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn:hover{border-color:var(--accent);}
+.btn[data-active="true"]{background:var(--accent); color:#1a1a1a; border-color:var(--accent);}
+.origin-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:6px; max-width:140px;
+}
+.origin-grid .btn{padding:10px; text-align:center;}
+.demo-note{
+  position:relative; z-index:1;
+  font-size:0.84rem; color:var(--stage-text-soft);
+  background:rgba(255,255,255,0.04);
+  border-left:3px solid var(--accent);
+  padding:10px 14px; border-radius:6px;
+  margin-top:8px;
+  display:none;
+}
+.demo-note.show{display:block;}
+.demo-foot-link{
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:14px; font-size:0.82rem; font-weight:700;
+  color:var(--accent); cursor:pointer; background:none; border:none; font-family:inherit; padding:0;
+}
+
+/* yan-yana müqayisə (sıra effekti üçün) */
+.compare-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:18px;
+  position:relative; z-index:1;
+}
+@media (max-width:560px){.compare-grid{grid-template-columns:1fr;}}
+.compare-card{
+  background:var(--stage-2); border:1px solid var(--stage-line); border-radius:var(--radius-md);
+  padding:16px; text-align:center;
+}
+.compare-card h4{color:var(--stage-text); font-size:0.85rem; margin-bottom:14px;}
+.compare-stage{
+  height:140px; display:flex; align-items:center; justify-content:center; position:relative; margin-bottom:14px;
+}
+.compare-track{
+  position:absolute; left:8px; right:8px; top:50%; height:1px; background:var(--stage-line);
+}
+#subj-order-a,#subj-order-b{transition:transform .7s cubic-bezier(.22,.9,.32,1) !important;}
+
+/* =========================================================
+   XƏTA / BUG KARTLARI
+   ========================================================= */
+.bug-section-head{
+  display:flex; align-items:center; gap:10px; margin:2.4em 0 1.2em;
+}
+.bug-section-head h3{margin:0; font-size:var(--fs-h3); color:var(--c-bug);}
+.bug-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:760px){.bug-grid{grid-template-columns:1fr;}}
+.bug-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:4px solid var(--c-bug);
+  border-radius:var(--radius-sm);
+  padding:16px 18px;
+}
+.bug-card h4{
+  font-size:0.98rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+}
+.bug-card h4 .ico{color:var(--c-bug); flex:0 0 auto;}
+.bug-card .row{margin-bottom:7px; font-size:0.92rem; color:var(--ink-soft);}
+.bug-card .row b{color:var(--ink); font-weight:700;}
+
+/* =========================================================
+   CƏDVƏL (xülasə)
+   ========================================================= */
+.table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:1.4em 0; border-radius:var(--radius-md); border:1px solid var(--line);}
+table.cheat{width:100%; border-collapse:collapse; min-width:560px; background:var(--card);}
+table.cheat caption{text-align:left; font-weight:700; padding:14px 16px; font-size:0.95rem; background:var(--accent-soft);}
+table.cheat th,table.cheat td{
+  text-align:left; padding:11px 16px; border-bottom:1px solid var(--line-soft); font-size:0.88rem; vertical-align:top;
+}
+table.cheat th{font-size:0.74rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); background:var(--paper-2);}
+table.cheat td code{color:var(--accent); font-weight:700;}
+table.cheat tr:last-child td{border-bottom:none;}
+
+/* =========================================================
+   YOXLAMA (özünü-sına) KARTLARI
+   ========================================================= */
+.check-grid{display:grid; gap:14px;}
+.check-card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md);
+  padding:18px 20px;
+}
+.check-card .q{font-weight:700; margin-bottom:10px; display:flex; gap:10px;}
+.check-card .q .qn{
+  flex:0 0 auto; width:26px; height:26px; border-radius:50%;
+  background:var(--ink); color:#fff; font-size:0.78rem; display:flex; align-items:center; justify-content:center;
+}
+.check-toggle{
+  font-family:inherit; font-size:0.82rem; font-weight:700; color:var(--accent);
+  background:var(--accent-soft); border:none; border-radius:999px; padding:7px 14px; cursor:pointer;
+}
+.check-answer{
+  margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);
+  color:var(--ink-soft); font-size:0.94rem; display:none;
+}
+.check-answer.show{display:block;}
+
+/* =========================================================
+   DİAQRAM (containing block izahı üçün sadə qutular)
+   ========================================================= */
+.diagram-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:1.6em 0;}
+@media (max-width:760px){.diagram-grid{grid-template-columns:1fr;}}
+.diagram-card{
+  background:var(--stage); border-radius:var(--radius-md); padding:18px; position:relative; overflow:hidden;
+}
+.diagram-card h4{color:var(--stage-text); font-size:0.85rem; margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.diagram-tag{font-size:0.68rem; font-weight:700; padding:3px 9px; border-radius:999px;}
+.diagram-tag.bad{background:rgba(226,67,59,0.18); color:#ff8b85;}
+.diagram-tag.good{background:rgba(31,181,166,0.18); color:#6fe3d4;}
+.diagram-viewport{
+  height:190px; border:1.5px dashed var(--stage-line); border-radius:10px; position:relative;
+  background:var(--stage-2);
+}
+.diagram-ancestor{
+  position:absolute; inset:18px 18px 40px 18px;
+  border:1.5px solid var(--c-transform); border-radius:8px;
+  background:rgba(108,92,231,0.08);
+}
+.diagram-ancestor span{
+  position:absolute; top:-10px; left:8px; background:var(--stage); padding:0 6px;
+  font-size:0.66rem; color:var(--c-transform); font-weight:700;
+}
+.diagram-fixed{
+  position:absolute; width:46px; height:26px; border-radius:6px;
+  background:var(--c-filter); display:flex; align-items:center; justify-content:center;
+  font-size:0.62rem; font-weight:700; color:#1a1a1a;
+}
+.diagram-caption{font-size:0.8rem; color:var(--stage-text-soft); margin-top:12px;}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+.site-footer{
+  background:var(--stage); color:var(--stage-text-soft);
+  padding:48px 0 36px; margin-top:20px;
+}
+.site-footer .wrap{display:flex; flex-wrap:wrap; justify-content:space-between; gap:18px; align-items:center;}
+.site-footer strong{color:var(--stage-text);}
+.footer-links{display:flex; gap:16px; flex-wrap:wrap; font-size:0.86rem;}
+.footer-links a{color:var(--stage-text-soft);}
+
+/* =========================================================
+   KİÇİK EKRAN ÜMUMİ TƏNZİMLƏMƏLƏR
+   ========================================================= */
+@media (max-width:640px){
+  .wrap{padding:0 18px;}
+  .section{padding:56px 0;}
+  .hero{padding:40px 0 56px;}
+  .site-nav-inner{padding:10px 18px; gap:12px;}
+  .demo-panel{padding:18px;}
+  table.cheat{min-width:480px;}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Əsas məzmuna keç</a>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ============ NAV ============ -->
+<nav class="site-nav" aria-label="Dərs naviqasiyası">
+  <div class="site-nav-inner">
+    <span class="site-nav-brand"><span class="dot"></span>CSS Lab</span>
+    <div class="nav-pills" id="navPills">
+      <a class="nav-pill" href="#bolme-transform" data-topic="transform">Transform</a>
+      <a class="nav-pill" href="#bolme-filter" data-topic="filter">Filter</a>
+      <a class="nav-pill" href="#bolme-overflow" data-topic="overflow">Overflow</a>
+      <a class="nav-pill" href="#bolme-birlikde" data-topic="combo">Birlikdə</a>
+      <a class="nav-pill" href="#bolme-xulase" data-topic="xulase">Xülasə</a>
+      <a class="nav-pill" href="#bolme-yoxlama" data-topic="yoxlama">Yoxlama</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <div class="hero-eyebrow">
+        <span class="seg">Transform</span><span class="sep">/</span><span class="seg2">Filter</span><span class="sep">/</span><span class="seg3">Overflow</span>
+      </div>
+      <h1>Elementi <em>hərəkətə gətir</em>, görünüşünü dəyiş, çərçivəsini təyin et</h1>
+      <p class="hero-lead">CSS-in görüntü ilə bağlı ən vizual üç xüsusiyyəti — <strong style="color:#fff">transform</strong> (hərəkət və forma), <strong style="color:#fff">filter</strong> (görünüş və işıq) və <strong style="color:#fff">overflow</strong> (çərçivə) — bir dərslikdə, canlı nümunələrlə və tipik xətalarla.</p>
+      <div class="hero-meta">
+        <span class="hero-chip"><span class="sw" style="background:var(--c-transform)"></span>Canlı tənzimləyicilər</span>
+        <span class="hero-chip"><span class="sw" style="background:var(--c-filter)"></span>Real bug nümunələri</span>
+        <span class="hero-chip"><span class="sw" style="background:var(--c-overflow)"></span>Mobil uyğun</span>
+      </div>
+    </div>
+    <div class="hero-stage">
+      <div class="polaroid">
+        <div class="polaroid-photo" id="heroPhoto">
+          <svg viewBox="0 0 200 200" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dağ və günəş illüstrasiyası">
+            <rect width="200" height="200" fill="#cfe7e2"/>
+            <circle cx="150" cy="46" r="22" fill="#ffd56b"/>
+            <polygon points="0,170 70,70 110,130 140,90 200,170" fill="#5b7d74"/>
+            <polygon points="0,185 90,110 150,150 200,120 200,200 0,200" fill="#3f5a53"/>
+          </svg>
+        </div>
+        <div class="polaroid-caption">transform + filter + overflow ✦ bu kart elə bunu edir</div>
+      </div>
+      <div class="hero-callout">↓ aşağıda bunun necə qurulduğunu öyrənəcəksən</div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- ============ GİRİŞ ============ -->
+  <section class="section section-tight" data-topic="combo">
+    <div class="wrap">
+      <div class="two-col">
+        <div class="prose">
+          <span class="eyebrow"><span class="num" style="background:var(--ink)">i</span>Niyə bu üçü birlikdə?</span>
+          <h2 style="font-size:var(--fs-h3); max-width:30ch;">Üç fərqli sual, üç fərqli xüsusiyyət</h2>
+          <p>Bu üç CSS xüsusiyyəti üç sadə sualı cavablandırır:</p>
+          <ul>
+            <li><strong>Transform</strong> — element <em>haradadır, necə fırlanıb, nə qədər böyükdür?</em> (hərəkət və forma)</li>
+            <li><strong>Filter</strong> — element <em>necə görünür?</em> (işıq, rəng, bulanıqlıq — şəkil redaktorundakı süzgəclər kimi)</li>
+            <li><strong>Overflow</strong> — məzmun konteynerdən böyük olanda <em>nə baş verir?</em> (çərçivə qaydaları)</li>
+          </ul>
+          <p>Üçü ayrı-ayrı sadədir. Problemlər məhz onlar <strong>bir-biri ilə qarşılaşanda</strong> başlayır: <code>overflow:hidden</code> bəzən <code>position:sticky</code>-ni sındırır, <code>transform</code> isə <code>position:fixed</code> elementi "tələyə salır". Dərsin sonunda — <a href="#bolme-birlikde">Birlikdə</a> bölməsində — bunların hamısını bir yerə yığacağıq.</p>
+        </div>
+        <div class="demo-panel" style="margin:0;">
+          <div class="demo-title"><span class="ico">⬢</span>Bu dərsdə nə var</div>
+          <div class="controls" style="position:relative; z-index:1;">
+            <div class="bug-card" style="background:var(--stage-2); border-color:var(--stage-line); border-left-color:var(--c-transform);">
+              <div class="row" style="color:var(--stage-text)"><b style="color:var(--c-transform)">6+</b> canlı, sürüşdürmə ilə idarə olunan demo</div>
+            </div>
+            <div class="bug-card" style="background:var(--stage-2); border-color:var(--stage-line); border-left-color:var(--c-filter);">
+              <div class="row" style="color:var(--stage-text)"><b style="color:var(--c-filter)">18+</b> izah olunan tipik xəta və bug</div>
+            </div>
+            <div class="bug-card" style="background:var(--stage-2); border-color:var(--stage-line); border-left-color:var(--c-overflow);">
+              <div class="row" style="color:var(--stage-text)"><b style="color:var(--c-overflow)">6</b> özünü-yoxlama sualı (cavabları ilə)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ============ BÖLMƏ 1 — TRANSFORM ============ -->
+<section class="section section-band" data-topic="transform" id="bolme-transform">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><span class="num">1</span>Transform</span>
+      <h2>Elementi hərəkətə gətir, fırlat, böyüt</h2>
+      <p class="lead">CSS <code>transform</code> xüsusiyyəti elementin <strong>mövqeyini, ölçüsünü, fırlanma bucağını və əyilməsini</strong> dəyişir — bunu sənədin normal düzülüşünə (layout) <strong>təsir etmədən</strong> edir.</p>
+    </div>
+
+    <div class="prose">
+      <p>Başqa sözlə: <code>transform</code> elementi <em>vizual olaraq</em> hərəkət etdirir, amma onun sənəddə tutduğu "yer" (boş sahə) yerində qalır. Ona görə də ətrafdaki elementlər sanki heç nə baş verməyib kimi davam edir.</p>
+
+      <div class="code-block">
+        <span class="code-label">misal</span>
+        <pre><code>.kart {
+  transform: translateX(40px) rotate(8deg) scale(1.05);
+}</code></pre>
+      </div>
+
+      <h3>Əsas funksiyalar</h3>
+      <ul class="fn-list">
+        <li class="fn-item"><code>translate(x, y)</code><span>Elementi üfüqi/şaquli sürüşdürür. <code>translateX()</code> və <code>translateY()</code> ayrıca da yazıla bilər.</span></li>
+        <li class="fn-item"><code>scale(x, y)</code><span>Böyüdür/kiçildir. <code>1</code> = orijinal ölçü, <code>0.5</code> = yarıya, <code>2</code> = iki dəfə böyük.</span></li>
+        <li class="fn-item"><code>rotate(deg)</code><span>Saat istiqamətində fırladır (mənfi qiymət — əks istiqamətdə).</span></li>
+        <li class="fn-item"><code>skew(x, y)</code><span>Elementi paralelogram şəklində əyir. <code>skewX()</code> / <code>skewY()</code> ayrıca.</span></li>
+        <li class="fn-item"><code>matrix(...)</code><span>Bütün 2D çevirmələrin riyazi əsası — adətən birbaşa yazılmır, animasiya kitabxanaları üçün faydalıdır.</span></li>
+      </ul>
+
+      <h3>transform-origin — fırlanma "mərkəzi"</h3>
+      <p><code>rotate()</code> və <code>scale()</code> elementin <strong>transform-origin</strong> nöqtəsi ətrafında baş verir. Defolt qiymət mərkəzdir (<code>50% 50%</code>). Sağ aşağıdaki demoda <code>origin</code> düymələrini dəyişərək fırlanmanın necə dəyişdiyinə bax.</p>
+    </div>
+
+    <!-- DEMO 1: canlı transform laboratoriyası -->
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">⌖</span>Canlı demo — dəyərləri dəyişib nəticəyə bax</div>
+      <div class="demo-grid">
+        <div class="demo-preview no-clip">
+          <div class="demo-subject" id="subj-transform">KART</div>
+        </div>
+        <div class="controls">
+          <div class="control-row">
+            <div class="crow-top"><span>translateX</span><output id="out-t-x">0px</output></div>
+            <input type="range" id="rng-t-x" min="-100" max="100" value="0" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>translateY</span><output id="out-t-y">0px</output></div>
+            <input type="range" id="rng-t-y" min="-100" max="100" value="0" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>rotate</span><output id="out-t-r">0deg</output></div>
+            <input type="range" id="rng-t-r" min="-180" max="180" value="0" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>scale</span><output id="out-t-s">1</output></div>
+            <input type="range" id="rng-t-s" min="50" max="200" value="100" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>skewX</span><output id="out-t-skx">0deg</output></div>
+            <input type="range" id="rng-t-skx" min="-45" max="45" value="0" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>transform-origin</span></div>
+            <div class="origin-grid" id="origin-transform">
+              <button class="btn origin-btn" data-origin="left top">↖</button>
+              <button class="btn origin-btn" data-origin="top" >↑</button>
+              <button class="btn origin-btn" data-origin="right top">↗</button>
+              <button class="btn origin-btn" data-origin="left">←</button>
+              <button class="btn origin-btn" data-active="true" data-origin="center">●</button>
+              <button class="btn origin-btn" data-origin="right">→</button>
+              <button class="btn origin-btn" data-origin="left bottom">↙</button>
+              <button class="btn origin-btn" data-origin="bottom">↓</button>
+              <button class="btn origin-btn" data-origin="right bottom">↘</button>
+            </div>
+          </div>
+          <button class="btn" id="reset-transform" style="align-self:flex-start;">↺ Sıfırla</button>
+          <div class="code-output" id="code-transform">transform: translate(0px, 0px) rotate(0deg) scale(1) skewX(0deg);
+transform-origin: center;</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <h3>Sıra niyə vacibdir?</h3>
+      <p>CSS bir-birinin ardınca yazılan transform funksiyalarını <strong>sol tərəfdən sağa</strong>, ardıcıl tətbiq edir. Eyni iki funksiya, fərqli sırada yazılsa, <strong>fərqli nəticə</strong> verə bilər — çünki ikinci funksiya birincinin artıq dəyişdirdiyi koordinat sistemi üzərində işləyir.</p>
+    </div>
+
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">⇄</span>Eyni dəyərlər, fərqli sıra → fərqli nəticə</div>
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>translate → rotate</h4>
+          <div class="compare-stage">
+            <div class="compare-track"></div>
+            <div class="demo-subject" id="subj-order-a" style="width:64px; height:64px; font-size:0.68rem;">A</div>
+          </div>
+          <div class="code-output" style="margin-top:0;">transform: translateX(70px) rotate(45deg);</div>
+        </div>
+        <div class="compare-card">
+          <h4>rotate → translate</h4>
+          <div class="compare-stage">
+            <div class="compare-track"></div>
+            <div class="demo-subject" id="subj-order-b" style="width:64px; height:64px; font-size:0.68rem; background:linear-gradient(150deg, var(--c-filter), #ffd6ad);">B</div>
+          </div>
+          <div class="code-output" style="margin-top:0;">transform: rotate(45deg) translateX(70px);</div>
+        </div>
+      </div>
+      <button class="btn" id="btn-order-play" style="position:relative; z-index:1; margin-top:16px;">▶ Animasiyaya bax</button>
+      <div class="demo-note show" style="margin-top:12px;">Diqqət et: A öz oxu üzrə sağa sürüşüb, <em>sonra</em> fırlanıb. B isə əvvəlcə fırlanıb, ona görə "sağ" istiqaməti artıq dönmüş oxa görədir — nəticədə tamam başqa nöqtəyə gedir. Dəyərlər eynidir, nəticə fərqlidir.</div>
+    </div>
+
+    <div class="prose">
+      <h3>3D transform — bir addım da dərinə</h3>
+      <p>Eyni məntiq üç ölçülü fəzada da işləyir: <code>rotateX()</code>, <code>rotateY()</code>, <code>rotateZ()</code>, <code>translateZ()</code>. Amma 3D effekti görmək üçün ataya <code>perspective</code> (məsələn <code>800px</code>) verilməlidir — əks halda brauzer dərinliyi göstərmək üçün "kamera bucağı" təyin edə bilmir. Bir neçə 3D elementi həqiqi fəzada birləşdirmək istəyəndə isə <code>transform-style: preserve-3d</code> lazımdır, yoxsa hər element öz müstəvisinə "yastılanır".</p>
+      <div class="code-block">
+        <span class="code-label">flip-kart konsepti</span>
+        <pre><code>.sehne { perspective: 900px; }
+.kart  { transition: transform .5s; transform-style: preserve-3d; }
+.kart.cevrildi { transform: rotateY(180deg); }
+.kart .arxa { backface-visibility: hidden; }</code></pre>
+      </div>
+    </div>
+
+    <!-- BUG KARTLARI — TRANSFORM -->
+    <div class="bug-section-head">
+      <svg class="ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4m0 4h.01M12 2 1 21h22L12 2z"/></svg>
+      <h3>Tipik xəta və buglar — Transform</h3>
+    </div>
+    <div class="bug-grid">
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Layout dəyişmir, deyəsən "yerini dəyişdirmir"</h4>
+        <div class="row"><b>Problem:</b> Element vizual olaraq köçür, amma ətrafdaki elementlər sanki heç nə baş vermədiyi kimi qalır, üst-üstə düşmə yarana bilər.</div>
+        <div class="row"><b>Niyə:</b> <code>transform</code> yalnız <em>rəsm mərhələsində</em> təsir edir, sənədin axınına (flow) qarışmır — orijinal sahə "rezerv" olaraq qalır.</div>
+        <div class="row"><b>Həll:</b> Elementin həqiqi yerini dəyişmək lazımdırsa, <code>margin</code>, <code>position</code> və ya flex/grid xüsusiyyətlərindən istifadə et.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>position:fixed övladı "tələyə düşür"</h4>
+        <div class="row"><b>Problem:</b> Atasında <code>transform</code> olan bir elementin daxilindəki <code>position:fixed</code> uşaq, ekranın küncünə yox, həmin ataya görə sabitlənir.</div>
+        <div class="row"><b>Niyə:</b> <code>transform</code> (none-dan fərqli hər hansı dəyər) ata üçün yeni <strong>containing block</strong> yaradır — fixed artıq "ev sahibini" dəyişir.</div>
+        <div class="row"><b>Həll:</b> Bunu bilərəkdən etmirsənsə, fixed elementi həmin transform olan konteynerin xaricinə çıxar. (Ətraflı: <a href="#bolme-birlikde">Birlikdə</a> bölməsi)</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Bulanıq mətn və kənarlar</h4>
+        <div class="row"><b>Problem:</b> Transform tətbiq olunan mətn/şəkil kənarları bulanıq və ya "titrəyən" görünür.</div>
+        <div class="row"><b>Niyə:</b> Qeyri-tam piksel qiymətləri (məs. <code>translate(10.5px)</code>) və ya bəzi brauzerlərdə subpixel renderləmə bunu yaradır.</div>
+        <div class="row"><b>Həll:</b> Mümkün olduqda tam piksel dəyərləri işlət, animasiya zamanı <code>backface-visibility: hidden</code> əlavə et.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Gözlənilməz fırlanma nöqtəsi</h4>
+        <div class="row"><b>Problem:</b> Künc ətrafında fırlatmaq istəyirsən, amma element mərkəzdən fırlanır.</div>
+        <div class="row"><b>Niyə:</b> <code>transform-origin</code> defolt olaraq <code>50% 50%</code> (mərkəz) təyin olunub.</div>
+        <div class="row"><b>Həll:</b> <code>transform-origin: top left;</code> kimi açıq şəkildə təyin et — yuxarıdaki demoda özün sına.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>will-change-in həddən artıq istifadəsi</h4>
+        <div class="row"><b>Problem:</b> Performans üçün əlavə etdiyin <code>will-change: transform</code> əksinə səhifəni ləngidir.</div>
+        <div class="row"><b>Niyə:</b> Hər <code>will-change</code> brauzerə ayrıca "qrafik qat" (layer) yaratmağı bildirir — çoxlu elementə tətbiq olunanda yaddaş istifadəsi artır.</div>
+        <div class="row"><b>Həll:</b> Yalnız həqiqətən animasiya olunan elementlərə, animasiyadan əvvəl (hover/JS ilə) əlavə et, sonra sil.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Sıra ilə bağlı qarışıqlıq</h4>
+        <div class="row"><b>Problem:</b> Eyni dəyərləri yazdığın halda gözlədiyin vizual nəticəni almırsan.</div>
+        <div class="row"><b>Niyə:</b> Funksiyalar soldan sağa, ardıcıl tətbiq olunur — yuxarıdaki müqayisə demosunda gördüyün kimi.</div>
+        <div class="row"><b>Həll:</b> Adətən məntiqli sıra: <code>translate</code> → <code>rotate</code> → <code>scale</code>. Şübhə yarananda DevTools-da canlı yoxla.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÖLMƏ 2 — FILTER ============ -->
+<section class="section section-band" data-topic="filter" id="bolme-filter">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><span class="num">2</span>Filter</span>
+      <h2>Elementin görünüşünü süzgəcdən keçir</h2>
+      <p class="lead">CSS <code>filter</code> xüsusiyyəti elementə qrafik effektlər tətbiq edir — şəkil redaktə proqramındakı (Instagram, Photoshop) süzgəclər (filter) kimi: bulanıqlıq, parlaqlıq, kontrast, rəng çaları.</p>
+    </div>
+
+    <div class="prose">
+      <h3>Əsas funksiyalar</h3>
+      <ul class="fn-list">
+        <li class="fn-item"><code>blur(px)</code><span>Bulanıqlaşdırır.</span></li>
+        <li class="fn-item"><code>brightness(%)</code><span>Parlaqlığı artırır/azaldır. <code>100%</code> = dəyişiklik yox.</span></li>
+        <li class="fn-item"><code>contrast(%)</code><span>Kontrastı tənzimləyir.</span></li>
+        <li class="fn-item"><code>saturate(%)</code><span>Rəng doyğunluğu — <code>0%</code> = tam rəngsiz.</span></li>
+        <li class="fn-item"><code>grayscale(%)</code><span>Qara-ağ effekti.</span></li>
+        <li class="fn-item"><code>sepia(%)</code><span>Köhnə foto (sepiya) effekti.</span></li>
+        <li class="fn-item"><code>hue-rotate(deg)</code><span>Bütün rəng çalarlarını rəng çevrəsi üzrə fırladır.</span></li>
+        <li class="fn-item"><code>invert(%)</code><span>Rəngləri tərsinə çevirir.</span></li>
+        <li class="fn-item"><code>drop-shadow(x y blur rəng)</code><span>Elementin formasına uyğun kölgə (aşağıda <code>box-shadow</code> ilə fərqinə bax).</span></li>
+      </ul>
+      <p>Bir neçə funksiyanı boşluqla ayıraraq birləşdirə bilərsən: <code>filter: brightness(110%) contrast(105%) saturate(120%);</code> — Instagram-bənzəri "ön ayarlar" elə beləcə qurulur.</p>
+    </div>
+
+    <!-- DEMO 2: canlı filter laboratoriyası -->
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">◐</span>Canlı demo — öz süzgəcini qur</div>
+      <div class="demo-grid">
+        <div class="demo-preview">
+          <div class="demo-subject" id="subj-filter" style="width:130px; height:130px; border-radius:14px; background:linear-gradient(135deg,#ff8a3d,#6c5ce7 60%,#1fb5a6);">FOTO</div>
+        </div>
+        <div class="controls">
+          <div class="control-row">
+            <div class="crow-top"><span>blur</span><output id="out-f-blur">0px</output></div>
+            <input type="range" id="rng-f-blur" min="0" max="12" value="0" step="0.5">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>brightness</span><output id="out-f-bright">100%</output></div>
+            <input type="range" id="rng-f-bright" min="0" max="200" value="100" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>contrast</span><output id="out-f-contrast">100%</output></div>
+            <input type="range" id="rng-f-contrast" min="0" max="200" value="100" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>saturate</span><output id="out-f-sat">100%</output></div>
+            <input type="range" id="rng-f-sat" min="0" max="200" value="100" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>grayscale</span><output id="out-f-gray">0%</output></div>
+            <input type="range" id="rng-f-gray" min="0" max="100" value="0" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>sepia</span><output id="out-f-sepia">0%</output></div>
+            <input type="range" id="rng-f-sepia" min="0" max="100" value="0" step="1">
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>hue-rotate</span><output id="out-f-hue">0deg</output></div>
+            <input type="range" id="rng-f-hue" min="0" max="360" value="0" step="1">
+          </div>
+          <button class="btn" id="reset-filter" style="align-self:flex-start;">↺ Sıfırla</button>
+          <div class="code-output" id="code-filter">filter: blur(0px) brightness(100%) contrast(100%) saturate(100%) grayscale(0%) sepia(0%) hue-rotate(0deg);</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <h3>backdrop-filter — fərqli oyuncaq</h3>
+      <p><code>filter</code> elementin <strong>özünə</strong> tətbiq olunur. <code>backdrop-filter</code> isə elementin <strong>arxasında olan məzmuna</strong> təsir edir — "buzlu şüşə" (glassmorphism) effektinin sirri elə budur. İşləməsi üçün elementin fonu şəffaf və ya yarı-şəffaf olmalıdır.</p>
+    </div>
+
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">▢</span>backdrop-filter — şüşə effekti</div>
+      <div class="demo-preview" style="background:linear-gradient(120deg,#ff8a3d,#6c5ce7,#1fb5a6); min-height:200px;">
+        <div id="glass-card" style="width:70%; padding:22px; border-radius:16px; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.35); color:#fff; text-align:center; font-weight:700; transition:backdrop-filter .25s, -webkit-backdrop-filter .25s;">
+          buzlu şüşə kart
+        </div>
+      </div>
+      <button class="btn" id="btn-backdrop-toggle" style="position:relative; z-index:1; margin-top:14px;" data-active="true">backdrop-filter: blur(10px) — AÇIQ</button>
+      <div class="code-output" style="margin-top:10px;" id="code-backdrop">backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px); /* köhnə Safari üçün */</div>
+    </div>
+
+    <div class="prose">
+      <h3>drop-shadow ilə box-shadow fərqi</h3>
+      <p><code>box-shadow</code> həmişə elementin <strong>düzbucaqlı qutusunun</strong> kölgəsini çəkir. <code>filter: drop-shadow()</code> isə elementin <strong>həqiqi formasına</strong> (şəffaf hissələr çıxılmaqla — məsələn SVG və ya şəffaf fonlu PNG-nin konturuna) uyğun kölgə yaradır.</p>
+    </div>
+
+    <!-- BUG KARTLARI — FILTER -->
+    <div class="bug-section-head">
+      <svg class="ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4m0 4h.01M12 2 1 21h22L12 2z"/></svg>
+      <h3>Tipik xəta və buglar — Filter</h3>
+    </div>
+    <div class="bug-grid">
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Bulanıqlıq kənarda kəsilir</h4>
+        <div class="row"><b>Problem:</b> <code>blur()</code> tətbiq etdiyin element ata qutusunun kənarında "kəsilmiş" görünür.</div>
+        <div class="row"><b>Niyə:</b> Bulanıqlıq vizual sahəsini elementin öz qutusundan kənara çıxarır; ata elementdə <code>overflow:hidden</code> varsa, bu artıq sahə kəsilir.</div>
+        <div class="row"><b>Həll:</b> Ataya əlavə padding ver, ya da kəsilmə lazım deyilsə <code>overflow:visible</code> saxla.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Animasiya zamanı "donma" (jank)</h4>
+        <div class="row"><b>Problem:</b> Filteri olan böyük elementi animasiya edəndə səhifə ləngiyir.</div>
+        <div class="row"><b>Niyə:</b> <code>blur</code> və <code>drop-shadow</code> hər kadrda yenidən hesablanması ağır effektlərdir, GPU/CPU yükünü artırır.</div>
+        <div class="row"><b>Həll:</b> Filter dəyərini animasiya etmək əvəzinə, mümkünsə statik saxla; mobil cihazlarda performansı yoxla.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>filter də containing block yaradır</h4>
+        <div class="row"><b>Problem:</b> Filteri olan atanın daxilindəki <code>position:fixed</code> element ekrana görə yox, məhz bu ataya görə sabitlənir.</div>
+        <div class="row"><b>Niyə:</b> Eynilə <code>transform</code> kimi, <code>filter</code> (none-dan fərqli) də yeni containing block yaradır.</div>
+        <div class="row"><b>Həll:</b> Bu davranışı gözləmirsənsə, fixed elementi həmin konteynerin xaricinə çıxar.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>backdrop-filter "işləmir"</h4>
+        <div class="row"><b>Problem:</b> <code>backdrop-filter</code> yazırsan, amma şüşə effekti görünmür.</div>
+        <div class="row"><b>Niyə:</b> Adətən üç səbəbdən biri: fon tam şəffaf deyil (yarı-şəffaf rəng lazımdır), brauzer dəstəyi yoxdur (köhnə Safari <code>-webkit-</code> prefiksi istəyir), və ya arxada görünən başqa məzmun yoxdur.</div>
+        <div class="row"><b>Həll:</b> Yarı-şəffaf <code>background</code> ver, hər iki prefiksi yaz, arxada hərəkət edən/rəngli məzmun olduğunu yoxla.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Yalnız fonu deyil, hamısını dəyişir</h4>
+        <div class="row"><b>Problem:</b> Kartın fonunu sepiya etmək istəyirsən, amma içindəki mətn də rəngini dəyişir.</div>
+        <div class="row"><b>Niyə:</b> <code>filter</code> ata elementə qoyulanda onun <strong>bütün</strong> vizual məzmununa (mətn də daxil) tətbiq olunur.</div>
+        <div class="row"><b>Həll:</b> Yalnız fonu filtrlə — ayrıca <code>::before</code> pseudo-elementi və ya overlay <code>&lt;div&gt;</code> istifadə et, mətni ondan kənarda saxla.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>drop-shadow performansı</h4>
+        <div class="row"><b>Problem:</b> Sadə kölgə üçün <code>drop-shadow()</code> işlədirsən, amma <code>box-shadow</code>-dan daha ağır işləyir.</div>
+        <div class="row"><b>Niyə:</b> <code>drop-shadow</code> elementin alfa konturunu hesablamalıdır — adi düzbucaqlı kölgə üçün bu lazımsız xərcdir.</div>
+        <div class="row"><b>Həll:</b> Forma şəffaflığı (kontur kölgəsi) lazım olmayan adi qutular üçün <code>box-shadow</code> seç.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÖLMƏ 3 — OVERFLOW ============ -->
+<section class="section section-band" data-topic="overflow" id="bolme-overflow">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><span class="num">3</span>Overflow</span>
+      <h2>Məzmun konteynerdən böyük olanda nə baş verir?</h2>
+      <p class="lead">CSS <code>overflow</code> xüsusiyyəti elementin daxilindəki məzmun onun ölçüsündən böyük olduqda <strong>nə ediləcəyini</strong> təyin edir: görünsün, kəsilsin, ya da scroll (sürüşdürmə) zolağı yaransın.</p>
+    </div>
+
+    <div class="prose">
+      <h3>Dəyərlər</h3>
+      <ul class="fn-list">
+        <li class="fn-item"><code>visible</code><span>Defolt. Məzmun konteynerdən kənara çıxsa belə görünür.</span></li>
+        <li class="fn-item"><code>hidden</code><span>Kənara çıxan hissə tamamilə gizlədilir (kəsilir).</span></li>
+        <li class="fn-item"><code>scroll</code><span>Həmişə scroll zolağı göstərir — lazım olsun ya olmasın.</span></li>
+        <li class="fn-item"><code>auto</code><span>Yalnız lazım olduqda scroll zolağı yaranır.</span></li>
+        <li class="fn-item"><code>clip</code><span>Yeni dəyər: <code>hidden</code>-ə bənzəyir, amma JS ilə də scroll edilə bilməz, daha "sərt" kəsmədir.</span></li>
+      </ul>
+      <p><code>overflow-x</code> və <code>overflow-y</code> oxları ayrıca da təyin oluna bilər; sadəcə <code>overflow: hidden;</code> yazsan, hər ikisinə tətbiq olunur (qısa yazılış).</p>
+    </div>
+
+    <!-- DEMO 3: overflow-x / overflow-y -->
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">▭</span>Canlı demo — ox üzrə overflow</div>
+      <div class="demo-grid">
+        <div class="demo-preview">
+          <div id="prev-overflow" style="width:100%; max-width:240px; height:150px; overflow:visible; border:1px dashed var(--stage-line); padding:10px; font-size:0.78rem; line-height:1.55; color:var(--stage-text); background:var(--stage-2); border-radius:8px;">
+            <p style="white-space:nowrap; margin:0 0 8px;">BirXəttinSonuÇoxUzunSözüSığmayacaqMütləq</p>
+            <p style="margin:0 0 6px;">Sətir 1 — nümunə məzmun.</p>
+            <p style="margin:0 0 6px;">Sətir 2 — nümunə məzmun.</p>
+            <p style="margin:0 0 6px;">Sətir 3 — nümunə məzmun.</p>
+            <p style="margin:0;">Sətir 4 — nümunə məzmun.</p>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-row">
+            <div class="crow-top"><span>overflow-x (seçdiyin)</span></div>
+            <select id="sel-ov-x" class="btn" style="text-align:left;">
+              <option value="visible">visible</option>
+              <option value="hidden">hidden</option>
+              <option value="auto">auto</option>
+              <option value="scroll">scroll</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <div class="crow-top"><span>overflow-y (seçdiyin)</span></div>
+            <select id="sel-ov-y" class="btn" style="text-align:left;">
+              <option value="visible">visible</option>
+              <option value="hidden">hidden</option>
+              <option value="auto">auto</option>
+              <option value="scroll">scroll</option>
+            </select>
+          </div>
+          <div class="code-output" id="code-overflow">overflow-x: visible;
+overflow-y: visible;</div>
+          <div class="demo-note" id="note-overflow">Brauzerin <b>hesabladığı</b> (computed) overflow-y dəyəri sənin seçdiyindən fərqlidir — çünki spesifikasiyaya görə bir ox <code>visible</code>-dan fərqli olanda, digər ox <code>visible</code> ola bilmir, avtomatik <code>auto</code>ya çevrilir.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <h3>text-overflow: ellipsis — 3 xüsusiyyət birlikdə lazımdır</h3>
+      <p>Uzun, sığmayan bir sətri "..." ilə kəsmək üçün <strong>üç</strong> xüsusiyyət eyni vaxtda lazımdır. Birini unutsan, ellipsis sadəcə görünmür.</p>
+    </div>
+
+    <!-- DEMO 3b: ellipsis -->
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">…</span>Canlı demo — ellipsis-i "qır"</div>
+      <div class="demo-grid">
+        <div class="demo-preview" style="justify-content:flex-start; padding:24px;">
+          <div style="width:100%; max-width:230px; border:1px dashed var(--stage-line); padding:12px; background:var(--stage-2); border-radius:8px;">
+            <p id="txt-ellipsis-target" style="margin:0; color:var(--stage-text); font-size:0.88rem;">Bu sətir konteynerin enindən daha uzundur və kəsilməlidir</p>
+          </div>
+        </div>
+        <div class="controls">
+          <label class="control-row" style="flex-direction:row; align-items:center; gap:10px; cursor:pointer;">
+            <input type="checkbox" id="chk-nowrap" checked style="width:18px; height:18px;">
+            <span style="color:var(--stage-text); font-size:0.9rem;"><code>white-space: nowrap</code></span>
+          </label>
+          <label class="control-row" style="flex-direction:row; align-items:center; gap:10px; cursor:pointer;">
+            <input type="checkbox" id="chk-hidden" checked style="width:18px; height:18px;">
+            <span style="color:var(--stage-text); font-size:0.9rem;"><code>overflow: hidden</code></span>
+          </label>
+          <label class="control-row" style="flex-direction:row; align-items:center; gap:10px; cursor:pointer;">
+            <input type="checkbox" id="chk-ellipsis" checked style="width:18px; height:18px;">
+            <span style="color:var(--stage-text); font-size:0.9rem;"><code>text-overflow: ellipsis</code></span>
+          </label>
+          <div class="code-output" id="code-ellipsis">white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;</div>
+          <div class="demo-note" id="note-ellipsis">Üç xüsusiyyətdən biri yox olduqda "..." görünmür — yuxarıdaki qutuları söndür-yandır.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <h3>overflow position:sticky-ni necə sındırır</h3>
+      <p>Bu, ən çox rast gəlinən "sirli bug"-lardan biridir: <code>position:sticky</code> elementin <strong>istənilən əcdadında</strong> (hətta görünməz şəkildə — heç bir scroll zolağı yaratmasa belə) <code>overflow</code> dəyəri <code>visible</code>-dan fərqli olsa, sticky effekti dayanır. Aşağıdaki nümunədə əhatə edən (wrapper) elementin overflow dəyərini dəyiş və <strong>bu səhifəni özü sürüşdürərək</strong> sticky başlığın necə davrandığına bax.</p>
+    </div>
+
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">📌</span>Canlı demo — sticky + overflow</div>
+      <div class="btn-row" style="margin-bottom:16px;">
+        <button class="btn" data-ov="visible" data-active="true" id="btn-sticky-visible">wrapper: overflow visible</button>
+        <button class="btn" data-ov="auto" id="btn-sticky-auto">wrapper: overflow auto</button>
+        <button class="btn" data-ov="hidden" id="btn-sticky-hidden">wrapper: overflow hidden</button>
+      </div>
+      <div id="sticky-wrapper" style="position:relative; z-index:1; overflow:visible; border:1.5px dashed var(--stage-line); border-radius:10px; background:var(--stage-2);">
+        <div style="position:relative; padding:0 16px 16px;">
+          <div id="sticky-header" style="position:sticky; top:64px; background:var(--c-overflow); color:#06302b; font-weight:700; font-size:0.85rem; padding:9px 14px; border-radius:8px; margin:0 -16px; z-index:5;">📌 Sticky başlıq — scroll edərkən bura yapışmalıdır</div>
+          <p style="color:var(--stage-text-soft); font-size:0.88rem; padding-top:14px;">Aşağı sürüşdür (məsələn ssəhifəni siçan diyircəyi ilə) — "visible" seçilibsə başlıq ekranın yuxarısına yaxın yapışıb qalacaq. "hidden" və ya "auto" seçəndə isə wrapper-in hündürlüyü məzmuna uyğun olsa belə (heç nə vizual kəsilmir!) sticky sakitcə dayanacaq.</p>
+          <p style="color:var(--stage-text-soft); font-size:0.88rem;">Maraqlısı budur: bu wrapper-in nə hündürlüyü məhduddur, nə də nəzərə çarpan kəsilmə var — ona görə bu bug çox vaxt fərqinə belə varılmadan komponentin başqa yerində "clearfix" və ya görünüş üçün qoyulmuş <code>overflow:hidden</code> tərəfindən yaranır.</p>
+          <p style="color:var(--stage-text-soft); font-size:0.88rem;">Davam et, daha bir az sürüşdür — sticky başlığın vəziyyətini izlə.</p>
+          <p style="color:var(--stage-text-soft); font-size:0.88rem; margin-bottom:0;">Bölmənin sonu. İndi yuxarıdaki üç düyməni növbə ilə sınayıb fərqi müşahidə et.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUG KARTLARI — OVERFLOW -->
+    <div class="bug-section-head">
+      <svg class="ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4m0 4h.01M12 2 1 21h22L12 2z"/></svg>
+      <h3>Tipik xəta və buglar — Overflow</h3>
+    </div>
+    <div class="bug-grid">
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Sticky birdən-birə işləmir</h4>
+        <div class="row"><b>Problem:</b> <code>position:sticky</code> qoyduğun element heç yapışmır, sadəcə adi element kimi davranır.</div>
+        <div class="row"><b>Niyə:</b> Aralarındaki istənilən əcdadda (görünməz şəkildə belə) <code>overflow</code> dəyəri <code>visible</code>-dan fərqlidir.</div>
+        <div class="row"><b>Həll:</b> DevTools-da bütün əcdadları yoxla, lazımsız <code>overflow:hidden/auto</code>-ları tap və sil.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>X və Y oxu bir-birini "korlayır"</h4>
+        <div class="row"><b>Problem:</b> <code>overflow-x:hidden; overflow-y:visible;</code> yazırsan, amma gözlənilməz scroll zolağı çıxır.</div>
+        <div class="row"><b>Niyə:</b> Spesifikasiyaya görə bir ox <code>visible</code>-dan fərqli olanda, digər ox <code>visible</code> qala bilmir — avtomatik <code>auto</code>ya keçir.</div>
+        <div class="row"><b>Həll:</b> Yuxarıdaki demoda gördüyün kimi, hər iki oxu açıq şəkildə təyin et, "computed" dəyərini DevTools-da yoxla.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Görünməli elementlər kəsilir</h4>
+        <div class="row"><b>Problem:</b> Badge, tooltip, dropdown və ya kölgə (<code>box-shadow</code>) gözlənilmədən yarımçıq görünür.</div>
+        <div class="row"><b>Niyə:</b> <code>overflow:hidden</code> olan ata, mənfi margin, transform və ya absolute mövqe ilə "kənara çıxan" hər şeyi kəsir.</div>
+        <div class="row"><b>Həll:</b> Bu elementi başqa, overflow-u olmayan bir ataya köçür, ya da <code>overflow:visible</code> saxla.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Ellipsis görünmür</h4>
+        <div class="row"><b>Problem:</b> <code>text-overflow:ellipsis</code> yazmısan, amma "..." görünmür, mətn sadəcə kəsilir və ya heç kəsilmir.</div>
+        <div class="row"><b>Niyə:</b> Adətən <code>white-space:nowrap</code> unudulur — mətn sətirlərə bölünəndə ellipsis-in "kəsiləcək sona" ehtiyacı qalmır.</div>
+        <div class="row"><b>Həll:</b> Yuxarıdaki demoda olduğu kimi, həmişə üç xüsusiyyəti birlikdə yaz.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>Scroll zolağı düzülüşü "atlatdırır"</h4>
+        <div class="row"><b>Problem:</b> Məzmun bir az artanda scroll zolağı çıxır və bütün düzülüş bir neçə piksel sola "tullanır".</div>
+        <div class="row"><b>Niyə:</b> Bəzi sistemlərdə (məsələn Windows-da) scroll zolağı öz sahəsini konteynerin daxilindən "yeyir".</div>
+        <div class="row"><b>Həll:</b> <code>scrollbar-gutter: stable;</code> ilə scroll zolağı üçün yer həmişə ayrılmış olsun, görünsə də, görünməsə də.</div>
+      </div>
+      <div class="bug-card">
+        <h4><span class="ico">⚠</span>fixed elementi tək başına saxlamır</h4>
+        <div class="row"><b>Problem:</b> Atasında <code>overflow:hidden</code> olduğu üçün <code>position:fixed</code> elementin onun daxilində qalacağını gözləyirsən, amma element yenə bütün ekrana görə hərəkət edir.</div>
+        <div class="row"><b>Niyə:</b> <code>overflow:hidden</code> TƏK BAŞINA fixed üçün containing block yaratmır — fixed yalnız ekrana (viewport) görə işləyir, nə qədər ki ata əlavə olaraq <code>transform</code>/<code>filter</code>/<code>will-change</code> almayıb.</div>
+        <div class="row"><b>Həll:</b> Fixed elementi məhdudlaşdırmaq istəyirsənsə, ataya <code>transform: translate(0)</code> kimi "boş" bir transform əlavə et. Ətraflı: aşağıdaki <a href="#bolme-birlikde">Birlikdə</a> bölməsi.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BÖLMƏ 4 — BİRLİKDƏ ============ -->
+<section class="section section-band" data-topic="combo" id="bolme-birlikde">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><span class="num">4</span>Birlikdə</span>
+      <h2>Üçü qarşılaşanda: "containing block" sirri</h2>
+      <p class="lead">İndiyə qədər gördüyün üç "tələ" — fixed-in transform/filter tərəfindən tutulması və sticky-nin overflow tərəfindən sındırılması — eyni bir konsepsiyaya bağlıdır: <strong>containing block</strong> (əhatə edən qutu).</p>
+    </div>
+
+    <div class="prose">
+      <p>Normalda <code>position:fixed</code> elementi <strong>ekranın özünə</strong> (viewport) görə yerləşir. Amma əgər bu elementin istənilən əcdadında <code>transform</code> (none-dan fərqli), <code>filter</code> (none-dan fərqli), <code>perspective</code> və ya <code>will-change: transform</code> varsa — həmin əcdad fixed elementin yeni "ev sahibi" olur. Fixed artıq ekrana görə yox, məhz bu əcdadın qutusuna görə sabitlənir.</p>
+    </div>
+
+    <div class="diagram-grid">
+      <div class="diagram-card">
+        <h4><span class="diagram-tag good">Transform / filter yoxdur</span></h4>
+        <div class="diagram-viewport">
+          <div class="diagram-ancestor"><span>ata elementi</span></div>
+          <div class="diagram-fixed" style="top:8px; right:8px;">FIXED</div>
+        </div>
+        <p class="diagram-caption">Fixed element <strong>ekranın</strong> öz küncünə görə yerləşir — ata sadəcə adi bir konteynerdir.</p>
+      </div>
+      <div class="diagram-card">
+        <h4><span class="diagram-tag bad">Atada transform/filter var</span></h4>
+        <div class="diagram-viewport">
+          <div class="diagram-ancestor" style="border-color:var(--c-filter); background:rgba(255,138,61,0.10);">
+            <span style="color:var(--c-filter);">ata (transform: rotate(2deg))</span>
+            <div class="diagram-fixed" style="top:8px; right:8px;">FIXED</div>
+          </div>
+        </div>
+        <p class="diagram-caption">İndi fixed element <strong>atanın öz qutusuna</strong> görə yerləşir — ekranla əlaqəsi qırılıb.</p>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>Bu, çox vaxt <strong>qəsdən</strong> belə qurulur (məsələn modal pəncərə daxilində bir elementi yalnız o modala görə sabit saxlamaq üçün) — amma gözlənilmədən baş verəndə (məsələn animasiya kitabxanası hər karta avtomatik <code>transform</code> əlavə edəndə) çox vaxt itirə bilərsən.</p>
+
+      <h3>Praktik nümunə: üçünü bir komponentdə birləşdirmək</h3>
+      <p>Aşağıdaki "polaroid" kartı dərsin əvvəlində gördüyün heroya bənzəyir — indi onun necə qurulduğunu addım-addım görəcəksən. Kartın üzərinə gəl (hover et):</p>
+    </div>
+
+    <div class="demo-panel">
+      <div class="demo-title"><span class="ico">✦</span>Polaroid kart — transform + filter + overflow</div>
+      <div class="demo-grid">
+        <div class="demo-preview no-clip">
+          <div class="polaroid" id="combo-polaroid" style="width:62%; animation:none; transform:rotate(-4deg); transition:transform .3s ease;">
+            <div class="polaroid-photo" style="filter:sepia(0.4) saturate(1.2) contrast(1.05); transition:filter .3s ease;">
+              <svg viewBox="0 0 200 200" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+                <rect width="200" height="200" fill="#cfe7e2"/>
+                <circle cx="150" cy="46" r="22" fill="#ffd56b"/>
+                <polygon points="0,170 70,70 110,130 140,90 200,170" fill="#5b7d74"/>
+                <polygon points="0,185 90,110 150,150 200,120 200,200 0,200" fill="#3f5a53"/>
+              </svg>
+            </div>
+            <div class="polaroid-caption">üzərinə gəl →</div>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="code-output" style="margin-top:0;">.polaroid {
+  overflow: hidden;        /* ÇƏRÇİVƏ */
+  border-radius: 6px;
+  transform: rotate(-4deg); /* HƏRƏKƏT */
+  transition: transform .3s;
+}
+.polaroid .foto {
+  filter: sepia(.4) saturate(1.2); /* GÖRÜNÜŞ */
+}
+.polaroid:hover {
+  transform: rotate(0deg) scale(1.04);
+}</div>
+          <p style="color:var(--stage-text-soft); font-size:0.85rem; position:relative; z-index:1;">Üç xüsusiyyət, üç ayrı rol: <b style="color:var(--c-overflow)">overflow</b> şəkli çərçivəyə "kəsir", <b style="color:var(--c-filter)">filter</b> ona köhnə-foto görünüşü verir, <b style="color:var(--c-transform)">transform</b> isə kartı bir az əyib hover-də canlandırır.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <h3>Nəsə işləmir? Yoxlama siyahısı</h3>
+      <ol>
+        <li><code>position:fixed</code> elementim gözlədiyim yerdə deyil → əcdadlardan birində <code>transform</code>, <code>filter</code> və ya <code>will-change</code> axtar.</li>
+        <li><code>position:sticky</code> yapışmır → əcdadlardan birində (görünməz olsa belə) <code>overflow</code> dəyəri <code>visible</code>-dan fərqlidirmi, yoxla.</li>
+        <li>Kölgə/bulanıqlıq/badge kəsilir → ən yaxın <code>overflow:hidden</code> olan atanı tap, lazım olmayan yerdə sil.</li>
+        <li>Vizual effekt gözlədiyim kimi deyil → DevTools-da elementi seç, "Computed" tabında <code>overflow</code>, <code>transform</code>, <code>filter</code> dəyərlərinin <strong>həqiqi</strong> (hesablanmış) qiymətlərinə bax.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ XÜLASƏ ============ -->
+<section class="section section-band" data-topic="combo" id="bolme-xulase">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><span class="num">★</span>Xülasə</span>
+      <h2>Tez baxış cədvəli</h2>
+      <p class="lead">Üç xüsusiyyətin bütün funksiyaları və dəyərləri bir baxışda.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cheat">
+        <caption style="color:var(--c-transform); background:var(--c-transform-soft);">Transform</caption>
+        <thead><tr><th>Funksiya</th><th>Sintaksis</th><th>Nə edir</th></tr></thead>
+        <tbody>
+          <tr><td><code>translate</code></td><td class="mono">translate(20px, 10px)</td><td>Sürüşdürmə</td></tr>
+          <tr><td><code>scale</code></td><td class="mono">scale(1.2)</td><td>Böyütmə / kiçiltmə</td></tr>
+          <tr><td><code>rotate</code></td><td class="mono">rotate(45deg)</td><td>Fırlatma</td></tr>
+          <tr><td><code>skew</code></td><td class="mono">skewX(10deg)</td><td>Əymə</td></tr>
+          <tr><td><code>transform-origin</code></td><td class="mono">top left / 50% 50%</td><td>Fırlanma/böyümə mərkəzi</td></tr>
+          <tr><td><code>perspective</code></td><td class="mono">perspective(900px)</td><td>3D dərinlik hissi</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cheat">
+        <caption style="color:#9c5a1f; background:var(--c-filter-soft);">Filter</caption>
+        <thead><tr><th>Funksiya</th><th>Sintaksis</th><th>Nə edir</th></tr></thead>
+        <tbody>
+          <tr><td><code>blur</code></td><td class="mono">blur(4px)</td><td>Bulanıqlaşdırma</td></tr>
+          <tr><td><code>brightness</code></td><td class="mono">brightness(120%)</td><td>Parlaqlıq</td></tr>
+          <tr><td><code>contrast</code></td><td class="mono">contrast(110%)</td><td>Kontrast</td></tr>
+          <tr><td><code>grayscale</code></td><td class="mono">grayscale(100%)</td><td>Qara-ağ</td></tr>
+          <tr><td><code>sepia</code></td><td class="mono">sepia(60%)</td><td>Köhnə foto effekti</td></tr>
+          <tr><td><code>drop-shadow</code></td><td class="mono">drop-shadow(0 4px 6px #000)</td><td>Formaya uyğun kölgə</td></tr>
+          <tr><td><code>backdrop-filter</code></td><td class="mono">backdrop-filter: blur(10px)</td><td>Arxa fona təsir (şüşə effekti)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cheat">
+        <caption style="color:#0e6b60; background:var(--c-overflow-soft);">Overflow</caption>
+        <thead><tr><th>Dəyər</th><th>Sintaksis</th><th>Nə edir</th></tr></thead>
+        <tbody>
+          <tr><td><code>visible</code></td><td class="mono">overflow: visible</td><td>Defolt — hər şey görünür</td></tr>
+          <tr><td><code>hidden</code></td><td class="mono">overflow: hidden</td><td>Kənara çıxanı kəsir</td></tr>
+          <tr><td><code>auto</code></td><td class="mono">overflow: auto</td><td>Lazım olanda scroll çıxır</td></tr>
+          <tr><td><code>scroll</code></td><td class="mono">overflow: scroll</td><td>Həmişə scroll zolağı</td></tr>
+          <tr><td><code>clip</code></td><td class="mono">overflow: clip</td><td>JS ilə də scroll edilməyən sərt kəsmə</td></tr>
+          <tr><td><code>text-overflow</code></td><td class="mono">ellipsis</td><td>nowrap + hidden ilə birlikdə "..." göstərir</td></tr>
+          <tr><td><code>scrollbar-gutter</code></td><td class="mono">stable</td><td>Scroll zolağı üçün yer həmişə ayrılır</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ YOXLAMA ============ -->
+<section class="section section-band" data-topic="combo" id="bolme-yoxlama">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow"><span class="num">✓</span>Yoxlama</span>
+      <h2>Özünü sına</h2>
+      <p class="lead">Cavabı təxmin et, sonra düyməyə basıb yoxla. Tam başa düşdüyünə əmin olmaq üçün ən yaxşı yol budur.</p>
+    </div>
+
+    <div class="check-grid">
+      <div class="check-card">
+        <div class="q"><span class="qn">1</span><span><code>translateX(50px) rotate(45deg)</code> ilə <code>rotate(45deg) translateX(50px)</code> arasında fərq varmı?</span></div>
+        <button class="check-toggle">Cavabı göstər</button>
+        <div class="check-answer">Bəli, fərq var. Birincidə element əvvəlcə sağa sürüşür, sonra fırlanır. İkincidə əvvəlcə fırlanır — "sağ" istiqaməti artıq dönmüş koordinat sistemində hesablanır, nəticədə tamam başqa nöqtəyə gedir. Yuxarıdaki Transform bölməsindəki müqayisə demosunda bunu canlı gördün.</div>
+      </div>
+      <div class="check-card">
+        <div class="q"><span class="qn">2</span><span>Kartının küncündəki kiçik "badge" niyə görünmür, halbuki kodun düzgün olduğuna əminsən?</span></div>
+        <button class="check-toggle">Cavabı göstər</button>
+        <div class="check-answer">Çox güman, badge-i əhatə edən atada <code>overflow:hidden</code> var və badge mənfi margin və ya <code>position:absolute</code> ilə həmin atanın kənarından "çıxır" — overflow bu hissəni kəsir.</div>
+      </div>
+      <div class="check-card">
+        <div class="q"><span class="qn">3</span><span><code>position:sticky; top:0;</code> yazmısan, amma element heç yapışmır. Səbəb nə ola bilər?</span></div>
+        <button class="check-toggle">Cavabı göstər</button>
+        <div class="check-answer">İstənilən əcdadında (görünməz olsa belə) <code>overflow</code> dəyəri <code>visible</code>-dan fərqlidir. DevTools-da bütün əcdadları yoxlamaq lazımdır.</div>
+      </div>
+      <div class="check-card">
+        <div class="q"><span class="qn">4</span><span><code>filter: blur(10px)</code> tətbiq etdiyin elementin kənarları niyə kəsik görünür?</span></div>
+        <button class="check-toggle">Cavabı göstər</button>
+        <div class="check-answer"><code>blur()</code> elementin vizual sahəsini öz qutusundan kənara çıxarır. Ata elementdə <code>overflow:hidden</code> varsa, bu əlavə sahə kəsilir.</div>
+      </div>
+      <div class="check-card">
+        <div class="q"><span class="qn">5</span><span><code>text-overflow:ellipsis</code> yazmısan, amma "..." görünmür. Ən çox unudulan şərt nədir?</span></div>
+        <button class="check-toggle">Cavabı göstər</button>
+        <div class="check-answer">Adətən <code>white-space:nowrap</code> unudulur. Ellipsis üçün <code>white-space:nowrap</code> + <code>overflow:hidden</code> + <code>text-overflow:ellipsis</code> — üçü birlikdə lazımdır.</div>
+      </div>
+      <div class="check-card">
+        <div class="q"><span class="qn">6</span><span>Transform tətbiq etdiyin element ətrafdaki elementləri "itələyirmi" (yerlərini dəyişdirirmi)?</span></div>
+        <button class="check-toggle">Cavabı göstər</button>
+        <div class="check-answer">Xeyr. <code>transform</code> yalnız vizual təsir edir, sənədin normal axınına (layout) qarışmır — elementin orijinal yeri "rezerv" olaraq qalır, ətrafdaki elementlər sanki o köçməyib kimi davranır.</div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <strong>CSS Lab</strong> — Transform, Filter və Overflow dərsliyi.
+      <div style="margin-top:6px; font-size:0.82rem;">DejaVu Sans şrifti ilə, Azərbaycan hərflərinə tam dəstək.</div>
+    </div>
+    <div class="footer-links">
+      <a href="#bolme-transform">Transform</a>
+      <a href="#bolme-filter">Filter</a>
+      <a href="#bolme-overflow">Overflow</a>
+      <a href="#bolme-birlikde">Birlikdə</a>
+      <a href="#bolme-yoxlama">Yoxlama</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Oxuma tərəqqisi zolağı ---------- */
+  var progressBar = document.getElementById('progressBar');
+  function updateProgress(){
+    var h = document.documentElement;
+    var scrolled = h.scrollTop;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (scrolled / max) * 100 : 0;
+    if(progressBar) progressBar.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  /* ---------- Nav aktiv vəziyyəti ---------- */
+  var navPills = Array.prototype.slice.call(document.querySelectorAll('.nav-pill'));
+  var sections = navPills.map(function(p){
+    var id = p.getAttribute('href');
+    return id ? document.querySelector(id) : null;
+  });
+  function updateNav(){
+    var bestIdx = 0, bestTop = -Infinity;
+    sections.forEach(function(sec, i){
+      if(!sec) return;
+      var top = sec.getBoundingClientRect().top;
+      if(top <= 120 && top > bestTop){ bestTop = top; bestIdx = i; }
+    });
+    navPills.forEach(function(p, i){
+      p.setAttribute('data-active', i === bestIdx ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('scroll', updateNav, {passive:true});
+  updateNav();
+
+  /* ---------- Sadə CSS sintaksis rəngləməsi ---------- */
+  function highlightCode(el){
+    var lines = el.textContent.split('\n');
+    var html = lines.map(function(line){
+      var trimmed = line.trim();
+      if(/^\/\*.*\*\/$/.test(trimmed)){
+        return '<span class="tok-cm">' + escapeHtml(line) + '</span>';
+      }
+      if(/\{\s*$/.test(trimmed)){
+        return '<span class="tok-sel">' + escapeHtml(line) + '</span>';
+      }
+      if(trimmed === '}' || trimmed === '};'){
+        return '<span class="tok-punc">' + escapeHtml(line) + '</span>';
+      }
+      var m = line.match(/^(\s*)([\w-]+)(\s*:\s*)(.+?)(;?)(\s*\/\*.*\*\/)?\s*$/);
+      if(m){
+        var indent = m[1], prop = m[2], colon = m[3], val = m[4], semi = m[5] || '', cm = m[6] || '';
+        return indent + '<span class="tok-prop">' + escapeHtml(prop) + '</span>' + escapeHtml(colon) +
+               '<span class="tok-val">' + escapeHtml(val) + '</span>' + escapeHtml(semi) +
+               (cm ? ' <span class="tok-cm">' + escapeHtml(cm.trim()) + '</span>' : '');
+      }
+      return escapeHtml(line);
+    }).join('\n');
+    el.innerHTML = html;
+  }
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  document.querySelectorAll('.code-block code').forEach(highlightCode);
+
+  /* ---------- DEMO 1: TRANSFORM ---------- */
+  (function(){
+    var subj = document.getElementById('subj-transform');
+    var out = document.getElementById('code-transform');
+    if(!subj) return;
+    var rx = document.getElementById('rng-t-x');
+    var ry = document.getElementById('rng-t-y');
+    var rr = document.getElementById('rng-t-r');
+    var rs = document.getElementById('rng-t-s');
+    var rskx = document.getElementById('rng-t-skx');
+    var origin = 'center';
+    var originBtns = Array.prototype.slice.call(document.querySelectorAll('#origin-transform .origin-btn'));
+
+    function render(){
+      var x = rx.value, y = ry.value, r = rr.value, s = (rs.value/100).toFixed(2), skx = rskx.value;
+      document.getElementById('out-t-x').textContent = x + 'px';
+      document.getElementById('out-t-y').textContent = y + 'px';
+      document.getElementById('out-t-r').textContent = r + 'deg';
+      document.getElementById('out-t-s').textContent = s;
+      document.getElementById('out-t-skx').textContent = skx + 'deg';
+      var tf = 'translate(' + x + 'px, ' + y + 'px) rotate(' + r + 'deg) scale(' + s + ') skewX(' + skx + 'deg)';
+      subj.style.transform = tf;
+      subj.style.transformOrigin = origin;
+      out.textContent = 'transform: ' + tf + ';\ntransform-origin: ' + origin + ';';
+    }
+    [rx,ry,rr,rs,rskx].forEach(function(inp){ inp.addEventListener('input', render); });
+    originBtns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        originBtns.forEach(function(b){ b.removeAttribute('data-active'); });
+        btn.setAttribute('data-active','true');
+        origin = btn.getAttribute('data-origin');
+        render();
+      });
+    });
+    document.getElementById('reset-transform').addEventListener('click', function(){
+      rx.value=0; ry.value=0; rr.value=0; rs.value=100; rskx.value=0;
+      originBtns.forEach(function(b){ b.removeAttribute('data-active'); });
+      document.querySelector('#origin-transform .origin-btn[data-origin="center"]').setAttribute('data-active','true');
+      origin = 'center';
+      render();
+    });
+    render();
+  })();
+
+  /* ---------- DEMO 1b: SIRA MÜQAYİSƏSİ ---------- */
+  (function(){
+    var a = document.getElementById('subj-order-a');
+    var b = document.getElementById('subj-order-b');
+    var btn = document.getElementById('btn-order-play');
+    if(!a || !btn) return;
+    var applied = false;
+    btn.addEventListener('click', function(){
+      applied = !applied;
+      if(applied){
+        a.style.transform = 'translateX(70px) rotate(45deg)';
+        b.style.transform = 'rotate(45deg) translateX(70px)';
+        btn.textContent = '↺ Sıfırla';
+      } else {
+        a.style.transform = '';
+        b.style.transform = '';
+        btn.textContent = '▶ Animasiyaya bax';
+      }
+    });
+  })();
+
+  /* ---------- DEMO 2: FILTER ---------- */
+  (function(){
+    var subj = document.getElementById('subj-filter');
+    var out = document.getElementById('code-filter');
+    if(!subj) return;
+    var blur = document.getElementById('rng-f-blur');
+    var bright = document.getElementById('rng-f-bright');
+    var contrast = document.getElementById('rng-f-contrast');
+    var sat = document.getElementById('rng-f-sat');
+    var gray = document.getElementById('rng-f-gray');
+    var sepia = document.getElementById('rng-f-sepia');
+    var hue = document.getElementById('rng-f-hue');
+
+    function render(){
+      document.getElementById('out-f-blur').textContent = blur.value + 'px';
+      document.getElementById('out-f-bright').textContent = bright.value + '%';
+      document.getElementById('out-f-contrast').textContent = contrast.value + '%';
+      document.getElementById('out-f-sat').textContent = sat.value + '%';
+      document.getElementById('out-f-gray').textContent = gray.value + '%';
+      document.getElementById('out-f-sepia').textContent = sepia.value + '%';
+      document.getElementById('out-f-hue').textContent = hue.value + 'deg';
+      var f = 'blur(' + blur.value + 'px) brightness(' + bright.value + '%) contrast(' + contrast.value + '%) saturate(' + sat.value + '%) grayscale(' + gray.value + '%) sepia(' + sepia.value + '%) hue-rotate(' + hue.value + 'deg)';
+      subj.style.filter = f;
+      out.textContent = 'filter: ' + f + ';';
+    }
+    [blur,bright,contrast,sat,gray,sepia,hue].forEach(function(inp){ inp.addEventListener('input', render); });
+    document.getElementById('reset-filter').addEventListener('click', function(){
+      blur.value=0; bright.value=100; contrast.value=100; sat.value=100; gray.value=0; sepia.value=0; hue.value=0;
+      render();
+    });
+    render();
+  })();
+
+  /* ---------- BACKDROP-FILTER TOGGLE ---------- */
+  (function(){
+    var card = document.getElementById('glass-card');
+    var btn = document.getElementById('btn-backdrop-toggle');
+    var code = document.getElementById('code-backdrop');
+    if(!card || !btn) return;
+    var on = true;
+    btn.addEventListener('click', function(){
+      on = !on;
+      if(on){
+        card.style.backdropFilter = 'blur(10px)';
+        card.style.webkitBackdropFilter = 'blur(10px)';
+        btn.textContent = 'backdrop-filter: blur(10px) — AÇIQ';
+        btn.setAttribute('data-active','true');
+        code.textContent = 'backdrop-filter: blur(10px);\n-webkit-backdrop-filter: blur(10px); /* köhnə Safari üçün */';
+      } else {
+        card.style.backdropFilter = 'none';
+        card.style.webkitBackdropFilter = 'none';
+        btn.textContent = 'backdrop-filter: none — SÖNÜK';
+        btn.removeAttribute('data-active');
+        code.textContent = 'backdrop-filter: none;';
+      }
+    });
+  })();
+
+  /* ---------- DEMO 3: OVERFLOW-X / OVERFLOW-Y ---------- */
+  (function(){
+    var prev = document.getElementById('prev-overflow');
+    var selX = document.getElementById('sel-ov-x');
+    var selY = document.getElementById('sel-ov-y');
+    var code = document.getElementById('code-overflow');
+    var note = document.getElementById('note-overflow');
+    if(!prev) return;
+    function render(){
+      prev.style.overflowX = selX.value;
+      prev.style.overflowY = selY.value;
+      var computed = getComputedStyle(prev);
+      var cx = computed.overflowX, cy = computed.overflowY;
+      code.textContent = 'overflow-x: ' + selX.value + ';\noverflow-y: ' + selY.value + ';';
+      if(cx !== selX.value || cy !== selY.value){
+        note.classList.add('show');
+        note.innerHTML = 'Brauzerin <b>hesabladığı</b> (computed) dəyər: <code>overflow-x: ' + cx + '; overflow-y: ' + cy + ';</code> — seçdiyindən fərqlidir! Çünki bir ox <code>visible</code>-dan fərqli olanda, digər ox <code>visible</code> qala bilmir.';
+      } else {
+        note.classList.remove('show');
+      }
+    }
+    selX.addEventListener('change', render);
+    selY.addEventListener('change', render);
+    render();
+  })();
+
+  /* ---------- DEMO 3b: ELLIPSIS ---------- */
+  (function(){
+    var target = document.getElementById('txt-ellipsis-target');
+    var nowrap = document.getElementById('chk-nowrap');
+    var hidden = document.getElementById('chk-hidden');
+    var ell = document.getElementById('chk-ellipsis');
+    var code = document.getElementById('code-ellipsis');
+    var note = document.getElementById('note-ellipsis');
+    if(!target) return;
+    function render(){
+      target.style.whiteSpace = nowrap.checked ? 'nowrap' : 'normal';
+      target.style.overflow = hidden.checked ? 'hidden' : 'visible';
+      target.style.textOverflow = ell.checked ? 'ellipsis' : 'clip';
+      var lines = [];
+      lines.push('white-space: ' + (nowrap.checked ? 'nowrap' : 'normal') + ';');
+      lines.push('overflow: ' + (hidden.checked ? 'hidden' : 'visible') + ';');
+      lines.push('text-overflow: ' + (ell.checked ? 'ellipsis' : 'clip') + ';');
+      code.textContent = lines.join('\n');
+      var allOn = nowrap.checked && hidden.checked && ell.checked;
+      note.classList.toggle('show', !allOn);
+    }
+    [nowrap,hidden,ell].forEach(function(c){ c.addEventListener('change', render); });
+    render();
+  })();
+
+  /* ---------- DEMO 3c: STICKY + OVERFLOW ---------- */
+  (function(){
+    var wrapper = document.getElementById('sticky-wrapper');
+    var btns = Array.prototype.slice.call(document.querySelectorAll('[data-ov]'));
+    if(!wrapper) return;
+    btns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        btns.forEach(function(b){ b.removeAttribute('data-active'); });
+        btn.setAttribute('data-active','true');
+        wrapper.style.overflow = btn.getAttribute('data-ov');
+      });
+    });
+  })();
+
+  /* ---------- YOXLAMA: cavab toggle ---------- */
+  document.querySelectorAll('.check-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var ans = btn.nextElementSibling;
+      var showing = ans.classList.toggle('show');
+      btn.textContent = showing ? 'Cavabı gizlət' : 'Cavabı göstər';
+    });
+  });
+
+})();
+</script>
+</body>
+</html>

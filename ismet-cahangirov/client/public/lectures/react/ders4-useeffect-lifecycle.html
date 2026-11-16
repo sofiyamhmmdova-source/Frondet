@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 4 — useEffect və Komponent Lifecycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0A0F1C;
+    --panel:#111A2E;
+    --panel-2:#0E1526;
+    --border:#1F2A44;
+    --border-soft:#182238;
+    --text:#DCE4F0;
+    --muted:#8592AC;
+    --pulse:#3DDC97;
+    --pulse-dim:#1E4E3B;
+    --amber:#FBBF24;
+    --amber-dim:#4A3A14;
+    --rose:#FB7185;
+    --rose-dim:#4A2029;
+    --violet:#A78BFA;
+    --font-display:'Space Grotesk','Inter',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--void);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  ::selection{background:var(--pulse-dim); color:var(--pulse);}
+
+  a{color:var(--pulse);}
+
+  h1,h2,h3,h4{font-family:var(--font-display); font-weight:600; margin:0; letter-spacing:-0.01em;}
+  p{margin:0 0 1em 0; color:var(--text);}
+  code, pre{font-family:var(--font-mono);}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+  @media (max-width:640px){ .wrap{padding:0 18px;} }
+
+  /* ---------- Top progress bar ---------- */
+  #progress-bar{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg, var(--pulse), var(--amber), var(--rose));
+    z-index:200; transition:width 0.1s linear;
+  }
+
+  /* ---------- Layout with side rail ---------- */
+  .layout{ display:grid; grid-template-columns:220px 1fr; gap:48px; max-width:1180px; margin:0 auto; padding:0 32px;}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr; padding:0;} }
+
+  .rail{
+    position:sticky; top:64px; align-self:start; height:calc(100vh - 100px);
+    overflow-y:auto; padding-top:8px;
+  }
+  @media (max-width:900px){ .rail{display:none;} }
+  .rail-eyebrow{font-family:var(--font-mono); font-size:11px; color:var(--muted); letter-spacing:0.12em; margin-bottom:14px; padding-left:14px;}
+  .rail a{
+    display:block; padding:8px 14px; font-size:13.5px; color:var(--muted); text-decoration:none;
+    border-left:2px solid var(--border); transition:all 0.15s ease;
+  }
+  .rail a:hover{color:var(--text); border-left-color:var(--muted);}
+  .rail a.active{color:var(--pulse); border-left-color:var(--pulse); background:linear-gradient(90deg, rgba(61,220,151,0.08), transparent);}
+
+  .mobile-nav{
+    display:none; position:sticky; top:3px; z-index:150; background:rgba(10,15,28,0.92);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--border-soft); padding:10px 18px;
+    overflow-x:auto; white-space:nowrap;
+  }
+  @media (max-width:900px){ .mobile-nav{display:block;} }
+  .mobile-nav a{
+    display:inline-block; font-family:var(--font-mono); font-size:11.5px; color:var(--muted);
+    text-decoration:none; padding:6px 12px; border:1px solid var(--border); border-radius:20px; margin-right:8px;
+  }
+  .mobile-nav a.active{color:var(--pulse); border-color:var(--pulse);}
+
+  .content{min-width:0; padding-bottom:80px;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:72px 0 40px; position:relative;}
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; color:var(--pulse); letter-spacing:0.14em;
+    display:flex; align-items:center; gap:10px; margin-bottom:20px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--pulse); box-shadow:0 0 8px var(--pulse); animation:blink 1.6s ease-in-out infinite;}
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+  .hero h1{font-size:clamp(32px,5vw,54px); line-height:1.08; max-width:820px;}
+  .hero .accent{color:var(--pulse);}
+  .hero p.lead{font-size:17px; color:var(--muted); max-width:640px; margin-top:20px;}
+
+  .hero-meta{display:flex; gap:14px; flex-wrap:wrap; margin-top:28px;}
+  .chip{
+    font-family:var(--font-mono); font-size:12px; color:var(--text); background:var(--panel);
+    border:1px solid var(--border); padding:7px 14px; border-radius:20px;
+  }
+
+  /* ---------- ECG hero visual ---------- */
+  .monitor{
+    margin-top:44px; background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:20px 20px 0; overflow:hidden;
+  }
+  .monitor-labels{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--muted); letter-spacing:0.08em; padding-bottom:10px;}
+  .monitor-labels span.on{color:var(--pulse);}
+  .monitor svg{display:block; width:100%; height:auto;}
+
+  /* ---------- Section basics ---------- */
+  section{padding:64px 0; border-top:1px solid var(--border-soft);}
+  section:first-of-type{border-top:none;}
+  .section-head{display:flex; align-items:baseline; gap:16px; margin-bottom:28px;}
+  .section-num{font-family:var(--font-mono); font-size:13px; color:var(--pulse); border:1px solid var(--pulse-dim); background:rgba(61,220,151,0.08); padding:3px 9px; border-radius:6px; flex-shrink:0;}
+  .section-head h2{font-size:clamp(22px,3vw,30px);}
+  .section-sub{color:var(--muted); font-size:15px; margin-top:-16px; margin-bottom:28px; max-width:680px;}
+
+  /* ---------- Code blocks ---------- */
+  .code-card{
+    background:var(--panel-2); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin:20px 0;
+  }
+  .code-head{
+    display:flex; justify-content:space-between; align-items:center; padding:9px 16px;
+    border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02);
+  }
+  .code-head .label{font-family:var(--font-mono); font-size:11.5px; color:var(--muted); letter-spacing:0.06em;}
+  .copy-btn{
+    font-family:var(--font-mono); font-size:11px; color:var(--muted); background:transparent;
+    border:1px solid var(--border); padding:4px 10px; border-radius:6px; cursor:pointer; transition:all 0.15s;
+  }
+  .copy-btn:hover{color:var(--pulse); border-color:var(--pulse-dim);}
+  .copy-btn:focus-visible, a:focus-visible, button:focus-visible{outline:2px solid var(--pulse); outline-offset:2px;}
+  pre.code-block{margin:0; padding:16px 18px; overflow-x:auto; font-size:13px; line-height:1.7;}
+  pre.code-block code{color:var(--text);}
+  .tok-c{color:var(--muted); font-style:italic;}
+  .tok-s{color:var(--amber);}
+  .tok-k{color:var(--violet);}
+  .tok-h{color:var(--pulse); font-weight:600;}
+  .tok-n{color:#67C6FF;}
+  .tok-t{color:var(--rose);}
+
+  .bad{border-color:var(--rose-dim);}
+  .bad .code-head{background:rgba(251,113,133,0.06); border-bottom-color:var(--rose-dim);}
+  .bad .code-head .label{color:var(--rose);}
+  .good{border-color:var(--pulse-dim);}
+  .good .code-head{background:rgba(61,220,151,0.06); border-bottom-color:var(--pulse-dim);}
+  .good .code-head .label{color:var(--pulse);}
+
+  .code-pair{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:760px){ .code-pair{grid-template-columns:1fr;} }
+
+  /* ---------- Callout boxes ---------- */
+  .callout{border-radius:10px; padding:16px 18px; margin:20px 0; border:1px solid var(--border); background:var(--panel);}
+  .callout.info{border-left:3px solid var(--pulse);}
+  .callout.warn{border-left:3px solid var(--amber);}
+  .callout.danger{border-left:3px solid var(--rose);}
+  .callout .callout-title{font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; margin-bottom:6px; display:block;}
+  .callout.info .callout-title{color:var(--pulse);}
+  .callout.warn .callout-title{color:var(--amber);}
+  .callout.danger .callout-title{color:var(--rose);}
+  .callout p:last-child{margin-bottom:0;}
+
+  /* ---------- Tables ---------- */
+  .table-wrap{overflow-x:auto; margin:20px 0; border:1px solid var(--border); border-radius:10px;}
+  table{width:100%; border-collapse:collapse; min-width:560px;}
+  th,td{text-align:left; padding:12px 16px; font-size:14px; border-bottom:1px solid var(--border-soft); vertical-align:top;}
+  th{font-family:var(--font-mono); font-size:11.5px; color:var(--muted); letter-spacing:0.06em; background:var(--panel-2); text-transform:uppercase;}
+  tr:last-child td{border-bottom:none;}
+  td code{background:var(--panel-2); padding:2px 6px; border-radius:4px; font-size:12.5px; color:var(--pulse);}
+
+  /* ---------- Cards grid ---------- */
+  .cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px; margin-top:20px;}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px;}
+  .card h4{font-size:15px; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+  .card p{font-size:13.5px; color:var(--muted); margin-bottom:0;}
+
+  .bug-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:22px; margin-bottom:20px;}
+  .bug-card .bug-tag{
+    display:inline-block; font-family:var(--font-mono); font-size:11px; color:var(--rose);
+    border:1px solid var(--rose-dim); background:rgba(251,113,133,0.08); padding:3px 10px; border-radius:6px; margin-bottom:12px;
+  }
+  .bug-card h4{font-size:17px; margin-bottom:10px;}
+  .bug-card .why{font-size:14px; color:var(--muted); margin-bottom:6px;}
+
+  .tip-list{list-style:none; padding:0; margin:20px 0 0; display:grid; gap:12px;}
+  .tip-list li{
+    display:flex; gap:14px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+  }
+  .tip-num{font-family:var(--font-mono); color:var(--pulse); font-size:13px; flex-shrink:0; padding-top:2px;}
+  .tip-list strong{display:block; margin-bottom:3px; font-size:14.5px;}
+  .tip-list span.desc{font-size:13.5px; color:var(--muted);}
+
+  /* ---------- FAQ accordion ---------- */
+  .faq-item{border:1px solid var(--border); border-radius:10px; margin-bottom:12px; overflow:hidden; background:var(--panel);}
+  .faq-q{
+    width:100%; text-align:left; background:transparent; border:none; color:var(--text); cursor:pointer;
+    padding:18px 20px; font-family:var(--font-display); font-size:15.5px; font-weight:600;
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  .faq-q .plus{font-family:var(--font-mono); color:var(--pulse); font-size:18px; transition:transform 0.2s ease; flex-shrink:0;}
+  .faq-item.open .faq-q .plus{transform:rotate(45deg);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height 0.3s ease;}
+  .faq-a-inner{padding:0 20px 20px; font-size:14.5px; color:var(--muted);}
+  .faq-a-inner p{color:var(--muted);}
+
+  /* ---------- Interactive monitor demo ---------- */
+  .demo-box{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:24px; margin:24px 0;
+  }
+  .demo-top{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;}
+  .status-pill{
+    font-family:var(--font-mono); font-size:12px; padding:6px 14px; border-radius:20px; border:1px solid var(--border);
+    color:var(--muted); display:inline-flex; align-items:center; gap:8px;
+  }
+  .status-pill .dot{width:7px; height:7px; border-radius:50%; background:var(--muted);}
+  .status-pill.mounted{color:var(--pulse); border-color:var(--pulse-dim);}
+  .status-pill.mounted .dot{background:var(--pulse); box-shadow:0 0 6px var(--pulse);}
+  .status-pill.unmounted{color:var(--rose); border-color:var(--rose-dim);}
+  .status-pill.unmounted .dot{background:var(--rose);}
+
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--font-mono); font-size:12.5px; padding:9px 16px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--border); background:var(--panel-2); color:var(--text); transition:all 0.15s;
+  }
+  .btn:hover{border-color:var(--muted);}
+  .btn:disabled{opacity:0.35; cursor:not-allowed;}
+  .btn.primary{border-color:var(--pulse-dim); color:var(--pulse);}
+  .btn.primary:hover{background:rgba(61,220,151,0.08);}
+  .btn.danger{border-color:var(--rose-dim); color:var(--rose);}
+  .btn.danger:hover{background:rgba(251,113,133,0.08);}
+
+  .log-console{
+    background:var(--void); border:1px solid var(--border-soft); border-radius:10px; padding:14px 16px;
+    height:180px; overflow-y:auto; font-family:var(--font-mono); font-size:12.5px;
+  }
+  .log-line{padding:3px 0; color:var(--muted); border-bottom:1px dashed rgba(255,255,255,0.03);}
+  .log-line .t{color:#4A5876; margin-right:8px;}
+  .log-line.mount{color:var(--pulse);}
+  .log-line.update{color:var(--amber);}
+  .log-line.cleanup{color:var(--rose);}
+
+  .clock-display{
+    font-family:var(--font-mono); font-size:clamp(36px,7vw,56px); text-align:center; color:var(--pulse);
+    padding:20px 0; letter-spacing:0.02em;
+  }
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--border-soft); padding:40px 0; text-align:center;}
+  footer p{color:var(--muted); font-size:13px; margin:0;}
+
+  .badge-scenario{
+    display:inline-block; font-family:var(--font-mono); font-size:11px; padding:3px 9px; border-radius:6px; margin-right:6px;
+  }
+  .badge-scenario.a{background:rgba(61,220,151,0.1); color:var(--pulse); border:1px solid var(--pulse-dim);}
+  .badge-scenario.b{background:rgba(251,191,36,0.1); color:var(--amber); border:1px solid var(--amber-dim);}
+  .badge-scenario.c{background:rgba(251,113,133,0.1); color:var(--rose); border:1px solid var(--rose-dim);}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="#lifecycle">Lifecycle</a>
+  <a href="#sintaksis">Sintaksis</a>
+  <a href="#dependency">Dependency</a>
+  <a href="#cleanup">Cleanup</a>
+  <a href="#muqayise">Müqayisə</a>
+  <a href="#api-simulyasiya">API</a>
+  <a href="#timer-demo">Timer</a>
+  <a href="#tapshiriq">Tapşırıq</a>
+  <a href="#suallar">Suallar</a>
+  <a href="#xetalar">Xətalar</a>
+  <a href="#tovsiyeler">Tövsiyələr</a>
+</nav>
+
+<div class="layout">
+  <aside class="rail">
+    <div class="rail-eyebrow">DƏRS 04 · MÜNDƏRİCAT</div>
+    <a href="#lifecycle">01 · Lifecycle nədir</a>
+    <a href="#sintaksis">02 · useEffect sintaksisi</a>
+    <a href="#dependency">03 · Dependency array</a>
+    <a href="#cleanup">04 · Cleanup funksiyası</a>
+    <a href="#muqayise">05 · Class ilə müqayisə</a>
+    <a href="#api-simulyasiya">06 · API simulyasiyası</a>
+    <a href="#timer-demo">07 · Timer + Cleanup</a>
+    <a href="#tapshiriq">08 · Tapşırıq: Saat</a>
+    <a href="#suallar">09 · Tez-tez suallar</a>
+    <a href="#xetalar">10 · Xətalar və buglar</a>
+    <a href="#tovsiyeler">11 · Tövsiyələr</a>
+  </aside>
+
+  <div class="content">
+
+    <div class="hero wrap" style="padding-left:0; padding-right:0;">
+      <div class="eyebrow"><span class="dot"></span> DƏRS 4 · REACT HOOKS KURSU · ≈2.5 SAAT</div>
+      <h1>useEffect və Komponent <span class="accent">Lifecycle</span></h1>
+      <p class="lead">Hər React komponentinin bir həyatı var: doğulur (mount), yaşayır və dəyişir (update), sonra da səhnəni tərk edir (unmount). <strong>useEffect</strong> məhz bu üç anla danışmağınız üçün olan hook-dur.</p>
+      <div class="hero-meta">
+        <span class="chip">🎯 Nəzəriyyə + Praktika</span>
+        <span class="chip">🐞 Xətalar &amp; həllər</span>
+        <span class="chip">⏱ Canlı saat tapşırığı</span>
+        <span class="chip">❓ 3 tez-tez sual</span>
+      </div>
+
+      <div class="monitor">
+        <div class="monitor-labels">
+          <span id="lbl-mount">MOUNT</span>
+          <span id="lbl-update">UPDATE</span>
+          <span id="lbl-unmount">UNMOUNT</span>
+        </div>
+        <svg viewBox="0 0 900 120" preserveAspectRatio="none">
+          <line x1="0" y1="90" x2="900" y2="90" stroke="var(--border)" stroke-width="1"/>
+          <path id="ecg-path" d="M0,90 L120,90 L140,30 L160,110 L180,90 L360,90 L380,50 L400,90 L560,90 L580,20 L600,120 L620,90 L900,90"
+                fill="none" stroke="#3DDC97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle id="ecg-dot" cx="0" cy="90" r="5" fill="#3DDC97"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ============ 01 LIFECYCLE ============ -->
+    <section id="lifecycle" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">01</span><h2>Lifecycle anlayışı: mount, update, unmount</h2></div>
+      <p class="section-sub">Nəzəri hissə</p>
+
+      <p>Hər React komponenti ekranda üç mərhələdən keçir. Bu mərhələləri bir insanın həyat dövrü kimi düşünə bilərsiniz — doğulur, yaşayır, gedir. React də komponentin bu üç anını izləyir və sizə həmin anlarda kod işə salmaq imkanı verir.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mərhələ</th><th>Nə vaxt baş verir</th><th>Real həyat nümunəsi</th></tr></thead>
+          <tbody>
+            <tr><td><strong style="color:var(--pulse)">Mount</strong></td><td>Komponent ilk dəfə DOM-a əlavə olunur (ekranda ilk dəfə görünür)</td><td>Səhifəni açırsınız, komponent "doğulur"</td></tr>
+            <tr><td><strong style="color:var(--amber)">Update</strong></td><td>Komponentin <code>state</code> və ya <code>props</code>-u dəyişir, komponent yenidən render olunur</td><td>Düyməyə basırsınız, say dəyişir, ekran yenilənir</td></tr>
+            <tr><td><strong style="color:var(--rose)">Unmount</strong></td><td>Komponent DOM-dan silinir (ekrandan yox olur)</td><td>Başqa səhifəyə keçirsiniz, komponent "gedir"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Köhnə class komponentlərdə bu mərhələlər üçün ayrıca metodlar var idi: <code>componentDidMount</code>, <code>componentDidUpdate</code>, <code>componentWillUnmount</code>. Funksional komponentlərdə isə bütün bunları <strong>bir tək hook — <code>useEffect</code></strong> idarə edir. Fərq isə ondadır ki, hansı mərhələdə işləyəcəyini siz <em>dependency array</em> vasitəsilə təyin edirsiniz (aşağıda 03-cü bölmədə).</p>
+
+      <div class="callout info">
+        <span class="callout-title">💡 ANALOGIYA</span>
+        <p>useEffect-i bir "gözətçi" kimi düşünün: o, komponentin render olunmasından SONRA işə düşür və sizə deyir — "render bitdi, indi əlavə iş görə bilərsən" (API çağırışı, timer qurmaq, DOM-a birbaşa müdaxilə etmək və s.).</p>
+      </div>
+    </section>
+
+    <!-- ============ 02 SYNTAX ============ -->
+    <section id="sintaksis" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">02</span><h2>useEffect hook-unun sintaksisi</h2></div>
+
+      <p><code>useEffect</code> iki arqument qəbul edir: bir <strong>callback funksiya</strong> (effektin özü) və bir <strong>dependency array</strong> (nə vaxt işə düşəcəyini müəyyən edən siyahı).</p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="label">SİNTAKSİS</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre class="code-block"><code data-lang>useEffect(() => {
+  // 1️⃣ Bu hissə "effekt" — render-dən sonra icra olunan kod
+  console.log('Komponent render oldu');
+
+  return () => {
+    // 2️⃣ Bu hissə "cleanup" — növbəti effektdən əvvəl və ya unmount-da işə düşür
+    console.log('Təmizlik aparılır');
+  };
+}, [dependency1, dependency2]); // 3️⃣ Dependency array</code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hissə</th><th>Nədir</th></tr></thead>
+          <tbody>
+            <tr><td><code>() =&gt; { ... }</code></td><td>Effekt funksiyası — DOM güncəlləndikdən sonra işə düşən kod</td></tr>
+            <tr><td><code>return () =&gt; { ... }</code></td><td>İstəyə bağlı cleanup funksiyası (məcburi deyil, amma çox vaxt lazımdır)</td></tr>
+            <tr><td><code>[dependency1, dependency2]</code></td><td>Effektin hansı state/props dəyişəndə yenidən işə düşəcəyini göstərən massiv</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-title">⚠️ DİQQƏT</span>
+        <p>Effekt funksiyası <strong>heç vaxt birbaşa <code>async</code> ola bilməz</strong> (<code>useEffect(async () =&gt; {...})</code> — bu, React-in gözlədiyi cleanup funksiyası yerinə bir Promise qaytarır və xəbərdarlıq yaradır). Async məntiq lazımdırsa, effekt daxilində ayrıca async funksiya yazıb onu çağırmaq lazımdır. Bunu 06-cı bölmədə görəcəyik.</p>
+      </div>
+    </section>
+
+    <!-- ============ 03 DEPENDENCY ARRAY ============ -->
+    <section id="dependency" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">03</span><h2>Dependency array-in üç variantı</h2></div>
+      <p class="section-sub">Bu, useEffect-in ən vacib — və ən çox səhv edilən — hissəsidir.</p>
+
+      <div class="code-pair">
+        <div class="code-card">
+          <div class="code-head"><span class="label"><span class="badge-scenario a">1</span>BOŞ ARRAY []</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  console.log('Yalnız MOUNT zamanı');
+}, []); // boş array</code></pre>
+        </div>
+        <div class="code-card">
+          <div class="code-head"><span class="label"><span class="badge-scenario b">2</span>DOLU ARRAY [dep]</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  console.log('count dəyişəndə');
+}, [count]); // konkret dependency</code></pre>
+        </div>
+      </div>
+
+      <div class="code-card">
+        <div class="code-head"><span class="label"><span class="badge-scenario c">3</span>ARRAY HEÇ YOX</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre class="code-block"><code data-lang>useEffect(() => {
+  console.log('HƏR render-dən sonra');
+}); // ikinci arqument yoxdur</code></pre>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variant</th><th>İşə düşmə tezliyi</th><th>Nə vaxt istifadə olunur</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge-scenario a">[]</span> Boş array</td><td>Yalnız <strong>bir dəfə</strong>, mount zamanı</td><td>İlkin API sorğusu, event listener qoşmaq, timer başlatmaq</td></tr>
+            <tr><td><span class="badge-scenario b">[dep]</span> Dolu array</td><td>Mount zamanı + <strong>dep dəyişəndə</strong></td><td>Prop dəyişəndə yeni data çəkmək (məs. <code>userId</code> dəyişəndə istifadəçini yenidən yükləmək)</td></tr>
+            <tr><td><span class="badge-scenario c">yox</span> Array yoxdur</td><td><strong>Hər render-dən</strong> sonra, dayanmadan</td><td>Demək olar heç vaxt — çox nadir hallar üçün (debug, ölçmə). Adətən bu, səhv işarədir</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-title">🐞 ƏN ÇOX RASTLANAN SƏHV</span>
+        <p>Array-i tamamilə unutmaq (heç yazmamaq) ilə boş array <code>[]</code> yazmaq tamam fərqli davranışlardır. Bunun fərqini 09-cu bölmədəki suallarda ətraflı izah edirik.</p>
+      </div>
+    </section>
+
+    <!-- ============ 04 CLEANUP ============ -->
+    <section id="cleanup" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">04</span><h2>Cleanup funksiyası (return içində)</h2></div>
+
+      <p>Effekt funksiyasının içindən <strong>bir funksiya return etsəniz</strong>, React onu "cleanup" (təmizləmə) funksiyası hesab edir. Bu, açdığınız hər şeyi (timer, event listener, subscription) bağlamaq üçündür — əks halda "yaddaş sızması" (memory leak) yaranır.</p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="label">setInterval + CLEANUP</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre class="code-block"><code data-lang>useEffect(() => {
+  const id = setInterval(() => {
+    console.log('tick');
+  }, 1000);
+
+  return () => {
+    clearInterval(id); // komponent silinəndə interval-ı dayandırırıq
+  };
+}, []);</code></pre>
+      </div>
+
+      <p><strong>Cleanup dəqiq nə vaxt işə düşür?</strong> İki halda:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Hadisə</th><th>Cleanup işə düşürmü?</th></tr></thead>
+          <tbody>
+            <tr><td>Komponent <strong>unmount</strong> olur (ekrandan silinir)</td><td>✅ Bəli — son dəfə</td></tr>
+            <tr><td>Dependency array-dəki dəyər <strong>dəyişir</strong> (yeni effekt işə düşməzdən əvvəl)</td><td>✅ Bəli — köhnə effekti "yığışdırmaq" üçün</td></tr>
+            <tr><td>Boş array <code>[]</code> ilə komponent yenidən render olunur</td><td>❌ Xeyr — effekt heç vaxt təkrar işə düşmür, deməli cleanup da yalnız unmount-da çağırılır</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-title">💡 Vizual ardıcıllıq</span>
+        <p>Mount → Effekt işləyir → (dep dəyişir) → <strong>Cleanup (köhnə)</strong> → Effekt yenidən işləyir (yeni) → ... → Unmount → <strong>Cleanup (son dəfə)</strong>. Cleanup həmişə "növbəti effektdən bir addım əvvəl" gəlir.</p>
+      </div>
+    </section>
+
+    <!-- ============ 05 CLASS COMPARISON ============ -->
+    <section id="muqayise" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">05</span><h2>Class komponentlərlə qısa müqayisə</h2></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Class metodu</th><th>useEffect ekvivalenti</th></tr></thead>
+          <tbody>
+            <tr><td><code>componentDidMount()</code></td><td><code>useEffect(() =&gt; {...}, [])</code></td></tr>
+            <tr><td><code>componentDidUpdate(prevProps)</code></td><td><code>useEffect(() =&gt; {...}, [dep])</code></td></tr>
+            <tr><td><code>componentWillUnmount()</code></td><td><code>useEffect(() =&gt; { return () =&gt; {...} }, [])</code> — return edilən hissə</td></tr>
+            <tr><td>Hər üçü ayrı-ayrı yazılırdı</td><td>Bir <code>useEffect</code> daxilində birləşir — hətta bir komponentdə bir neçə <code>useEffect</code> yaza bilərsiniz, hər biri öz məsələsinə cavabdehdir</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-title">💡 NİYƏ BU DAHA YAXŞIDIR?</span>
+        <p>Class komponentlərdə əlaqəli məntiq (məs. bir subscription-un həm qoşulması, həm də söndürülməsi) iki fərqli metoda bölünmüş olurdu. useEffect-də isə eyni məntiq bir yerdə — həm qoşulma, həm söndürülmə (cleanup) — birgə yazılır. Bu, kodu oxumağı və saxlamağı asanlaşdırır.</p>
+      </div>
+    </section>
+
+    <!-- ============ 06 API SIMULATION ============ -->
+    <section id="api-simulyasiya" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">06</span><h2>Komponent yüklənəndə API çağırışının simulyasiyası</h2></div>
+      <p class="section-sub">Praktiki hissə</p>
+
+      <p>Ən çox rast gəlinən nümunə: komponent ekrana çıxanda serverdən data çəkmək. <code>userId</code> dəyişəndə isə yeni istifadəçini yenidən yükləmək lazımdır.</p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="label">USERPROFILE.JSX</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre class="code-block"><code data-lang>function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isCancelled = false; // ləğv etmə bayrağı
+    setLoading(true);
+
+    async function loadUser() {
+      const data = await fetchUser(userId); // simulyasiya olunmuş API
+      if (!isCancelled) {
+        setUser(data);
+        setLoading(false);
+      }
+    }
+
+    loadUser();
+
+    return () => {
+      isCancelled = true; // komponent silinərsə və ya userId dəyişərsə
+    };
+  }, [userId]); // userId dəyişəndə yenidən işə düşür
+
+  if (loading) return &lt;p&gt;Yüklənir...&lt;/p&gt;;
+  return &lt;h2&gt;{user.name}&lt;/h2&gt;;
+}</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-title">⚠️ NİYƏ isCancelled LAZIMDIR?</span>
+        <p>Təsəvvür edin <code>userId</code> tez-tez dəyişir (məs. istifadəçi siyahıda sürətlə klikləyir). Əvvəlki sorğu hələ tamamlanmamış ola bilər, amma artıq köhnəlib. <code>isCancelled</code> bayrağı həmin köhnə nəticənin state-i səhv yeniləməsinin qarşısını alır — bunu 10-cu bölmədə "yarış vəziyyəti" kimi ətraflı görəcəyik.</p>
+      </div>
+    </section>
+
+    <!-- ============ 07 TIMER DEMO (INTERACTIVE) ============ -->
+    <section id="timer-demo" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">07</span><h2>Timer/interval yaradıb cleanup ilə təmizləmə</h2></div>
+      <p class="section-sub">Aşağıdakı panel real komponent lifecycle-ını simulyasiya edir — düymələrə basın və log-a baxın.</p>
+
+      <div class="demo-box">
+        <div class="demo-top">
+          <span class="status-pill" id="status-pill"><span class="dot"></span><span id="status-text">Unmounted</span></span>
+          <div class="btn-row">
+            <button class="btn primary" id="btn-mount">▶ Mount et</button>
+            <button class="btn" id="btn-update">↻ Force Update</button>
+            <button class="btn danger" id="btn-unmount">⏻ Unmount et</button>
+          </div>
+        </div>
+        <div class="log-console" id="log-console">
+          <div class="log-line"><span class="t">--:--:--</span>Gözləmədə. "Mount et" düyməsinə basın.</div>
+        </div>
+      </div>
+
+      <p>Bu demo arxa planda tam olaraq aşağıdakı React koduna bənzər məntiqlə işləyir:</p>
+
+      <div class="code-card">
+        <div class="code-head"><span class="label">TIMERDEMO.JSX</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre class="code-block"><code data-lang>function TimerDemo() {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    console.log('🟢 Effekt işə düşdü: interval quruldu');
+    const id = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 1000);
+
+    return () => {
+      console.log('🔴 Cleanup: interval təmizləndi');
+      clearInterval(id);
+    };
+  }, []); // yalnız mount zamanı bir dəfə qurulur
+
+  return &lt;p&gt;Tick: {tick}&lt;/p&gt;;
+}</code></pre>
+      </div>
+
+      <div class="callout danger">
+        <span class="callout-title">🐞 UNMOUNT-DA NİYƏ MÜTLƏQ clearInterval LAZIMDIR?</span>
+        <p>Əgər cleanup yazılmasa, komponent ekrandan silinsə belə <code>setInterval</code> arxa planda işləməyə davam edir. Bu, həm lazımsız CPU/yaddaş istifadəsi, həm də "artıq mövcud olmayan komponentin state-ini yeniləməyə cəhd" xətası yaradır.</p>
+      </div>
+    </section>
+
+    <!-- ============ 08 DEPENDENCY SCENARIOS ============ -->
+    <section id="ssenarilər-anchor" class="wrap" style="padding-left:0;padding-right:0; padding-top:0; margin-top:-40px;">
+      <h3 style="font-size:18px; color:var(--muted); font-weight:500; margin-bottom:8px;">Dependency array-in fərqli ssenarilərdə sınanması</h3>
+      <p>Bunu real hiss etmək üçün ən yaxşı yol — yuxarıdakı "Force Update" düyməsini bir neçə dəfə basıb log-a baxmaqdır: effekt <strong>yalnız mount zamanı bir dəfə</strong> işə düşür, "Force Update" isə heç bir yeni effekt tetiklemir, çünki array boşdur (<code>[]</code>). Əgər array-i <code>[tick]</code> etsəydik, hər tick dəyişəndə effekt təzədən işə düşərdi.</p>
+    </section>
+
+    <!-- ============ 09 ASSIGNMENT: CLOCK ============ -->
+    <section id="tapshiriq" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">08</span><h2>Tapşırıq: Hər saniyə yenilənən saat komponenti</h2></div>
+      <p class="section-sub">useEffect + cleanup</p>
+
+      <p>Məqsəd: <code>useState</code> ilə cari vaxtı saxlayan, <code>useEffect</code> daxilində <code>setInterval</code> ilə hər saniyə yeniləyən və <code>cleanup</code> ilə komponent silinəndə interval-ı dayandıran bir <strong>Clock</strong> komponenti yazın.</p>
+
+      <div class="demo-box">
+        <div class="demo-top">
+          <span class="status-pill" id="clock-status-pill"><span class="dot"></span><span id="clock-status-text">Unmounted</span></span>
+          <div class="btn-row">
+            <button class="btn primary" id="btn-clock-mount">▶ Saat komponentini mount et</button>
+            <button class="btn danger" id="btn-clock-unmount">⏻ Unmount et</button>
+          </div>
+        </div>
+        <div class="clock-display" id="clock-display">--:--:--</div>
+      </div>
+
+      <div class="code-card">
+        <div class="code-head"><span class="label">CLOCK.JSX — HƏLL</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre class="code-block"><code data-lang>function Clock() {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+
+    // Cleanup: komponent unmount olanda interval dayanır
+    return () => clearInterval(timerId);
+  }, []); // boş array — timer yalnız bir dəfə qurulur
+
+  return (
+    &lt;h1&gt;{time.toLocaleTimeString()}&lt;/h1&gt;
+  );
+}</code></pre>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-title">🎯 ÖZÜNÜZ SINAYIN</span>
+        <p>Tapşırığı bir addım da inkişaf etdirin: saatı 12-saatlıq/24-saatlıq formatlar arasında keçirən bir düymə əlavə edin (bunun üçün əlavə <code>useEffect</code> lazım deyil — sadəcə render zamanı format seçimini state-ə görə tətbiq edin).</p>
+      </div>
+    </section>
+
+    <!-- ============ 09 FAQ ============ -->
+    <section id="suallar" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">09</span><h2>Tez-tez verilən suallar</h2></div>
+
+      <div class="faq-item">
+        <button class="faq-q"><span>useEffect niyə sonsuz loop-a düşür, bunun qarşısı necə alınır?</span><span class="plus">+</span></button>
+        <div class="faq-a"><div class="faq-a-inner">
+          <p>Ən tipik səbəb: effekt daxilində elə bir state-i yeniləyirsiniz ki, o state həm də effektin dependency array-indədir (və ya array ümumiyyətlə yoxdur). Nəticə: state dəyişir → komponent yenidən render olunur → effekt təzədən işə düşür → state yenə dəyişir → sonsuz dövr.</p>
+          <div class="code-pair" style="margin-top:14px;">
+            <div class="code-card bad">
+              <div class="code-head"><span class="label">❌ SƏHV</span></div>
+              <pre class="code-block"><code data-lang>useEffect(() => {
+  setCount(count + 1); // hər render-də çağırılır
+}); // array yoxdur!</code></pre>
+            </div>
+            <div class="code-card good">
+              <div class="code-head"><span class="label">✅ DÜZGÜN</span></div>
+              <pre class="code-block"><code data-lang>useEffect(() => {
+  setCount((prev) => prev + 1);
+}, []); // yalnız 1 dəfə</code></pre>
+            </div>
+          </div>
+          <p style="margin-top:14px;">Qarşısını almaq üçün: (1) dependency array-i dəqiq müəyyən edin, (2) mümkünsə funksional yeniləmə formasından (<code>prev =&gt; prev + 1</code>) istifadə edin ki, cari dəyərə asılı olmayasınız, (3) ESLint-in <code>react-hooks/exhaustive-deps</code> qaydasını aktiv saxlayın — o sizə əskik və ya lazımsız dependency-ləri göstərir.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q"><span>Cleanup funksiyası dəqiq nə vaxt işə düşür?</span><span class="plus">+</span></button>
+        <div class="faq-a"><div class="faq-a-inner">
+          <p>İki konkret anda: (1) komponent <strong>unmount</strong> olanda — son dəfə, hər şeyi yığışdırmaq üçün; (2) dependency array-dəki dəyər <strong>dəyişəndə</strong> — yeni effekt işə düşməzdən <em>bir addım əvvəl</em>, köhnə effekti təmizləmək üçün.</p>
+          <p>Yəni array-siz useEffect-də cleanup <strong>hər render-dən əvvəl</strong> işə düşür (çünki effekt hər render-dən sonra təkrar qurulur). Boş array <code>[]</code> olduqda isə effekt heç vaxt təkrarlanmır, ona görə cleanup yalnız unmount zamanı — bir dəfə — çağırılır.</p>
+        </div></div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q"><span>Dependency array-i boş qoymaqla heç qoymamağın fərqi nədir?</span><span class="plus">+</span></button>
+        <div class="faq-a"><div class="faq-a-inner">
+          <p><code>[]</code> (boş array) — React-ə deyirsiniz: "bu effektin heç bir asılılığı yoxdur, ona görə yalnız mount zamanı bir dəfə işlət". Array-i ümumiyyətlə yazmamaq isə tam əksinədir: "asılılıqları izləmə, sadəcə hər render-dən sonra işlət" — yəni <strong>həmişə, dayanmadan</strong>.</p>
+          <p>Praktik nəticə: boş array performans baxımından təhlükəsizdir və ən çox istifadə olunan variantdır. Array-i unutmaq isə çox vaxt performans problemlərinə və ya (yuxarıda gördüyümüz kimi) sonsuz loop-lara aparır. Əgər niyyətiniz "hər render-dən sonra işlət" deyilsə, array-i heç vaxt boş qoymayın.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ============ 10 BUGS ============ -->
+    <section id="xetalar" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">10</span><h2>Ola biləcək xətalar və buglar</h2></div>
+      <p class="section-sub">Yeni başlayanların useEffect ilə ən çox rastlaşdığı problemlər</p>
+
+      <div class="bug-card">
+        <span class="bug-tag">BUG 1 · SONSUZ LOOP</span>
+        <h4>State-i effekt daxilində şərtsiz yeniləmək</h4>
+        <p class="why">Dependency array-siz (və ya səhv array ilə) effekt daxilində state dəyişdirmək hər render-i yeni render-ə səbəb edir.</p>
+        <div class="code-pair">
+          <div class="code-card bad"><div class="code-head"><span class="label">❌ SƏHV</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  setCount(count + 1);
+});</code></pre></div>
+          <div class="code-card good"><div class="code-head"><span class="label">✅ HƏLL</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  setCount((p) => p + 1);
+}, []);</code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-tag">BUG 2 · YADDAŞ SIZMASI</span>
+        <h4>Cleanup-ı unutmaq</h4>
+        <p class="why">Event listener, interval və ya subscription açılır, amma heç vaxt bağlanmır — komponent silinəndən sonra da arxa planda işləməyə davam edir.</p>
+        <div class="code-pair">
+          <div class="code-card bad"><div class="code-head"><span class="label">❌ SƏHV</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  window.addEventListener(
+    'resize', handleResize
+  );
+}, []);</code></pre></div>
+          <div class="code-card good"><div class="code-head"><span class="label">✅ HƏLL</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  window.addEventListener('resize', handleResize);
+  return () =>
+    window.removeEventListener('resize', handleResize);
+}, []);</code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-tag">BUG 3 · KÖHNƏLMİŞ CLOSURE (STALE CLOSURE)</span>
+        <h4>Effekt daxilində köhnə state dəyərinin "yaddaşda qalması"</h4>
+        <p class="why">Dependency array-də göstərilməyən bir dəyişən effekt daxilində istifadə olunanda, effekt həmişə o dəyişənin <em>ilk</em> (yaradıldığı andakı) dəyərini "xatırlayır".</p>
+        <div class="code-pair">
+          <div class="code-card bad"><div class="code-head"><span class="label">❌ SƏHV</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  const id = setInterval(() => {
+    console.log(count); // həmişə ilkin dəyər
+  }, 1000);
+  return () => clearInterval(id);
+}, []); // count əskikdir</code></pre></div>
+          <div class="code-card good"><div class="code-head"><span class="label">✅ HƏLL</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  const id = setInterval(() => {
+    console.log(count);
+  }, 1000);
+  return () => clearInterval(id);
+}, [count]); // dependency əlavə edildi</code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-tag">BUG 4 · YARIŞ VƏZİYYƏTİ (RACE CONDITION)</span>
+        <h4>Sürətlə dəyişən props zamanı köhnə API cavabının state-i "əzməsi"</h4>
+        <p class="why"><code>userId</code> sürətlə dəyişəndə əvvəlki sorğu sonradan tamamlana bilər və köhnə data yeni datanın üzərinə yazıla bilər.</p>
+        <div class="code-pair">
+          <div class="code-card bad"><div class="code-head"><span class="label">❌ SƏHV</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  fetchUser(userId).then(setUser);
+}, [userId]);</code></pre></div>
+          <div class="code-card good"><div class="code-head"><span class="label">✅ HƏLL</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  let cancelled = false;
+  fetchUser(userId).then((d) => {
+    if (!cancelled) setUser(d);
+  });
+  return () => { cancelled = true; };
+}, [userId]);</code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-tag">BUG 5 · ASYNC FUNKSİYA BİRBAŞA useEffect-Ə VERİLİR</span>
+        <h4><code>useEffect(async () =&gt; {...})</code> yazmaq</h4>
+        <p class="why">Effekt funksiyası ya heç nə, ya da funksiya (cleanup) qaytarmalıdır. <code>async</code> funksiya isə həmişə Promise qaytarır — React bunu səhv kimi qəbul edir.</p>
+        <div class="code-pair">
+          <div class="code-card bad"><div class="code-head"><span class="label">❌ SƏHV</span></div>
+          <pre class="code-block"><code data-lang>useEffect(async () => {
+  const d = await fetchUser(id);
+  setUser(d);
+}, [id]);</code></pre></div>
+          <div class="code-card good"><div class="code-head"><span class="label">✅ HƏLL</span></div>
+          <pre class="code-block"><code data-lang>useEffect(() => {
+  async function load() {
+    const d = await fetchUser(id);
+    setUser(d);
+  }
+  load();
+}, [id]);</code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-tag">BUG 6 · LAZIMSIZ EFFECT İSTİFADƏSİ</span>
+        <h4>Render zamanı hesablana bilən dəyər üçün effekt yazmaq</h4>
+        <p class="why">Əgər dəyəri mövcud state/props-dan birbaşa hesablamaq mümkündürsə, buna görə əlavə state + effekt yaratmağa ehtiyac yoxdur — bu, lazımsız re-render yaradır.</p>
+        <div class="code-pair">
+          <div class="code-card bad"><div class="code-head"><span class="label">❌ SƏHV</span></div>
+          <pre class="code-block"><code data-lang>const [full, setFull] = useState('');
+useEffect(() => {
+  setFull(first + ' ' + last);
+}, [first, last]);</code></pre></div>
+          <div class="code-card good"><div class="code-head"><span class="label">✅ HƏLL</span></div>
+          <pre class="code-block"><code data-lang>const full = first + ' ' + last;
+// effekt lazım deyil, birbaşa render zamanı hesablanır</code></pre></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 11 BEST PRACTICES ============ -->
+    <section id="tovsiyeler" class="wrap" style="padding-left:0;padding-right:0;">
+      <div class="section-head"><span class="section-num">11</span><h2>Nələri etsək daha yaxşı olar</h2></div>
+      <p class="section-sub">Tövsiyələr və yaxşı təcrübələr</p>
+
+      <ul class="tip-list">
+        <li><span class="tip-num">01</span><div><strong>ESLint-in <code>react-hooks/exhaustive-deps</code> qaydasını aktiv saxlayın</strong><span class="desc">Bu qayda əskik və ya lazımsız dependency-ləri avtomatik aşkarlayır — stale closure və sonsuz loop kimi bugların qarşısını erkən alır.</span></div></li>
+        <li><span class="tip-num">02</span><div><strong>Bir useEffect — bir məsuliyyət</strong><span class="desc">Əlaqəsiz iki işi (məs. həm data yükləmək, həm resize dinləmək) bir effektə yığmayın — hər biri üçün ayrı <code>useEffect</code> yazın ki, kod oxunaqlı qalsın.</span></div></li>
+        <li><span class="tip-num">03</span><div><strong>Asinxron sorğularda ləğv məntiqi əlavə edin</strong><span class="desc"><code>isCancelled</code> bayrağı və ya <code>AbortController</code> istifadə edərək köhnə sorğu nəticələrinin yeni state-i "əzməsinin" qarşısını alın.</span></div></li>
+        <li><span class="tip-num">04</span><div><strong>Timer, listener və ya subscription açan hər effektdə cleanup qaytarın</strong><span class="desc"><code>setInterval</code> → <code>clearInterval</code>, <code>addEventListener</code> → <code>removeEventListener</code>. Açdığınızı həmişə bağlayın.</span></div></li>
+        <li><span class="tip-num">05</span><div><strong>Təkrarlanan effekt məntiqini custom hook-a çıxarın</strong><span class="desc">Məs. <code>useInterval(callback, delay)</code> və ya <code>useFetch(url)</code> — eyni useEffect məntiqini layihə boyu təkrar yazmaqdansa, bir dəfə hook yazıb hər yerdə istifadə edin.</span></div></li>
+        <li><span class="tip-num">06</span><div><strong>Render zamanı hesablana bilən şey üçün effect yazmayın</strong><span class="desc">React-in rəsmi tövsiyəsi: "əgər dəyəri mövcud props/state-dən birbaşa hesablaya bilirsinizsə, ona effekt lazım deyil".</span></div></li>
+        <li><span class="tip-num">07</span><div><strong>Render-i tetikləməli olmayan dəyərlər üçün <code>useRef</code> işlədin</strong><span class="desc">Interval ID-si, əvvəlki dəyər kimi şeylər üçün state yerinə ref istifadə etmək lazımsız re-render-lərin qarşısını alır.</span></div></li>
+        <li><span class="tip-num">08</span><div><strong>Effekti "niyə lazımdır" sualı ilə yoxlayın</strong><span class="desc">Hər <code>useEffect</code> yazmazdan əvvəl özünüzə sual verin: "bu, xarici sistemlə (API, DOM, timer, brauzer) sinxronizasiyadırmı, yoxsa sadəcə hesablamadır?" Yalnız birincisi effekt tələb edir.</span></div></li>
+      </ul>
+    </section>
+
+    <footer class="wrap">
+      <p>Dərs 4 · useEffect və Komponent Lifecycle · React Hooks Kursu</p>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- syntax highlighting (safe, self-contained) ---------- */
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  var TOKEN_RE = /(\/\/[^\n]*)|(`(?:\\[\s\S]|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b(?:const|let|var|function|return|if|else|import|from|export|default|async|await|new|class|extends|this|null|undefined|true|false|of|in|try|catch|finally|throw|typeof)\b)|(\buse[A-Z]\w*\b)|(\b\d+(?:\.\d+)?\b)|(&lt;\/?[A-Za-z][\w.-]*)|(\/?&gt;)/g;
+
+  function highlight(escaped){
+    return escaped.replace(TOKEN_RE, function(m,c,s,k,h,n,to,tc){
+      if(c) return '<span class="tok-c">'+c+'</span>';
+      if(s) return '<span class="tok-s">'+s+'</span>';
+      if(k) return '<span class="tok-k">'+k+'</span>';
+      if(h) return '<span class="tok-h">'+h+'</span>';
+      if(n) return '<span class="tok-n">'+n+'</span>';
+      if(to) return '<span class="tok-t">'+to+'</span>';
+      if(tc) return '<span class="tok-t">'+tc+'</span>';
+      return m;
+    });
+  }
+
+  try{
+    document.querySelectorAll('pre.code-block code[data-lang]').forEach(function(el){
+      var raw = el.textContent;
+      el.innerHTML = highlight(escapeHtml(raw));
+    });
+  }catch(e){ /* fail silently, plain text still readable */ }
+
+  /* ---------- copy buttons ---------- */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var codeEl = btn.closest('.code-card').querySelector('code');
+      var text = codeEl ? codeEl.textContent : '';
+      var done = function(){ var orig = btn.textContent; btn.textContent = 'Kopyalandı ✓'; setTimeout(function(){ btn.textContent = orig; }, 1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(function(){});
+      }
+    });
+  });
+
+  /* ---------- FAQ accordion ---------- */
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var q = item.querySelector('.faq-q');
+    var a = item.querySelector('.faq-a');
+    q.addEventListener('click', function(){
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(function(o){
+        if(o !== item){ o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null; }
+      });
+      if(isOpen){
+        item.classList.remove('open');
+        a.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+
+  /* ---------- scroll progress + scrollspy ---------- */
+  var progressBar = document.getElementById('progress-bar');
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section[id]'));
+  var railLinks = document.querySelectorAll('.rail a');
+  var mobileLinks = document.querySelectorAll('.mobile-nav a');
+
+  function onScroll(){
+    var scrollTop = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+
+    var current = null;
+    sections.forEach(function(sec){
+      var rect = sec.getBoundingClientRect();
+      if(rect.top <= 140) current = sec.id;
+    });
+    railLinks.forEach(function(l){
+      l.classList.toggle('active', current && l.getAttribute('href') === '#' + current);
+    });
+    mobileLinks.forEach(function(l){
+      l.classList.toggle('active', current && l.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- hero ECG dot animation ---------- */
+  var ecgPath = document.getElementById('ecg-path');
+  var ecgDot = document.getElementById('ecg-dot');
+  var lblMount = document.getElementById('lbl-mount');
+  var lblUpdate = document.getElementById('lbl-update');
+  var lblUnmount = document.getElementById('lbl-unmount');
+  if(ecgPath && ecgDot && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    var len = ecgPath.getTotalLength();
+    var duration = 4200; // ms per loop
+    var start = null;
+    function frame(ts){
+      if(!start) start = ts;
+      var elapsed = (ts - start) % duration;
+      var frac = elapsed / duration;
+      var point = ecgPath.getPointAtLength(frac * len);
+      ecgDot.setAttribute('cx', point.x);
+      ecgDot.setAttribute('cy', point.y);
+
+      lblMount.classList.toggle('on', frac < 0.2);
+      lblUpdate.classList.toggle('on', frac >= 0.2 && frac < 0.65);
+      lblUnmount.classList.toggle('on', frac >= 0.65);
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- interactive lifecycle monitor demo ---------- */
+  (function(){
+    var pill = document.getElementById('status-pill');
+    var statusText = document.getElementById('status-text');
+    var logEl = document.getElementById('log-console');
+    var btnMount = document.getElementById('btn-mount');
+    var btnUpdate = document.getElementById('btn-update');
+    var btnUnmount = document.getElementById('btn-unmount');
+    var intervalId = null;
+    var tick = 0;
+
+    function timeStr(){
+      var d = new Date();
+      return d.toTimeString().slice(0,8);
+    }
+    function log(msg, cls){
+      var line = document.createElement('div');
+      line.className = 'log-line' + (cls ? ' ' + cls : '');
+      line.innerHTML = '<span class="t">' + timeStr() + '</span>' + msg;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function setMounted(isMounted){
+      pill.classList.toggle('mounted', isMounted);
+      pill.classList.toggle('unmounted', !isMounted);
+      statusText.textContent = isMounted ? 'Mounted' : 'Unmounted';
+      btnMount.disabled = isMounted;
+      btnUpdate.disabled = !isMounted;
+      btnUnmount.disabled = !isMounted;
+    }
+    setMounted(false);
+    btnUpdate.disabled = true;
+    btnUnmount.disabled = true;
+
+    btnMount.addEventListener('click', function(){
+      tick = 0;
+      log('🟢 <strong>useEffect</strong> işə düşdü — setInterval quruldu ([] dependency)', 'mount');
+      intervalId = setInterval(function(){
+        tick++;
+        log('⏱ interval tick #' + tick + ' (real cleanup olmasa, bu, unmount-dan sonra da davam edərdi)', 'update');
+      }, 1500);
+      setMounted(true);
+    });
+
+    btnUpdate.addEventListener('click', function(){
+      log('🟡 Force update — render təkrarlandı, amma dependency array boş olduğu üçün effekt YENİDƏN İŞƏ DÜŞMÜR', 'update');
+    });
+
+    btnUnmount.addEventListener('click', function(){
+      clearInterval(intervalId);
+      log('🔴 <strong>Cleanup</strong> işə düşdü — clearInterval() çağırıldı, komponent unmount olundu', 'cleanup');
+      setMounted(false);
+    });
+  })();
+
+  /* ---------- clock assignment demo ---------- */
+  (function(){
+    var pill = document.getElementById('clock-status-pill');
+    var statusText = document.getElementById('clock-status-text');
+    var display = document.getElementById('clock-display');
+    var btnMount = document.getElementById('btn-clock-mount');
+    var btnUnmount = document.getElementById('btn-clock-unmount');
+    var intervalId = null;
+
+    function tickClock(){
+      display.textContent = new Date().toLocaleTimeString('az-AZ');
+    }
+    function setMounted(isMounted){
+      pill.classList.toggle('mounted', isMounted);
+      pill.classList.toggle('unmounted', !isMounted);
+      statusText.textContent = isMounted ? 'Mounted' : 'Unmounted';
+      btnMount.disabled = isMounted;
+      btnUnmount.disabled = !isMounted;
+    }
+    setMounted(false);
+    btnUnmount.disabled = true;
+
+    btnMount.addEventListener('click', function(){
+      tickClock();
+      intervalId = setInterval(tickClock, 1000); // == useEffect body
+      setMounted(true);
+    });
+    btnUnmount.addEventListener('click', function(){
+      clearInterval(intervalId); // == cleanup: return () => clearInterval(timerId)
+      display.textContent = '--:--:--';
+      setMounted(false);
+    });
+  })();
+
+})();
+</script>
+
+</body>
+</html>

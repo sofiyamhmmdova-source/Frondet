@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HTML əsasları — İsmet Academy</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, "Segoe UI", Arial, sans-serif; color: #172033; background: #f3f6fb; }
+      * { box-sizing: border-box; }
+      body { margin: 0; line-height: 1.7; }
+      header { padding: 48px 24px; color: white; background: linear-gradient(120deg, #1d4ed8, #0891b2); }
+      header, main { padding-left: max(24px, calc((100% - 900px) / 2)); padding-right: max(24px, calc((100% - 900px) / 2)); }
+      main { padding-top: 32px; padding-bottom: 64px; }
+      h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; }
+      h2 { margin-top: 36px; color: #1d4ed8; }
+      p, li { max-width: 75ch; }
+      section, .note { margin: 20px 0; padding: 22px; border: 1px solid #dbe3ef; border-radius: 16px; background: white; }
+      .note { border-left: 5px solid #0891b2; }
+      pre { overflow-x: auto; padding: 18px; border-radius: 12px; color: #e2e8f0; background: #172033; }
+      code { font-family: Consolas, "Courier New", monospace; }
+      .back { display: inline-block; margin-top: 22px; color: #dbeafe; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <p>İsmet Academy · HTML dərsi</p>
+      <h1>HTML əsasları</h1>
+      <p>Səhifənin strukturunu qur, məzmunu semantik teqlərlə təşkil et və əlçatan formalar hazırla.</p>
+      <a class="back" href="/">← Kurs səhifəsinə qayıt</a>
+    </header>
+    <main>
+      <section>
+        <h2>1. HTML sənədinin quruluşu</h2>
+        <p>HTML brauzerə səhifədə hansı məzmunun olduğunu bildirir. Sənəd <code>doctype</code> ilə başlayır; <code>head</code> bölməsində metadata, <code>body</code> bölməsində isə görünən məzmun yerləşir.</p>
+        <pre><code>&lt;!doctype html&gt;
+&lt;html lang="az"&gt;
+  &lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+    &lt;title&gt;Mənim səhifəm&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Salam!&lt;/h1&gt;
+    &lt;p&gt;Mənim ilk səhifəm.&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </section>
+      <section>
+        <h2>2. Başlıqlar, mətn və keçidlər</h2>
+        <p><code>h1</code> əsas başlıqdır; sonrakı bölmələr üçün <code>h2</code> və <code>h3</code> istifadə et. Başlıq səviyyələrini görünüşə görə yox, məzmunun quruluşuna görə seç.</p>
+        <pre><code>&lt;h1&gt;Portfolio&lt;/h1&gt;
+&lt;h2&gt;Haqqımda&lt;/h2&gt;
+&lt;p&gt;Mən veb proqramlaşdırma öyrənirəm.&lt;/p&gt;
+&lt;a href="https://example.com"&gt;Layihələrimə bax&lt;/a&gt;</code></pre>
+        <p>Siyahılar üçün <code>ul</code>/<code>ol</code> və onların içində <code>li</code> teqindən istifadə olunur. Şəkillərə məzmunu izah edən <code>alt</code> mətni əlavə et.</p>
+      </section>
+      <section>
+        <h2>3. Semantik səhifə quruluşu</h2>
+        <p>Semantik teqlər səhifə hissələrinin məqsədini bildirir və həm oxunaqlılığı, həm də əlçatanlığı yaxşılaşdırır.</p>
+        <pre><code>&lt;header&gt;Saytın başlığı&lt;/header&gt;
+&lt;nav aria-label="Əsas menyu"&gt;Keçidlər&lt;/nav&gt;
+&lt;main&gt;
+  &lt;section&gt;
+    &lt;h2&gt;Layihələr&lt;/h2&gt;
+    &lt;article&gt;Portfolio layihəsi&lt;/article&gt;
+  &lt;/section&gt;
+&lt;/main&gt;
+&lt;footer&gt;Əlaqə məlumatları&lt;/footer&gt;</code></pre>
+      </section>
+      <section>
+        <h2>4. Əlçatan forma</h2>
+        <p>Hər input üçün görünən <code>label</code> yarat. <code>for</code> atributu input-un <code>id</code> dəyərinə uyğun olmalıdır. Uyğun input tipindən istifadə et ki, brauzer məlumatı yoxlamağa kömək etsin.</p>
+        <pre><code>&lt;form&gt;
+  &lt;label for="email"&gt;Email&lt;/label&gt;
+  &lt;input id="email" name="email" type="email" required&gt;
+  &lt;button type="submit"&gt;Göndər&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+      </section>
+      <aside class="note">
+        <strong>Tapşırıq:</strong> Özün haqqında portfolio səhifəsi hazırla. Səhifədə semantik header, menyu, “Haqqımda” bölməsi, ən azı iki layihə, alt mətnli şəkil və əlaqə forması olsun.
+      </aside>
+    </main>
+  </body>
+</html>

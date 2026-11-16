@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 3 — State, useState və Event Handling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0c11;
+    --bg-soft:#0d1017;
+    --panel:#12151d;
+    --panel-elevated:#171b26;
+    --border:#232838;
+    --border-soft:#1b2030;
+    --text:#e7ecf6;
+    --text-dim:#8b93a7;
+    --text-faint:#545d72;
+    --purple:#b58cff;
+    --purple-dim:#8f6fd1;
+    --green:#7ee2a8;
+    --blue:#6fb7ff;
+    --orange:#ffb066;
+    --pink:#ff85a8;
+    --red:#ff6b6b;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+    --container:980px;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(181,140,255,0.09), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(111,183,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  a{color:var(--purple);}
+  ::selection{background:rgba(181,140,255,0.35); color:#fff;}
+
+  a:focus-visible, button:focus-visible, input:focus-visible, .navpill:focus-visible{
+    outline:2px solid var(--blue);
+    outline-offset:2px;
+    border-radius:6px;
+  }
+
+  img,svg{max-width:100%;}
+
+  /* ---------- progress bar ---------- */
+  .progress-bar{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg, var(--purple), var(--blue), var(--green));
+    z-index:200;
+    transition:width 0.08s linear;
+  }
+
+  /* ---------- top nav ---------- */
+  .topnav{
+    position:sticky; top:0; z-index:150;
+    background:rgba(10,12,17,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+    padding:12px 0;
+  }
+  .topnav-inner{
+    max-width:var(--container);
+    margin:0 auto;
+    padding:0 20px;
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .topnav-inner::-webkit-scrollbar{display:none;}
+  .navpill{
+    flex:0 0 auto;
+    font-family:var(--font-mono);
+    font-size:0.74rem;
+    color:var(--text-dim);
+    text-decoration:none;
+    padding:7px 13px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    white-space:nowrap;
+    transition:all .15s ease;
+  }
+  .navpill:hover{color:var(--text); border-color:var(--purple-dim);}
+  .navpill.active{
+    color:#0a0c11;
+    background:var(--purple);
+    border-color:var(--purple);
+    font-weight:600;
+  }
+
+  /* ---------- layout helpers ---------- */
+  main{max-width:var(--container); margin:0 auto; padding:0 20px;}
+  section{padding:64px 0; border-bottom:1px solid var(--border-soft);}
+  section:last-of-type{border-bottom:none;}
+
+  .section-label{
+    font-family:var(--font-mono);
+    font-size:0.78rem;
+    color:var(--purple);
+    letter-spacing:0.02em;
+    margin:0 0 10px 0;
+  }
+  .section-label::before{content:"// ";color:var(--text-faint);}
+
+  h1,h2,h3,h4{font-family:var(--font-display); font-weight:600; line-height:1.25; margin:0;}
+  h2{font-size:clamp(1.5rem, 3vw, 2.05rem); margin-bottom:18px; color:#fff;}
+  h3{font-size:1.2rem; margin-bottom:10px; color:#fff;}
+  h4{font-size:1rem; color:var(--text);}
+
+  p{color:var(--text-dim); margin:0 0 14px 0;}
+  .lead{font-size:1.08rem; color:var(--text); max-width:70ch;}
+  strong{color:#fff; font-weight:600;}
+  code.inline{
+    font-family:var(--font-mono);
+    background:var(--panel-elevated);
+    border:1px solid var(--border);
+    padding:2px 7px;
+    border-radius:6px;
+    font-size:0.86em;
+    color:var(--green);
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    max-width:var(--container);
+    margin:0 auto;
+    padding:72px 20px 48px;
+  }
+  .hero-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--green);
+    border:1px solid rgba(126,226,168,0.3);
+    background:rgba(126,226,168,0.06);
+    padding:6px 12px; border-radius:999px;
+    margin-bottom:22px;
+  }
+  .hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green); box-shadow:0 0 8px var(--green);}
+  .hero h1{font-size:clamp(2rem, 5vw, 3.1rem); color:#fff; max-width:16ch;}
+  .hero h1 span{
+    background:linear-gradient(90deg, var(--purple), var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero-sub{font-size:1.1rem; color:var(--text-dim); max-width:62ch; margin-top:18px;}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:12px; margin-top:28px;}
+  .meta-chip{
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--text-dim);
+    border:1px solid var(--border); padding:7px 12px; border-radius:8px;
+    display:flex; align-items:center; gap:6px;
+  }
+
+  .course-steps{display:flex; gap:6px; margin-top:32px; flex-wrap:wrap;}
+  .course-step{
+    font-family:var(--font-mono); font-size:0.72rem;
+    padding:8px 12px; border-radius:8px; border:1px solid var(--border);
+    color:var(--text-faint);
+  }
+  .course-step.done{color:var(--green); border-color:rgba(126,226,168,0.3);}
+  .course-step.active{
+    color:#0a0c11; background:var(--purple); border-color:var(--purple); font-weight:600;
+  }
+
+  /* ---------- agenda list ---------- */
+  .agenda{
+    font-family:var(--font-mono); font-size:0.9rem;
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:22px 24px; margin-top:12px;
+  }
+  .agenda ol{margin:0; padding-left:1.2em; color:var(--text-dim);}
+  .agenda li{margin-bottom:8px;}
+  .agenda li::marker{color:var(--purple);}
+
+  /* ---------- comparison table ---------- */
+  .compare-wrap{overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border);}
+  table.compare{
+    width:100%; border-collapse:collapse; font-size:0.92rem; min-width:520px;
+    background:var(--panel);
+  }
+  table.compare th, table.compare td{
+    padding:14px 18px; text-align:left; border-bottom:1px solid var(--border-soft);
+  }
+  table.compare thead th{
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--text-faint);
+    text-transform:uppercase; letter-spacing:0.04em; background:var(--panel-elevated);
+  }
+  table.compare tbody th{color:var(--text-dim); font-weight:500; white-space:nowrap;}
+  table.compare td{color:var(--text);}
+  table.compare tbody tr:last-child td, table.compare tbody tr:last-child th{border-bottom:none;}
+  .tag-props{color:var(--blue); font-family:var(--font-mono); font-size:0.85em;}
+  .tag-state{color:var(--purple); font-family:var(--font-mono); font-size:0.85em;}
+
+  /* ---------- props/state diagram ---------- */
+  .flow-diagram{
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    flex-wrap:wrap; margin:28px 0 8px;
+    padding:32px 20px; background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--radius);
+  }
+  .flow-box{
+    font-family:var(--font-mono); font-size:0.85rem; text-align:center;
+    padding:18px 20px; border-radius:10px; min-width:150px;
+  }
+  .flow-box.parent{border:1px solid rgba(111,183,255,0.35); background:rgba(111,183,255,0.06); color:var(--blue);}
+  .flow-box.child{border:1px solid rgba(181,140,255,0.35); background:rgba(181,140,255,0.06); color:var(--purple);}
+  .flow-box small{display:block; color:var(--text-faint); font-family:var(--font-body); margin-top:6px; font-size:0.75rem;}
+  .flow-arrow{color:var(--text-faint); font-size:1.4rem;}
+  .flow-loop{font-size:0.72rem; color:var(--text-faint); margin-top:8px; font-family:var(--font-body);}
+
+  /* ---------- editor window ---------- */
+  .editor-window{
+    border-radius:12px; overflow:hidden; border:1px solid var(--border);
+    background:var(--panel); box-shadow:0 24px 60px -28px rgba(0,0,0,0.7);
+    margin:18px 0;
+  }
+  .editor-titlebar{
+    display:flex; align-items:center; gap:9px; padding:10px 14px;
+    background:var(--panel-elevated); border-bottom:1px solid var(--border);
+  }
+  .editor-dot{width:10px; height:10px; border-radius:50%;}
+  .editor-dot.red{background:#ff6159;} .editor-dot.yellow{background:#ffbd2e;} .editor-dot.green{background:#28c941;}
+  .editor-filename{
+    margin-left:6px; font-family:var(--font-mono); font-size:0.76rem; color:var(--text-dim);
+    background:var(--panel); padding:4px 12px; border-radius:6px;
+    border:1px solid var(--border-soft); border-bottom:none;
+  }
+  .editor-body{display:flex;}
+  .editor-gutter{
+    padding:16px 12px; text-align:right; color:var(--text-faint);
+    font-family:var(--font-mono); font-size:0.78rem; user-select:none;
+    border-right:1px solid var(--border-soft); line-height:1.7;
+  }
+  .editor-code{
+    margin:0; padding:16px 20px; overflow-x:auto; flex:1;
+    font-family:var(--font-mono); font-size:0.82rem; line-height:1.7;
+    color:#c8cfdd; white-space:pre;
+  }
+  .tk-kw{color:var(--purple);}
+  .tk-str{color:var(--green);}
+  .tk-com{color:var(--text-faint); font-style:italic;}
+  .tk-num{color:var(--orange);}
+  .tk-tag{color:var(--pink);}
+  .tk-fn{color:var(--blue);}
+
+  /* ---------- callouts ---------- */
+  .callout{
+    border-radius:12px; padding:18px 20px; margin:18px 0;
+    border:1px solid var(--border); background:var(--panel);
+    font-size:0.95rem;
+  }
+  .callout p{margin:0; color:var(--text-dim);}
+  .callout .callout-label{
+    font-family:var(--font-mono); font-size:0.75rem; letter-spacing:0.03em;
+    display:block; margin-bottom:8px; font-weight:600;
+  }
+  .callout.tip{border-color:rgba(126,226,168,0.3); background:rgba(126,226,168,0.05);}
+  .callout.tip .callout-label{color:var(--green);}
+  .callout.warn{border-color:rgba(255,176,102,0.3); background:rgba(255,176,102,0.05);}
+  .callout.warn .callout-label{color:var(--orange);}
+  .callout.danger{border-color:rgba(255,107,107,0.3); background:rgba(255,107,107,0.05);}
+  .callout.danger .callout-label{color:var(--red);}
+  .callout.info{border-color:rgba(111,183,255,0.3); background:rgba(111,183,255,0.05);}
+  .callout.info .callout-label{color:var(--blue);}
+
+  /* ---------- demo grid ---------- */
+  .demo-block{margin-top:36px;}
+  .demo-block-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px;}
+  .demo-grid{display:grid; grid-template-columns:1.15fr 1fr; gap:20px; align-items:start;}
+  @media (max-width:820px){ .demo-grid{grid-template-columns:1fr;} }
+
+  .live-window{
+    border-radius:12px; overflow:hidden; border:1px solid var(--border);
+    background:var(--panel); position:sticky; top:76px;
+  }
+  @media (max-width:820px){ .live-window{position:static;} }
+  .live-titlebar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; background:var(--panel-elevated); border-bottom:1px solid var(--border);
+    font-family:var(--font-mono); font-size:0.74rem; color:var(--text-faint);
+  }
+  .live-titlebar .live-dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 6px var(--green); display:inline-block; margin-right:6px;}
+  .live-body{padding:26px 22px; min-height:150px;}
+
+  /* demo-specific look & feel (kept generic so it can be reused by all three demos) */
+  .count-value{font-family:var(--font-display); font-size:3rem; color:#fff; font-weight:700;}
+  .count-meta{font-family:var(--font-mono); font-size:0.75rem; color:var(--text-faint); margin-bottom:18px;}
+  .count-buttons{display:flex; flex-wrap:wrap; gap:8px;}
+
+  button{
+    font-family:var(--font-body); font-size:0.86rem; font-weight:600; cursor:pointer;
+    border-radius:9px; border:1px solid var(--border); background:var(--panel-elevated);
+    color:var(--text); padding:9px 15px; transition:all .15s ease;
+  }
+  button:hover:not(:disabled){border-color:var(--purple-dim); color:#fff;}
+  button:disabled{opacity:0.5; cursor:not-allowed;}
+  button:active:not(:disabled){transform:translateY(1px);}
+
+  .todo-form{display:flex; gap:8px; margin-bottom:16px;}
+  .todo-form input[type=text]{flex:1;}
+  input[type=text], input[type=number]{
+    font-family:var(--font-body); font-size:0.88rem;
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:9px;
+    padding:9px 12px; color:var(--text); width:100%;
+  }
+  .todo-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .todo-list li{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; background:var(--bg-soft); border:1px solid var(--border-soft); border-radius:9px;
+    font-size:0.9rem;
+  }
+  .todo-list li button{padding:4px 10px; font-size:0.78rem; color:var(--red); border-color:rgba(255,107,107,0.25);}
+  .empty-msg{color:var(--text-faint); font-size:0.88rem; font-style:italic; margin:0;}
+  .status-loading{color:var(--orange); font-size:0.9rem;}
+  .status-success{color:var(--green); font-size:0.9rem;}
+
+  /* ---------- assignment ---------- */
+  .assignment-box{
+    background:linear-gradient(160deg, rgba(181,140,255,0.08), rgba(111,183,255,0.04));
+    border:1px solid rgba(181,140,255,0.28);
+    border-radius:var(--radius); padding:30px 28px;
+  }
+  .assignment-list{margin:16px 0 0 0; padding-left:1.3em; color:var(--text);}
+  .assignment-list li{margin-bottom:10px;}
+  .assignment-list li::marker{color:var(--purple); font-family:var(--font-mono);}
+  .bonus-tag{
+    font-family:var(--font-mono); font-size:0.68rem; color:var(--orange);
+    border:1px solid rgba(255,176,102,0.35); padding:1px 7px; border-radius:6px; margin-left:6px;
+  }
+
+  /* ---------- bug cards ---------- */
+  .bug-grid{display:grid; grid-template-columns:1fr; gap:20px; margin-top:24px;}
+  .bug-card{
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; background:var(--panel);
+  }
+  .bug-card-head{
+    padding:14px 20px; border-bottom:1px solid var(--border-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .bug-card-head .bug-num{
+    font-family:var(--font-mono); font-size:0.75rem; color:var(--text-faint);
+  }
+  .bug-card-head h4{margin:0;}
+  .bug-compare{display:grid; grid-template-columns:1fr 1fr; gap:0;}
+  @media (max-width:700px){ .bug-compare{grid-template-columns:1fr;} }
+  .bug-col{padding:16px 20px;}
+  .bug-col.bad{border-right:1px solid var(--border-soft); background:rgba(255,107,107,0.035);}
+  @media (max-width:700px){ .bug-col.bad{border-right:none; border-bottom:1px solid var(--border-soft);} }
+  .bug-col.good{background:rgba(126,226,168,0.035);}
+  .bug-col-label{font-family:var(--font-mono); font-size:0.72rem; margin-bottom:8px; display:block;}
+  .bug-col.bad .bug-col-label{color:var(--red);}
+  .bug-col.good .bug-col-label{color:var(--green);}
+  .bug-col pre{
+    margin:0; font-family:var(--font-mono); font-size:0.78rem; line-height:1.6;
+    color:#c8cfdd; white-space:pre-wrap; word-break:break-word;
+  }
+  .bug-explain{padding:14px 20px; border-top:1px solid var(--border-soft); font-size:0.88rem; color:var(--text-dim);}
+
+  /* ---------- best practices ---------- */
+  .practice-grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; margin-top:24px;}
+  @media (max-width:700px){ .practice-grid{grid-template-columns:1fr;} }
+  .practice-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px;
+  }
+  .practice-card .check{color:var(--green); font-family:var(--font-mono); font-size:0.85rem; margin-bottom:8px; display:block;}
+  .practice-card h4{margin-bottom:6px;}
+  .practice-card p{margin:0; font-size:0.9rem;}
+
+  /* ---------- faq ---------- */
+  .faq-item{
+    border:1px solid var(--border); border-radius:12px; background:var(--panel);
+    margin-bottom:16px; overflow:hidden;
+  }
+  .faq-q{
+    font-family:var(--font-mono); font-size:0.88rem; color:var(--text-faint);
+    padding:16px 20px; border-bottom:1px solid var(--border-soft);
+    display:flex; gap:10px;
+  }
+  .faq-q .prompt{color:var(--purple); flex-shrink:0;}
+  .faq-q .qtext{color:#fff; font-family:var(--font-body); font-weight:600; font-size:0.98rem;}
+  .faq-a{padding:18px 20px; font-size:0.94rem;}
+  .faq-a p{margin:0 0 10px 0;}
+  .faq-a p:last-child{margin-bottom:0;}
+  .faq-a .out{color:var(--green);}
+
+  footer{
+    max-width:var(--container); margin:0 auto; padding:50px 20px 80px;
+    text-align:center; color:var(--text-faint); font-size:0.88rem;
+  }
+  footer .sig{font-family:var(--font-mono); color:var(--text-dim); margin-top:6px;}
+
+  @media (max-width:640px){
+    section{padding:44px 0;}
+    .hero{padding:52px 20px 36px;}
+    .practice-grid{gap:12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav class="topnav">
+  <div class="topnav-inner" id="topnavInner">
+    <a class="navpill" href="#giris">giriş</a>
+    <a class="navpill" href="#state-nedir">state vs props</a>
+    <a class="navpill" href="#usestate">useState</a>
+    <a class="navpill" href="#render-mexanizmi">render</a>
+    <a class="navpill" href="#event-handling">event handling</a>
+    <a class="navpill" href="#conditional-rendering">şərti render</a>
+    <a class="navpill" href="#list-rendering">.map()</a>
+    <a class="navpill" href="#key-prop">key</a>
+    <a class="navpill" href="#practika">praktika</a>
+    <a class="navpill" href="#tapshiriq">tapşırıq</a>
+    <a class="navpill" href="#xetalar">xətalar</a>
+    <a class="navpill" href="#best-practices">best practice</a>
+    <a class="navpill" href="#faq">faq</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-badge"><span class="dot"></span> React Kursu — Modul 1</div>
+  <h1>Dərs 3 — <span>State, useState və Event Handling</span></h1>
+  <p class="hero-sub">Bu dərsdə komponentlərimiz artıq statik şəkillər olmaqdan çıxıb, öz yaddaşı olan, istifadəçi hərəkətlərinə canlı cavab verən vahidlərə çevriləcək. State React-in ürəyidir — bunu başa düşəndən sonra "dinamik interfeys" anlayışı sizin üçün tam aydınlaşacaq.</p>
+  <div class="hero-meta">
+    <span class="meta-chip">⏱ ≈2.5 saat</span>
+    <span class="meta-chip">📦 Tələb olunur: Dərs 1–2 (komponentlər, JSX, props)</span>
+    <span class="meta-chip">🎯 Səviyyə: Başlanğıc</span>
+  </div>
+  <div class="course-steps">
+    <span class="course-step done">Dərs 1 — Komponentlər</span>
+    <span class="course-step done">Dərs 2 — Props, JSX</span>
+    <span class="course-step active">Dərs 3 — State, useState</span>
+    <span class="course-step">Dərs 4 — →</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= GİRİŞ ================= -->
+  <section id="giris">
+    <p class="section-label">00 — bugünkü plan</p>
+    <h2>Nəyə hazırlaşırıq?</h2>
+    <p class="lead">İndiyə qədər yazdığımız komponentlər props qəbul edib nəticəni ekrana çıxarırdı, amma öz başına heç nə "xatırlamırdı". Bu dərsdən sonra komponentləriniz klik, yazı, seçim kimi hadisələrə reaksiya verəcək və nəticədə ekran canlanacaq. Bugünkü mövzular ardıcıllıqla aşağıdakılardır:</p>
+    <div class="agenda">
+      <ol>
+        <li>State nədir və props-dan nə ilə fərqlənir</li>
+        <li>useState hook-unun sintaksisi və işləmə məntiqi</li>
+        <li>State dəyişəndə komponent necə yenidən render olunur</li>
+        <li>Event handling: onClick, onChange, onSubmit</li>
+        <li>Conditional rendering: &amp;&amp;, ternar operator, if/else</li>
+        <li>List rendering: .map() və key prop-un rolu</li>
+        <li>Canlı nümunələr: Sayğac, To-Do list, "Yüklənir..." mesajı</li>
+        <li>Tapşırıq, tipik xətalar və yaxşı təcrübələr</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ================= STATE VS PROPS ================= -->
+  <section id="state-nedir">
+    <p class="section-label">01 — state anlayışı</p>
+    <h2>State nədir? Props-dan fərqi</h2>
+    <p><strong>State</strong> — komponentin öz daxilində saxladığı və zaman keçdikcə dəyişə bilən məlumatdır. <strong>Props</strong> isə valideyn (parent) komponentdən uşaq (child) komponentə ötürülən, komponentin özü tərəfindən <em>dəyişdirilə bilməyən</em> (read-only) məlumatdır.</p>
+    <p>Ən sadə analogiya: props — sənə kənardan verilən tapşırıq vərəqəsidir, onu dəyişə bilməzsən, sadəcə oxuyub istifadə edirsən. State isə öz şəxsi qeyd dəftərindir — istənilən vaxt özün yaza, poza, dəyişə bilərsən.</p>
+
+    <div class="flow-diagram">
+      <div class="flow-box parent">Parent Component
+        <small>props təyin edir</small>
+      </div>
+      <div class="flow-arrow">→ props →</div>
+      <div class="flow-box child">Child Component
+        <small>props-u oxuyur, özünün state-i var</small>
+        <div class="flow-loop">↻ öz state-ini özü idarə edir</div>
+      </div>
+    </div>
+
+    <div class="compare-wrap">
+      <table class="compare">
+        <thead>
+          <tr><th>Xüsusiyyət</th><th><span class="tag-props">Props</span></th><th><span class="tag-state">State</span></th></tr>
+        </thead>
+        <tbody>
+          <tr><th>Mənbəyi</th><td>Valideyn komponentdən gəlir</td><td>Komponentin öz daxilində yaradılır</td></tr>
+          <tr><th>Dəyişdirilə bilərmi?</th><td>Xeyr — read-only</td><td>Bəli — <code class="inline">setState</code> funksiyası ilə</td></tr>
+          <tr><th>Kim idarə edir?</th><td>Valideyn komponent</td><td>Komponentin özü</td></tr>
+          <tr><th>Dəyişəndə nə baş verir?</th><td>Uşaq komponent yenidən render olunur</td><td>Komponentin özü (və lazım gələrsə uşaqları) yenidən render olunur</td></tr>
+          <tr><th>Məqsədi</th><td>Komponentlər arası məlumat ötürmək</td><td>Zamanla dəyişən daxili vəziyyəti saxlamaq</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-label">QEYD</span>
+      <p>Bir komponentin state-i çox vaxt uşaq komponentlərə <strong>props kimi</strong> ötürülür. Yəni "state" və "props" bir-birini istisna etmir — state-in özü, aşağıya ötürüləndə, uşaq üçün props-a çevrilir. Bu React-də məlumat axınının "yuxarıdan aşağıya" (top-down / one-way data flow) olmasının səbəbidir.</p>
+    </div>
+  </section>
+
+  <!-- ================= useState ================= -->
+  <section id="usestate">
+    <p class="section-label">02 — hook</p>
+    <h2>useState hook-unun sintaksisi</h2>
+    <p><code class="inline">useState</code> — funksional komponentlərə state əlavə etməyə imkan verən React hook-udur. React-dən import olunur və çağırıldıqda iki elementdən ibarət massiv qaytarır: <strong>cari dəyər</strong> və <strong>onu yeniləyən funksiya</strong>.</p>
+
+    <div class="editor-window">
+      <div class="editor-titlebar">
+        <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+        <span class="editor-filename">useState-syntax.jsx</span>
+      </div>
+      <div class="editor-body">
+        <div class="editor-gutter" data-lines="4"></div>
+        <pre class="editor-code">import { useState } from "react";
+
+const [count, setCount] = useState(0);
+// count    → cari dəyər (başlanğıcda 0)
+// setCount → count-u yeniləmək üçün funksiya
+// useState(0) → 0 başlanğıc (ilkin) dəyərdir</pre>
+      </div>
+    </div>
+
+    <p>Bu massiv-destrukturlaşdırma sintaksisidir. Adları özünüz seçirsiniz — vacib olan sıradır: birinci element həmişə <em>dəyər</em>, ikinci həmişə <em>yeniləyici funksiya</em>dır. Buna görə də konvensiya olaraq <code class="inline">[thing, setThing]</code> adlandırma qaydasına əməl olunur: <code class="inline">[user, setUser]</code>, <code class="inline">[isOpen, setIsOpen]</code> və s.</p>
+
+    <div class="callout tip">
+      <span class="callout-label">NİYƏ MASSİV, OBYEKT YOX?</span>
+      <p>Massiv destrukturlaşdırmasında adları istədiyiniz kimi seçə bilirsiniz (<code class="inline">const [a, b] = useState(0)</code>), obyekt olsaydı hər dəfə eyni açar adını (məsələn <code class="inline">state, setState</code>) istifadə etməli və hər çağırışda yenidən adlandırmalı (renaming) olardınız. Massiv bu baxımdan daha rahatdır.</p>
+    </div>
+
+    <p>Bir komponentdə istədiyiniz qədər <code class="inline">useState</code> çağıra bilərsiniz — hər biri öz müstəqil state-ini saxlayır:</p>
+
+    <div class="editor-window">
+      <div class="editor-titlebar">
+        <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+        <span class="editor-filename">Profile.jsx</span>
+      </div>
+      <div class="editor-body">
+        <div class="editor-gutter" data-lines="5"></div>
+        <pre class="editor-code">function Profile() {
+  const [name, setName] = useState("Aygün");
+  const [age, setAge] = useState(21);
+  const [isOnline, setIsOnline] = useState(false);
+  // hər useState öz yaddaşını saxlayır, biri digərinə təsir etmir
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RENDER MEXANIZMI ================= -->
+  <section id="render-mexanizmi">
+    <p class="section-label">03 — render dövrü</p>
+    <h2>State dəyişəndə nə baş verir?</h2>
+    <p>Yeniləyici funksiyanı (məsələn <code class="inline">setCount</code>) çağırdığınız an React üç addım atır:</p>
+    <div class="agenda">
+      <ol>
+        <li>React yeni dəyəri yadda saxlayır və komponenti "yenilənməli" (dirty) kimi işarələyir</li>
+        <li>Komponent funksiyası — yeni state dəyəri ilə — <strong>yenidən çağırılır</strong> (render olunur) və təzə JSX qaytarır</li>
+        <li>React əvvəlki nəticə ilə yenisini müqayisə edir (bu proses "reconciliation" adlanır) və yalnız real DOM-da <strong>fərqlənən</strong> hissələri yeniləyir</li>
+      </ol>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-label">BÜTÜN TƏTBİQ YENİDƏN RENDER OLUNURMU?</span>
+      <p>Xeyr. Yalnız state-i dəyişən komponent (və əgər həmin state props kimi uşaqlara ötürülübsə, o uşaq komponentlər) yenidən render olunur. Tətbiqin əlaqəsiz digər hissələri toxunulmaz qalır. Bu React-in effektivliyinin əsas səbəblərindən biridir.</p>
+    </div>
+
+    <p>Daha iki vacib detal:</p>
+    <ul style="color:var(--text-dim)">
+      <li><strong>Avtomatik batching:</strong> React 18-də, bir hadisə handler-i daxilində bir neçə <code class="inline">setState</code> çağırılsa belə, React onları bir yerə yığıb <strong>tək render</strong> icra edir (performans üçün) — hər çağırış ayrıca render yaratmır.</li>
+      <li><strong>Referans müqayisəsi:</strong> Massiv və ya obyekt state-i eyni referansla (məsələn <code class="inline">state.push(...)</code> ilə) "dəyişsəniz", React bunu dəyişiklik hesab <em>etmir</em>, çünki daxildə səthi (shallow) müqayisə aparılır. Buna görə həmişə <strong>yeni</strong> massiv/obyekt yaratmaq lazımdır (bunu "Xətalar" bölməsində ətraflı görəcəyik).</li>
+    </ul>
+  </section>
+
+  <!-- ================= EVENT HANDLING ================= -->
+  <section id="event-handling">
+    <p class="section-label">04 — hadisələr</p>
+    <h2>Event Handling: onClick, onChange, onSubmit</h2>
+    <p>React-də HTML hadisələri camelCase formatında yazılır: <code class="inline">onclick</code> deyil <code class="inline">onClick</code>, <code class="inline">onchange</code> deyil <code class="inline">onChange</code>. Handler kimi bir funksiya <strong>referansı</strong> ötürülür.</p>
+
+    <div class="editor-window">
+      <div class="editor-titlebar">
+        <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+        <span class="editor-filename">events.jsx</span>
+      </div>
+      <div class="editor-body">
+        <div class="editor-gutter" data-lines="9"></div>
+        <pre class="editor-code">function LoginForm() {
+  const [email, setEmail] = useState("");
+
+  function handleChange(e) {
+    setEmail(e.target.value); // e.target.value — input-un cari mətni
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault(); // səhifənin yenidən yüklənməsinin qarşısını alır
+    console.log("Göndərildi:", email);
+  }
+
+  return (
+    &lt;form onSubmit={handleSubmit}&gt;
+      &lt;input value={email} onChange={handleChange} /&gt;
+      &lt;button type="submit"&gt;Göndər&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</pre>
+      </div>
+    </div>
+
+    <div class="callout danger">
+      <span class="callout-label">ƏN TEZ-TEZ RAST GƏLİNƏN SƏHV</span>
+      <p><code class="inline">onClick={handleClick}</code> — funksiyanın özünü (referansını) ötürürsən, React onu <strong>klik olanda</strong> çağıracaq. <code class="inline">onClick={handleClick()}</code> — mötərizələr funksiyanı dərhal, <strong>render zamanı</strong> çağırır, klikə heç bir aidiyyəti olmur. Parametr ötürmək lazım gələndə isə <code class="inline">onClick={() => handleClick(id)}</code> kimi anonim ox (arrow) funksiyadan istifadə edin.</p>
+    </div>
+
+    <p>onSubmit üçün <code class="inline">e.preventDefault()</code> demək olar həmişə vacibdir — əks halda brauzer formu ənənəvi üsulla göndərməyə çalışır və səhifə yenidən yüklənir (React state-i itir).</p>
+  </section>
+
+  <!-- ================= CONDITIONAL RENDERING ================= -->
+  <section id="conditional-rendering">
+    <p class="section-label">05 — şərti görüntüləmə</p>
+    <h2>Conditional Rendering</h2>
+    <p>JSX daxilində şərtdən asılı olaraq fərqli məzmun göstərmək üçün üç əsas üsul var:</p>
+
+    <div class="editor-window">
+      <div class="editor-titlebar">
+        <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+        <span class="editor-filename">conditional.jsx</span>
+      </div>
+      <div class="editor-body">
+        <div class="editor-gutter" data-lines="14"></div>
+        <pre class="editor-code">// 1) &amp;&amp; operator — şərt doğrudursa göstər, yoxdursa heç nə
+{isLoading &amp;&amp; &lt;p&gt;Yüklənir...&lt;/p&gt;}
+
+// 2) ternar operator — iki variantdan biri
+{isLoggedIn ? &lt;p&gt;Xoş gəldin!&lt;/p&gt; : &lt;p&gt;Zəhmət olmasa daxil ol&lt;/p&gt;}
+
+// 3) if / else — return-dən əvvəl dəyişəndə və ya
+//    komponentin özündə "erkən qayıdış" (early return) kimi
+function Status({ isLoading }) {
+  if (isLoading) {
+    return &lt;p&gt;Yüklənir...&lt;/p&gt;;
+  }
+  return &lt;p&gt;Hazırdır&lt;/p&gt;;
+}</pre>
+      </div>
+    </div>
+
+    <div class="callout danger">
+      <span class="callout-label">"0" GÖSTƏRİLMƏSİ TƏLƏSİ</span>
+      <p><code class="inline">{items.length &amp;&amp; &lt;List /&gt;}</code> yazsanız və <code class="inline">items.length</code> 0 olsa, ekranda <strong>"0" rəqəmi</strong> görünəcək — boş heç nə deyil! Səbəb: <code class="inline">&amp;&amp;</code> operatoru sol tərəf falsy olduqda onun özünü qaytarır, JSX isə <code class="inline">0</code>-ı "boş" hesab etmir, ekrana çıxarır. Düzəliş: <code class="inline">{items.length &gt; 0 &amp;&amp; &lt;List /&gt;}</code> və ya ternar operatordan istifadə edin.</p>
+    </div>
+  </section>
+
+  <!-- ================= LIST RENDERING ================= -->
+  <section id="list-rendering">
+    <p class="section-label">06 — siyahılar</p>
+    <h2>List Rendering: .map() istifadəsi</h2>
+    <p>Massivdəki hər elementdən JSX yaratmaq üçün adi JavaScript-in <code class="inline">.map()</code> metodundan istifadə olunur — React üçün xüsusi sintaksis yoxdur, sadəcə JSX-i JavaScript ifadəsi kimi <code class="inline">{}</code> daxilində qaytarırsınız.</p>
+
+    <div class="editor-window">
+      <div class="editor-titlebar">
+        <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+        <span class="editor-filename">list.jsx</span>
+      </div>
+      <div class="editor-body">
+        <div class="editor-gutter" data-lines="7"></div>
+        <pre class="editor-code">const fruits = ["alma", "armud", "üzüm"];
+
+&lt;ul&gt;
+  {fruits.map((fruit) =&gt; (
+    &lt;li key={fruit}&gt;{fruit}&lt;/li&gt;
+  ))}
+&lt;/ul&gt;</pre>
+      </div>
+    </div>
+    <p>Diqqət yetirin: hər <code class="inline">&lt;li&gt;</code>-ə <code class="inline">key</code> adlı xüsusi bir prop verilib. Bu, təsadüfi deyil — React bunu tələb edir. Səbəbini növbəti bölmədə açıqlayırıq.</p>
+  </section>
+
+  <!-- ================= KEY PROP ================= -->
+  <section id="key-prop">
+    <p class="section-label">07 — key</p>
+    <h2>key prop-un rolu və niyə vacibdir</h2>
+    <p><code class="inline">key</code> — React-ə siyahıdakı hər elementi <strong>unikal</strong> şəkildə tanımaqda kömək edən xüsusi prop-dur. React siyahını yenidən render edəndə, əvvəlki və yeni siyahını <code class="inline">key</code> dəyərlərinə görə müqayisə edir: hansı element qalıb, hansı silinib, hansı yenidən əlavə olunub — bunu key ilə müəyyən edir. Bu proses "reconciliation" adlanır.</p>
+    <p>Əgər key verilməsə (və ya səhv seçilsə), React elementləri düzgün izləyə bilmir və nəticədə:</p>
+    <ul style="color:var(--text-dim)">
+      <li>Yanlış elementin state-i (məsələn input-un mətni) başqa sıraya "keçə" bilər</li>
+      <li>Lazımsız yenidən render-lər baş verə bilər (performans itkisi)</li>
+      <li>Animasiyalar və fokus (focus) səhv elementə tətbiq oluna bilər</li>
+    </ul>
+
+    <div class="callout warn">
+      <span class="callout-label">İNDEX-İ KEY KİMİ İSTİFADƏ ETMƏK OLARMI?</span>
+      <p>Texniki cəhətdən bəli, React sizi məcbur etmir. Amma yalnız bu şərtlərdə <strong>təhlükəsizdir</strong>: siyahı heç vaxt sıralanmır, ortadan element əlavə/silinmir, siyahı statikdir. Əks halda (əlavə etmə, silmə, sıralama olan hər hansı siyahıda — məsələn to-do list) index key kimi işlədilsə, sıra dəyişəndə React elementləri səhv uyğunlaşdırır. Ən düzgün yol — məlumatın özündəki unikal <code class="inline">id</code>-dən istifadə etməkdir.</p>
+    </div>
+  </section>
+
+  <!-- ================= PRAKTİKA ================= -->
+  <section id="practika">
+    <p class="section-label">08 — praktiki hissə</p>
+    <h2>Canlı nümunələr</h2>
+    <p class="lead">Aşağıdakı üç nümunə bu səhifədə real React kodu ilə işləyir — kodu oxuyun, sağdakı (və ya aşağıdakı) canlı paneldə sınayın.</p>
+
+    <!-- Counter demo -->
+    <div class="demo-block">
+      <div class="demo-block-head"><h3>1. Sayğac (Counter) app-i</h3></div>
+      <p>Bu nümunə həm <code class="inline">useState</code>-in əsas işləmə məntiqini, həm də köhnə state-ə əsaslanan yeniləmənin (<code class="inline">prev =&gt; prev + 1</code>) niyə vacib olduğunu canlı göstərir. "+1 × 3 (adi üsul)" düyməsinə basanda nəticənin gözlədiyiniz kimi çıxmadığını görəcəksiniz.</p>
+      <div class="demo-grid">
+        <div class="editor-window" style="margin-top:0">
+          <div class="editor-titlebar">
+            <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+            <span class="editor-filename">Counter.jsx</span>
+          </div>
+          <div class="editor-body">
+            <div class="editor-gutter" data-lines="20"></div>
+            <pre class="editor-code">function Counter() {
+  const [count, setCount] = useState(0);
+
+  function addOnce() {
+    setCount(count + 1);
+  }
+
+  function addThreeBad() {
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+    // ❌ hər çağırışda eyni "köhnə" count
+    // istifadə olunur → nəticədə +1
+  }
+
+  function addThreeGood() {
+    setCount(prev =&gt; prev + 1);
+    setCount(prev =&gt; prev + 1);
+    setCount(prev =&gt; prev + 1);
+    // ✅ hər dəfə ən son dəyərdən davam edir → +3
+  }
+
+  return ( /* ... düymələr ... */ );
+}</pre>
+          </div>
+        </div>
+        <div class="live-window">
+          <div class="live-titlebar"><span><span class="live-dot"></span>canlı nəticə</span><span>React 18</span></div>
+          <div class="live-body" id="counter-demo-root"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Todo demo -->
+    <div class="demo-block">
+      <div class="demo-block-head"><h3>2. To-Do list-in ilkin versiyası</h3></div>
+      <p>Yalnız əlavə etmə və silmə funksionallığı — checkbox (tamamlama) hissəsini aşağıdakı <a href="#tapshiriq">tapşırıqda</a> özünüz əlavə edəcəksiniz. Diqqət: siyahı <code class="inline">.map()</code> ilə render olunur və hər elementə unikal <code class="inline">id</code> əsasında <code class="inline">key</code> verilir.</p>
+      <div class="demo-grid">
+        <div class="editor-window" style="margin-top:0">
+          <div class="editor-titlebar">
+            <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+            <span class="editor-filename">TodoApp.jsx</span>
+          </div>
+          <div class="editor-body">
+            <div class="editor-gutter" data-lines="20"></div>
+            <pre class="editor-code">function TodoApp() {
+  const [todos, setTodos] = useState([
+    { id: 1, text: "React state-i öyrən" },
+  ]);
+  const [value, setValue] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (value.trim() === "") return;
+    setTodos(prev =&gt; [
+      ...prev,
+      { id: Date.now(), text: value.trim() },
+    ]);
+    setValue("");
+  }
+
+  function handleDelete(id) {
+    setTodos(prev =&gt; prev.filter(t =&gt; t.id !== id));
+  }
+
+  return ( /* form + todos.map(...) */ );
+}</pre>
+          </div>
+        </div>
+        <div class="live-window">
+          <div class="live-titlebar"><span><span class="live-dot"></span>canlı nəticə</span><span>React 18</span></div>
+          <div class="live-body" id="todo-demo-root"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading demo -->
+    <div class="demo-block">
+      <div class="demo-block-head"><h3>3. Şərti görüntülənən element — "Yüklənir..." mesajı</h3></div>
+      <p>Üç vəziyyət arasında keçid: <em>hələ heç nə yoxdur</em> → <em>yüklənir</em> → <em>nəticə hazırdır</em>. Bu, real tətbiqlərdə API sorğusu zamanı ən çox rast gəlinən naxışdır (pattern).</p>
+      <div class="demo-grid">
+        <div class="editor-window" style="margin-top:0">
+          <div class="editor-titlebar">
+            <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+            <span class="editor-filename">LoadingDemo.jsx</span>
+          </div>
+          <div class="editor-body">
+            <div class="editor-gutter" data-lines="14"></div>
+            <pre class="editor-code">function LoadingDemo() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+
+  function loadData() {
+    setLoading(true);
+    setResult(null);
+    setTimeout(() =&gt; {
+      setLoading(false);
+      setResult("Məlumat uğurla yükləndi ✓");
+    }, 1400);
+  }
+
+  return ( /* button + conditional mesajlar */ );
+}</pre>
+          </div>
+        </div>
+        <div class="live-window">
+          <div class="live-titlebar"><span><span class="live-dot"></span>canlı nəticə</span><span>React 18</span></div>
+          <div class="live-body" id="loading-demo-root"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAPŞIRIQ ================= -->
+  <section id="tapshiriq">
+    <p class="section-label">09 — tapşırıq</p>
+    <h2>Tapşırıq: İşarələnə bilən (checkbox) tapşırıq siyahısı</h2>
+    <div class="assignment-box">
+      <p style="color:var(--text)">Yuxarıdakı To-Do list nümunəsini əsas götürərək, hər tapşırığın <strong>tamamlanıb-tamamlanmadığını</strong> izləyən funksionallıq əlavə edin:</p>
+      <ol class="assignment-list">
+        <li>Hər todo obyektinə <code class="inline">done: false</code> sahəsi əlavə edin.</li>
+        <li>Hər sətrin əvvəlinə bir <code class="inline">&lt;input type="checkbox"&gt;</code> qoyun. Checkbox-un <code class="inline">checked</code> dəyəri todo-nun <code class="inline">done</code> sahəsindən asılı olmalıdır (controlled input).</li>
+        <li>Checkbox dəyişəndə (<code class="inline">onChange</code>) yalnız uyğun <code class="inline">id</code>-yə malik todo-nun <code class="inline">done</code> sahəsini əks etdirin — qalan todo-lara toxunmadan, <strong>immutable</strong> şəkildə (yəni <code class="inline">.map()</code> və spread operator <code class="inline">{'{'}...{'}'}</code> ilə, birbaşa mutasiya etmədən).</li>
+        <li>Tamamlanmış tapşırıqları vizual olaraq fərqləndirin — məsələn üstündən xətt (<code class="inline">text-decoration: line-through</code>) və solğun rəng.</li>
+        <li>Bonus: Üç filtr düyməsi əlavə edin — "Hamısı", "Aktiv", "Tamamlanmış" — və yalnız uyğun tapşırıqları göstərin.<span class="bonus-tag">BONUS</span></li>
+        <li>Bonus: Neçə aktiv tapşırığın qaldığını göstərən sayğac əlavə edin (məsələn "3 tapşırıq qalıb").<span class="bonus-tag">BONUS</span></li>
+      </ol>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-label">İSTİQAMƏTLƏNDİRİCİ İPUCU (tam həll deyil)</span>
+      <p>Toggle funksiyasının skeleti belə görünə bilər:</p>
+    </div>
+    <div class="editor-window">
+      <div class="editor-titlebar">
+        <span class="editor-dot red"></span><span class="editor-dot yellow"></span><span class="editor-dot green"></span>
+        <span class="editor-filename">hint.jsx</span>
+      </div>
+      <div class="editor-body">
+        <div class="editor-gutter" data-lines="7"></div>
+        <pre class="editor-code">function handleToggle(id) {
+  setTodos(prev =&gt;
+    prev.map(todo =&gt;
+      todo.id === id
+        ? { ...todo, done: /* ??? */ }
+        : todo
+    )
+  );
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= XƏTALAR ================= -->
+  <section id="xetalar">
+    <p class="section-label">10 — tipik xətalar</p>
+    <h2>Tez-tez rast gəlinən xətalar və bug-lar</h2>
+    <p class="lead">Bu bölmədə başlanğıc səviyyəsində ən çox rast gəlinən 6 xətanı — səbəbi və düzəlişi ilə birlikdə — nəzərdən keçiririk.</p>
+
+    <div class="bug-grid">
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">01</span><h4>State-i birbaşa mutasiya etmək</h4></div>
+        <div class="bug-compare">
+          <div class="bug-col bad"><span class="bug-col-label">❌ SƏHV</span><pre>todos.push(newTodo);
+setTodos(todos);</pre></div>
+          <div class="bug-col good"><span class="bug-col-label">✅ DÜZGÜN</span><pre>setTodos(prev =&gt;
+  [...prev, newTodo]
+);</pre></div>
+        </div>
+        <div class="bug-explain">React referansa görə müqayisə aparır. Eyni massivi birbaşa dəyişsəniz, referans eyni qalır və React dəyişikliyi <strong>görmür</strong> — komponent yenidən render olunmur. Həmişə <strong>yeni</strong> massiv/obyekt yaradın.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">02</span><h4>Ardıcıl setState çağırışlarında köhnə (stale) dəyərdən istifadə</h4></div>
+        <div class="bug-compare">
+          <div class="bug-col bad"><span class="bug-col-label">❌ SƏHV — nəticə +1</span><pre>setCount(count + 1);
+setCount(count + 1);
+setCount(count + 1);</pre></div>
+          <div class="bug-col good"><span class="bug-col-label">✅ DÜZGÜN — nəticə +3</span><pre>setCount(p =&gt; p + 1);
+setCount(p =&gt; p + 1);
+setCount(p =&gt; p + 1);</pre></div>
+        </div>
+        <div class="bug-explain">Hər üç çağırış da eyni render-in <code class="inline">count</code> dəyişənini "yaddaşa alır" (closure). Funksional yeniləmə (<code class="inline">prev =&gt; ...</code>) isə React-in növbədəki ən son dəyərindən davam edir.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">03</span><h4>Funksiyanı render zamanı çağırmaq</h4></div>
+        <div class="bug-compare">
+          <div class="bug-col bad"><span class="bug-col-label">❌ SƏHV</span><pre>&lt;button onClick={
+  handleClick()
+}&gt;</pre></div>
+          <div class="bug-col good"><span class="bug-col-label">✅ DÜZGÜN</span><pre>&lt;button onClick={
+  handleClick
+}&gt;</pre></div>
+        </div>
+        <div class="bug-explain">Mötərizələr funksiyanı dərhal çağırır — klikə görə deyil, <strong>hər render-də</strong>. Əgər <code class="inline">handleClick</code> daxilində <code class="inline">setState</code> varsa, bu sonsuz render dövrünə (infinite loop) səbəb ola bilər.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">04</span><h4>onSubmit-də preventDefault unudulması</h4></div>
+        <div class="bug-compare">
+          <div class="bug-col bad"><span class="bug-col-label">❌ SƏHV</span><pre>function handleSubmit(e) {
+  saveTodo();
+}</pre></div>
+          <div class="bug-col good"><span class="bug-col-label">✅ DÜZGÜN</span><pre>function handleSubmit(e) {
+  e.preventDefault();
+  saveTodo();
+}</pre></div>
+        </div>
+        <div class="bug-explain">Brauzerin standart form davranışı səhifəni yenidən yükləyir — bu zaman bütün React state-i sıfırlanır. <code class="inline">e.preventDefault()</code> bunun qarşısını alır.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">05</span><h4>Dinamik siyahılarda index-i key kimi istifadə etmək</h4></div>
+        <div class="bug-compare">
+          <div class="bug-col bad"><span class="bug-col-label">❌ RİSKLİ</span><pre>{todos.map((t, i) =&gt; (
+  &lt;li key={i}&gt;...&lt;/li&gt;
+))}</pre></div>
+          <div class="bug-col good"><span class="bug-col-label">✅ DÜZGÜN</span><pre>{todos.map((t) =&gt; (
+  &lt;li key={t.id}&gt;...&lt;/li&gt;
+))}</pre></div>
+        </div>
+        <div class="bug-explain">Siyahının ortasına əlavə/silmə olduqda index-lər sürüşür, React elementləri səhv uyğunlaşdırır (məsələn input-lardakı mətn səhv sətirdə qalır). Unikal <code class="inline">id</code> istifadə edin.</div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-num">06</span><h4>&amp;&amp; ilə "0" göstərilməsi</h4></div>
+        <div class="bug-compare">
+          <div class="bug-col bad"><span class="bug-col-label">❌ SƏHV (0 olanda "0" çıxır)</span><pre>{items.length &amp;&amp;
+  &lt;List items={items} /&gt;}</pre></div>
+          <div class="bug-col good"><span class="bug-col-label">✅ DÜZGÜN</span><pre>{items.length &gt; 0 &amp;&amp;
+  &lt;List items={items} /&gt;}</pre></div>
+        </div>
+        <div class="bug-explain"><code class="inline">0</code> JSX-də "boş" sayılmır, ekranda göstərilir. Şərti həmişə açıq boolean ifadəyə çevirin (<code class="inline">length &gt; 0</code>) və ya ternar operatordan istifadə edin.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= BEST PRACTICES ================= -->
+  <section id="best-practices">
+    <p class="section-label">11 — tövsiyələr</p>
+    <h2>Nələri etsək daha yaxşı olar?</h2>
+    <div class="practice-grid">
+      <div class="practice-card">
+        <span class="check">✓</span>
+        <h4>State-i minimal saxlayın</h4>
+        <p>Yalnız zamanla dəyişən və başqa dəyərlərdən hesablana bilməyən məlumatı state edin. Başqa state-dən hesablana bilən dəyəri (məsələn cəm, filtrlənmiş siyahı) ayrıca state kimi saxlamayın — render zamanı hesablayın.</p>
+      </div>
+      <div class="practice-card">
+        <span class="check">✓</span>
+        <h4>State-i mümkün qədər aşağı səviyyədə saxlayın</h4>
+        <p>State-i yalnız ona ehtiyacı olan komponentdə saxlayın. Bir neçə komponent arasında paylaşmaq lazım gələndə, state-i onların ortaq valideynə "qaldırın" (lifting state up).</p>
+      </div>
+      <div class="practice-card">
+        <span class="check">✓</span>
+        <h4>Immutable yeniləmə naxışına əməl edin</h4>
+        <p>Massiv və obyektləri həmişə spread operator (<code class="inline">...</code>) ilə yeni nüsxə şəklində yeniləyin — heç vaxt birbaşa mutasiya etməyin.</p>
+      </div>
+      <div class="practice-card">
+        <span class="check">✓</span>
+        <h4>Köhnə state-dən asılı yeniləmələrdə funksional forma işlədin</h4>
+        <p>Yeni dəyər köhnə dəyərdən asılıdırsa, həmişə <code class="inline">setState(prev =&gt; ...)</code> formasını seçin — xüsusilə ardıcıl və ya sürətli çağırışlarda.</p>
+      </div>
+      <div class="practice-card">
+        <span class="check">✓</span>
+        <h4>Unikal və sabit key-lərdən istifadə edin</h4>
+        <p>Siyahı elementləri üçün mümkün qədər verilənlərin öz id-sini işlədin — index-dən yalnız siyahı tamamilə statikdirsə istifadə edin.</p>
+      </div>
+      <div class="practice-card">
+        <span class="check">✓</span>
+        <h4>Handler funksiyalarını aydın adlandırın</h4>
+        <p><code class="inline">handleClick</code>, <code class="inline">handleChange</code>, <code class="inline">handleSubmit</code> kimi <em>handle</em> prefiksli adlandırma konvensiyası kodu daha oxunaqlı edir.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section id="faq">
+    <p class="section-label">12 — tez-tez verilən suallar</p>
+    <h2>FAQ</h2>
+
+    <div class="faq-item">
+      <div class="faq-q"><span class="prompt">?</span><span class="qtext">key niyə mütləqdir, index-i key kimi istifadə etmək olarmı?</span></div>
+      <div class="faq-a">
+        <p><code class="inline">key</code> React-ə siyahıda hansı elementin "kim olduğunu" deyir — bu, React-in reconciliation zamanı elementləri düzgün uyğunlaşdırması üçün vacibdir. Key olmadan (və ya səhv key ilə) React elementləri yalnız <strong>mövqeyinə</strong> görə uyğunlaşdırmağa çalışır ki, bu da səhv nəticələrə (input-larda mətnin qarışması, yanlış animasiya, lazımsız yenidən render) səbəb ola bilər.</p>
+        <p>İndex-i key kimi istifadə etmək <em>texniki olaraq mümkündür</em> və React heç bir xəbərdarlıq vermədən qəbul edir, amma yalnız aşağıdakı şərtlərin hamısı doğrudursa təhlükəsizdir: siyahı heç vaxt yenidən sıralanmır, elementlər ortadan əlavə/silinmir, siyahı tamamilə statikdir. Dinamik siyahılarda (to-do list kimi) isə <span class="out">həmişə verilənin öz unikal id-sindən istifadə edin</span> — <code class="inline">Date.now()</code>, backend-dən gələn id, və ya <code class="inline">crypto.randomUUID()</code> kimi.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q"><span class="prompt">?</span><span class="qtext">State dəyişəndə bütün komponent yenidən render olunurmu?</span></div>
+      <div class="faq-a">
+        <p>"Bütün komponent" dedikdə iki şeyi ayırmaq lazımdır. Birincisi — <strong>həmin komponentin özü</strong> tam yenidən render olunur, yəni funksiyası başdan-başa yenidən icra olunur (bu normaldır və gözləniləndir). İkincisi — <strong>bütün tətbiq</strong> yenidən render olunmur; yalnız state-i dəyişən komponent və (əgər state ona props kimi ötürülübsə) onun uşaq komponentləri təsirlənir. Əlaqəsi olmayan digər komponentlər toxunulmaz qalır.</p>
+        <p>Əlavə olaraq, "yenidən render olunmaq" o demək deyil ki, real DOM da tam yenidən yazılır. React əvvəlcə virtual müqayisə aparır (reconciliation) və yalnız faktiki dəyişən DOM hissələrini yeniləyir — bu, performans baxımından vacib fərqdir.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q"><span class="prompt">?</span><span class="qtext">useState-də köhnə state-ə əsaslanaraq yeniləmə necə düzgün edilir?</span></div>
+      <div class="faq-a">
+        <p>Yeni dəyər köhnə dəyərdən asılıdırsa (məsələn "cari say + 1"), yeniləyici funksiyaya birbaşa dəyər əvəzinə <strong>funksiya</strong> ötürün: <code class="inline">setCount(prev =&gt; prev + 1)</code>. React bu funksiyanı ən son, yeniləyici olan state dəyəri ilə çağırır — bu, xüsusilə eyni event handler daxilində bir neçə dəfə çağırış olanda (yuxarıdakı Sayğac nümunəsindəki kimi) fərqi göstərir.</p>
+        <p><code class="inline">setCount(count + 1)</code> yazsanız, <code class="inline">count</code> həmin render-in closure-da "dondurulmuş" dəyəridir — React state-i faktiki yeniləyənə qədər dəyişmir. Ona görə də ardıcıl bir neçə çağırış eyni köhnə dəyərdən istifadə edir və gözlənilən nəticəni vermir. Qayda sadədir: <span class="out">yeni dəyər köhnə dəyərdən asılıdırsa → funksional forma işlədin.</span></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Dərs 3 tamamlandı — indi state, useState və event handling artıq alətlər qutunuzdadır. Növbəti addım: bu bilikləri Tapşırıq bölməsindəki checkbox to-do list ilə möhkəmləndirin.</p>
+  <p class="sig">// hazırladı: React Kursu, Dərs 3</p>
+</footer>
+
+<script>
+  // ---------- gutter line numbers ----------
+  document.querySelectorAll('.editor-gutter').forEach(function(gutter){
+    var codeEl = gutter.nextElementSibling;
+    var lines = codeEl.textContent.replace(/\n$/, '').split('\n').length;
+    var out = '';
+    for (var i = 1; i <= lines; i++){ out += i + '\n'; }
+    gutter.textContent = out.trim();
+  });
+
+  // ---------- simple single-pass syntax highlighter ----------
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  var KEYWORDS = ['import','from','export','default','const','let','var','function','return','if','else','new',
+    'useState','useEffect','useRef','true','false','null','undefined','async','await'];
+  var kwPattern = '\\b(' + KEYWORDS.join('|') + ')\\b';
+  var tokenRegex = new RegExp(
+    '(//[^\\n]*)' +                                   // 1 comment
+    "|('(?:[^'\\\\]|\\\\.)*'|\"(?:[^\"\\\\]|\\\\.)*\"|`(?:[^`\\\\]|\\\\.)*`)" + // 2 string
+    '|' + kwPattern +                                  // 3 keyword
+    '|(&lt;/?[A-Za-z][\\w.]*)' +                        // 4 jsx tag start
+    '|\\b(\\d+)\\b',                                   // 5 number
+    'g'
+  );
+
+  document.querySelectorAll('.editor-code').forEach(function(el){
+    var raw = el.textContent;
+    var escaped = escapeHtml(raw);
+    var highlighted = escaped.replace(tokenRegex, function(match, comment, string, keyword, tag, number){
+      if (comment) return '<span class="tk-com">' + comment + '</span>';
+      if (string) return '<span class="tk-str">' + string + '</span>';
+      if (keyword) return '<span class="tk-kw">' + keyword + '</span>';
+      if (tag) return '<span class="tk-tag">' + tag + '</span>';
+      if (number) return '<span class="tk-num">' + number + '</span>';
+      return match;
+    });
+    el.innerHTML = highlighted;
+  });
+
+  // ---------- scroll progress bar ----------
+  var progressBar = document.getElementById('progressBar');
+  function updateProgress(){
+    var scrollTop = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+
+  // ---------- nav scrollspy ----------
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('.navpill'));
+  var sections = navLinks.map(function(link){
+    return document.querySelector(link.getAttribute('href'));
+  }).filter(Boolean);
+
+  function updateActiveNav(){
+    var scrollPos = window.scrollY + 120;
+    var current = sections[0];
+    sections.forEach(function(sec){
+      if (sec.offsetTop <= scrollPos) current = sec;
+    });
+    navLinks.forEach(function(link){
+      var target = document.querySelector(link.getAttribute('href'));
+      link.classList.toggle('active', target === current);
+    });
+  }
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav();
+</script>
+
+<!-- React 18 + Babel (yalnız bu dərs səhifəsindəki canlı nümunələr üçün) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.0/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+  const { useState, useRef } = React;
+
+  function Counter() {
+    const [count, setCount] = useState(0);
+    const renders = useRef(0);
+    renders.current += 1;
+
+    function addOnce() {
+      setCount(count + 1);
+    }
+    function addThreeBad() {
+      setCount(count + 1);
+      setCount(count + 1);
+      setCount(count + 1);
+    }
+    function addThreeGood() {
+      setCount(prev => prev + 1);
+      setCount(prev => prev + 1);
+      setCount(prev => prev + 1);
+    }
+
+    return (
+      <>
+        <div className="count-value">{count}</div>
+        <div className="count-meta">render sayı: {renders.current} (useRef ilə izlənilir — irəli mövzu)</div>
+        <div className="count-buttons">
+          <button onClick={addOnce}>+1</button>
+          <button onClick={() => setCount(0)}>Sıfırla</button>
+          <button onClick={addThreeBad}>+1 × 3 (adi üsul)</button>
+          <button onClick={addThreeGood}>+1 × 3 (funksional üsul)</button>
+        </div>
+      </>
+    );
+  }
+
+  function TodoApp() {
+    const [todos, setTodos] = useState([
+      { id: 1, text: "React state-i öyrən" },
+      { id: 2, text: "useState ilə məşq et" },
+    ]);
+    const [value, setValue] = useState("");
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const trimmed = value.trim();
+      if (trimmed === "") return;
+      setTodos(prev => [...prev, { id: Date.now(), text: trimmed }]);
+      setValue("");
+    }
+
+    function handleDelete(id) {
+      setTodos(prev => prev.filter(todo => todo.id !== id));
+    }
+
+    return (
+      <>
+        <form onSubmit={handleSubmit} className="todo-form">
+          <input
+            type="text"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            placeholder="Yeni tapşırıq yaz..."
+          />
+          <button type="submit">Əlavə et</button>
+        </form>
+        {todos.length === 0 ? (
+          <p className="empty-msg">Siyahı boşdur.</p>
+        ) : (
+          <ul className="todo-list">
+            {todos.map(todo => (
+              <li key={todo.id}>
+                <span>{todo.text}</span>
+                <button onClick={() => handleDelete(todo.id)} aria-label="Sil">✕</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </>
+    );
+  }
+
+  function LoadingDemo() {
+    const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState(null);
+
+    function loadData() {
+      setLoading(true);
+      setResult(null);
+      setTimeout(() => {
+        setLoading(false);
+        setResult("Məlumat uğurla yükləndi ✓");
+      }, 1400);
+    }
+
+    return (
+      <>
+        <button onClick={loadData} disabled={loading}>
+          {loading ? "Yüklənir..." : "Məlumatı yüklə"}
+        </button>
+        <div style={{marginTop:"14px"}}>
+          {loading && <p className="status-loading">⏳ Server-dən cavab gözlənilir...</p>}
+          {!loading && result && <p className="status-success">{result}</p>}
+          {!loading && !result && <p className="empty-msg">Düyməyə basaraq yükləməni başlat.</p>}
+        </div>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("counter-demo-root")).render(<Counter />);
+  ReactDOM.createRoot(document.getElementById("todo-demo-root")).render(<TodoApp />);
+  ReactDOM.createRoot(document.getElementById("loading-demo-root")).render(<LoadingDemo />);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Data Transformation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181b24;
+    --card: #1e2233;
+    --card-hover: #232840;
+    --border: #2a2f45;
+    --border-light: #353c58;
+    --text: #e8ecf4;
+    --text-muted: #8891b0;
+    --text-dim: #525c7a;
+    --accent: #6C63FF;
+    --accent-soft: rgba(108,99,255,0.12);
+    --accent-glow: rgba(108,99,255,0.25);
+    --green: #3ecf8e;
+    --green-soft: rgba(62,207,142,0.1);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245,158,11,0.1);
+    --coral: #f87171;
+    --coral-soft: rgba(248,113,113,0.1);
+    --cyan: #22d3ee;
+    --cyan-soft: rgba(34,211,238,0.1);
+    --purple: #a78bfa;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(180deg, #0a0c12 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 200px;
+    background: radial-gradient(ellipse, rgba(108,99,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(108,99,255,0.3);
+    color: #a5a0ff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+  .header h1 span { color: #a5a0ff; }
+  .header p {
+    color: var(--text-muted);
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    max-width: 540px;
+    margin: 0 auto 1.5rem;
+  }
+  .header-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .header-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .header-stat strong {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .header-stat span {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* NAV */
+  .nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-bar::-webkit-scrollbar { display: none; }
+  .nav-inner {
+    display: flex;
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    min-width: max-content;
+  }
+  .nav-btn {
+    padding: 0.85rem 1.1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active {
+    color: #a5a0ff;
+    border-bottom-color: var(--accent);
+  }
+
+  /* LAYOUT */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+  }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.4rem;
+  }
+  .section-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* TASK CARD */
+  .tasks-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .task-card:hover { border-color: var(--border-light); }
+
+  .task-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .task-num {
+    min-width: 36px; height: 36px;
+    background: var(--accent-soft);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a5a0ff;
+    font-family: var(--mono);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .task-meta { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    line-height: 1.4;
+  }
+  .task-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 0.6rem;
+  }
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+  .tag-green { background: var(--green-soft); color: var(--green); border-color: rgba(62,207,142,0.25); }
+  .tag-amber { background: var(--amber-soft); color: var(--amber); border-color: rgba(245,158,11,0.25); }
+  .tag-coral { background: var(--coral-soft); color: var(--coral); border-color: rgba(248,113,113,0.25); }
+  .tag-cyan  { background: var(--cyan-soft);  color: var(--cyan);  border-color: rgba(34,211,238,0.25); }
+  .tag-purple{ background: rgba(167,139,250,0.1); color: var(--purple); border-color: rgba(167,139,250,0.25); }
+
+  .difficulty {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding-top: 4px;
+  }
+  .diff-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border-light);
+  }
+  .diff-dot.on { background: var(--amber); }
+  .diff-dot.on.hard { background: var(--coral); }
+
+  .task-body { padding: 1.25rem 1.5rem; }
+
+  /* DATA BOX */
+  .data-section { margin-bottom: 1.25rem; }
+  .data-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .data-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .code-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+  .code-dots {
+    display: flex;
+    gap: 5px;
+  }
+  .code-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .code-dots span:nth-child(1) { background: #ff5f57; }
+  .code-dots span:nth-child(2) { background: #ffbd2e; }
+  .code-dots span:nth-child(3) { background: #28ca41; }
+  .code-lang {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-family: var(--sans);
+    padding: 3px 9px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: var(--border); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+  pre {
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: #c9d1e0;
+    margin: 0;
+  }
+  /* Syntax coloring */
+  .kw  { color: #a5a0ff; }
+  .fn  { color: #61dafb; }
+  .str { color: #a3e635; }
+  .num { color: #f59e0b; }
+  .cm  { color: #525c7a; font-style: italic; }
+  .prop{ color: #94e2d5; }
+  .op  { color: #f472b6; }
+
+  /* EXPLANATION */
+  .explanation {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+  .explanation strong { color: var(--text); }
+
+  /* OUTPUT BOX */
+  .output-box {
+    background: var(--green-soft);
+    border: 1px solid rgba(62,207,142,0.2);
+    border-radius: var(--radius);
+    padding: 0.85rem 1.1rem;
+    margin-top: 0.75rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--green);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .output-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--green);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+
+  /* COLLAPSIBLE */
+  .toggle-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.85rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: color 0.15s;
+  }
+  .toggle-btn:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+  .toggle-icon { transition: transform 0.25s; font-style: normal; font-size: 0.9rem; }
+  .toggle-icon.open { transform: rotate(180deg); }
+  .collapsible-content {
+    display: none;
+    padding: 0 1.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.15);
+  }
+  .collapsible-content.visible { display: block; }
+  .collapsible-content > *:first-child { margin-top: 1.25rem; }
+
+  /* PROJECT EXAMPLES */
+  .project-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    color: var(--amber);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 100px;
+    margin-bottom: 0.75rem;
+  }
+
+  /* API MOCKUP */
+  .api-mock {
+    background: #0a0c10;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .api-mock-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+  .method-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .get  { background: rgba(62,207,142,0.15); color: var(--green); }
+  .post { background: rgba(108,99,255,0.15); color: #a5a0ff; }
+
+  /* OVERVIEW CARDS */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .overview-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .overview-card:hover {
+    border-color: rgba(108,99,255,0.4);
+    background: var(--card-hover);
+  }
+  .ov-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 0.85rem;
+  }
+  .ov-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  .ov-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .ov-methods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 0.75rem;
+  }
+  .ov-method {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  /* CHEATSHEET */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .cheat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .cheat-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cheat-body pre {
+    font-size: 0.74rem;
+    padding: 0.85rem 1rem;
+    background: #0a0c10;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    .task-header { padding: 1rem; gap: 0.75rem; }
+    .task-body { padding: 1rem; }
+    .collapsible-content { padding: 0 1rem 1rem; }
+    pre { font-size: 0.72rem; padding: 0.9rem 1rem; }
+    .header { padding: 1.75rem 1rem 1.5rem; }
+    .difficulty { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-badge">📦 JavaScript Dərsləri</div>
+  <h1>Data <span>Transformation</span><br>Mastery</h1>
+  <p>Real layihə nümunələri ilə JavaScript məlumat çevrilməsi — massivlər, obyektlər, API cavabları və daha çox.</p>
+  <div class="header-stats">
+    <div class="header-stat"><strong>12</strong><span>Task</span></div>
+    <div class="header-stat"><strong>5</strong><span>Mövzu</span></div>
+    <div class="header-stat"><strong>Real</strong><span>Layihə nümunələri</span></div>
+  </div>
+</header>
+
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="showSection('overview')">🗺 Ümumi baxış</button>
+    <button class="nav-btn" onclick="showSection('array')">📋 Massiv metodları</button>
+    <button class="nav-btn" onclick="showSection('object')">🔷 Obyekt çevirmə</button>
+    <button class="nav-btn" onclick="showSection('api')">🌐 API məlumatları</button>
+    <button class="nav-btn" onclick="showSection('advanced')">⚡ Qabaqcıl</button>
+    <button class="nav-btn" onclick="showSection('cheat')">📝 Xülasə cədvəl</button>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ===================== OVERVIEW ===================== -->
+<section id="overview" class="section active">
+  <div class="section-header">
+    <h2>🗺 Ümumi Baxış</h2>
+    <p>JavaScript-də data transformation — məlumatları bir formadan digərinə çevirməyin əsas üsulları</p>
+  </div>
+
+  <div class="overview-grid">
+    <div class="overview-card" onclick="showSection('array')">
+      <div class="ov-icon" style="background:rgba(108,99,255,0.12);">📋</div>
+      <div class="ov-title">Massiv metodları</div>
+      <div class="ov-desc">map, filter, reduce, flatMap ilə məlumat siyahılarını çevirəcəksiniz</div>
+      <div class="ov-methods">
+        <span class="ov-method">.map()</span>
+        <span class="ov-method">.filter()</span>
+        <span class="ov-method">.reduce()</span>
+        <span class="ov-method">.flatMap()</span>
+        <span class="ov-method">.sort()</span>
+      </div>
+    </div>
+    <div class="overview-card" onclick="showSection('object')">
+      <div class="ov-icon" style="background:rgba(34,211,238,0.1);">🔷</div>
+      <div class="ov-title">Obyekt çevirmə</div>
+      <div class="ov-desc">Object.keys, entries, fromEntries ilə obyektləri transformasiya edin</div>
+      <div class="ov-methods">
+        <span class="ov-method">Object.keys</span>
+        <span class="ov-method">entries</span>
+        <span class="ov-method">fromEntries</span>
+        <span class="ov-method">structuredClone</span>
+      </div>
+    </div>
+    <div class="overview-card" onclick="showSection('api')">
+      <div class="ov-icon" style="background:rgba(62,207,142,0.1);">🌐</div>
+      <div class="ov-title">API məlumatları</div>
+      <div class="ov-desc">Backend-dən gələn JSON cavablarını UI-a uyğun formata çevirin</div>
+      <div class="ov-methods">
+        <span class="ov-method">normalize</span>
+        <span class="ov-method">group by</span>
+        <span class="ov-method">pagination</span>
+        <span class="ov-method">flatten</span>
+      </div>
+    </div>
+    <div class="overview-card" onclick="showSection('advanced')">
+      <div class="ov-icon" style="background:rgba(245,158,11,0.1);">⚡</div>
+      <div class="ov-title">Qabaqcıl texnikalar</div>
+      <div class="ov-desc">Zəncirvari transformasiya, memoization, lazy evaluation</div>
+      <div class="ov-methods">
+        <span class="ov-method">chaining</span>
+        <span class="ov-method">memoize</span>
+        <span class="ov-method">curry</span>
+        <span class="ov-method">compose</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header" style="margin-top:2rem;">
+    <h2>Nə öyrənəcəksiniz?</h2>
+  </div>
+
+  <div class="task-card">
+    <div class="task-body">
+      <div class="data-label">Data Transformation Nədir?</div>
+      <div class="explanation" style="border-left-color: var(--cyan); margin-top:0; margin-bottom:1rem;">
+        <strong>Data transformation</strong> — məlumatları bir strukturdan digərinə çevirmək prosesidir. Real layihələrdə hər gün rast gəlinir:<br><br>
+        • Backend <strong>API cavabı</strong> → UI-a uyğun obyekt<br>
+        • Xam istifadəçi məlumatı → Filtrli, sıralanmış siyahı<br>
+        • Çox sətirli cədvəl → Qruplaşdırılmış hesabat<br>
+        • E-ticarət məhsulları → Kateqoriyaya görə bölünmüş katalog
+      </div>
+
+      <div class="data-label">Əsas konsepsiya</div>
+      <div class="code-block">
+        <div class="code-toolbar">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span class="code-lang">javascript</span>
+          <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+        </div>
+        <pre><span class="cm">// DATA TRANSFORMATION — əsas fikir:</span>
+<span class="cm">// Giriş (INPUT) → Dəyişiklik (TRANSFORM) → Çıxış (OUTPUT)</span>
+
+<span class="kw">const</span> <span class="prop">rawData</span> = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+
+<span class="kw">const</span> <span class="prop">result</span> = <span class="prop">rawData</span>
+  .<span class="fn">filter</span>(n <span class="op">=></span> n <span class="op">%</span> <span class="num">2</span> <span class="op">===</span> <span class="num">0</span>)       <span class="cm">// → [2, 4]</span>
+  .<span class="fn">map</span>(n <span class="op">=></span> n <span class="op">*</span> <span class="num">10</span>)              <span class="cm">// → [20, 40]</span>
+  .<span class="fn">reduce</span>((acc, n) <span class="op">=></span> acc <span class="op">+</span> n, <span class="num">0</span>); <span class="cm">// → 60</span>
+
+console.<span class="fn">log</span>(<span class="prop">result</span>); <span class="cm">// 60</span></pre>
+      </div>
+      <div class="output-box"><div class="output-label">Nəticə</div>60</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ARRAY METHODS ===================== -->
+<section id="array" class="section">
+  <div class="section-header">
+    <h2>📋 Massiv Metodları</h2>
+    <p>map, filter, reduce, flatMap, sort — real layihə ssenariləri ilə</p>
+  </div>
+
+  <div class="tasks-grid">
+
+    <!-- TASK 1 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">01</div>
+        <div class="task-meta">
+          <div class="task-title">İstifadəçi siyahısını formatlayın</div>
+          <div class="task-desc">Backend-dən gələn xam istifadəçi məlumatlarını UI kartları üçün uyğun formata çevirin. Ad + soyad birləşdirin, emaili kiçik hərflərə çevirin, yaş qrupunu əlavə edin.</div>
+          <div class="tags">
+            <span class="tag tag-green">.map()</span>
+            <span class="tag tag-cyan">String</span>
+            <span class="tag tag-purple">Backend API</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Backend-dən gələn məlumat (mock)</div>
+        <div class="api-mock">
+          <div class="api-mock-header"><span class="method-badge get">GET</span>/api/users</div>
+          <pre style="padding:0.9rem 1.1rem; font-size:0.74rem;">[
+  { <span class="prop">"id"</span>: <span class="num">1</span>, <span class="prop">"firstName"</span>: <span class="str">"Aytən"</span>, <span class="prop">"lastName"</span>: <span class="str">"Məmmədova"</span>,
+    <span class="prop">"email"</span>: <span class="str">"AYTEN@EXAMPLE.COM"</span>, <span class="prop">"age"</span>: <span class="num">28</span>, <span class="prop">"role"</span>: <span class="str">"admin"</span> },
+  { <span class="prop">"id"</span>: <span class="num">2</span>, <span class="prop">"firstName"</span>: <span class="str">"Kənan"</span>, <span class="prop">"lastName"</span>: <span class="str">"Hüseynov"</span>,
+    <span class="prop">"email"</span>: <span class="str">"KENAN@EXAMPLE.COM"</span>, <span class="prop">"age"</span>: <span class="num">17</span>, <span class="prop">"role"</span>: <span class="str">"user"</span> }
+]</pre>
+        </div>
+
+        <div class="data-label">Həll</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">users</span> = [
+  { id: <span class="num">1</span>, firstName: <span class="str">"Aytən"</span>, lastName: <span class="str">"Məmmədova"</span>,
+    email: <span class="str">"AYTEN@EXAMPLE.COM"</span>, age: <span class="num">28</span>, role: <span class="str">"admin"</span> },
+  { id: <span class="num">2</span>, firstName: <span class="str">"Kənan"</span>, lastName: <span class="str">"Hüseynov"</span>,
+    email: <span class="str">"KENAN@EXAMPLE.COM"</span>, age: <span class="num">17</span>, role: <span class="str">"user"</span> }
+];
+
+<span class="kw">const</span> <span class="fn">getAgeGroup</span> = (age) <span class="op">=></span> {
+  <span class="kw">if</span> (age <span class="op"><</span> <span class="num">18</span>) <span class="kw">return</span> <span class="str">"yeniyetmə"</span>;
+  <span class="kw">if</span> (age <span class="op"><</span> <span class="num">35</span>) <span class="kw">return</span> <span class="str">"gənc"</span>;
+  <span class="kw">return</span> <span class="str">"yetkin"</span>;
+};
+
+<span class="kw">const</span> <span class="prop">formatted</span> = <span class="prop">users</span>.<span class="fn">map</span>(user <span class="op">=></span> ({
+  id: user.id,
+  fullName: <span class="str">`${user.firstName} ${user.lastName}`</span>,
+  email: user.email.<span class="fn">toLowerCase</span>(),
+  ageGroup: <span class="fn">getAgeGroup</span>(user.age),
+  isAdmin: user.role <span class="op">===</span> <span class="str">"admin"</span>,
+  initials: <span class="str">`${user.firstName[0]}${user.lastName[0]}`</span>
+}));</pre>
+        </div>
+        <div class="output-box"><div class="output-label">formatted nəticəsi</div>[
+  { id: 1, fullName: "Aytən Məmmədova", email: "ayten@example.com",
+    ageGroup: "gənc", isAdmin: true, initials: "AM" },
+  { id: 2, fullName: "Kənan Hüseynov", email: "kenan@example.com",
+    ageGroup: "yeniyetmə", isAdmin: false, initials: "KH" }
+]</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 Ətraflı izah</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>.map()</strong> — hər elementi çevirir, massiv ölçüsünü dəyişmir. Bu nümunədə:<br><br>
+          • <strong>Template literal</strong> (<code>${}</code>) ilə ad+soyad birləşdirilir<br>
+          • <strong>.toLowerCase()</strong> emaili kiçik hərfə çevirir — DB-də normalized saxlamaq üçün vacibdir<br>
+          • <strong>Köməkçi funksiya</strong> <code>getAgeGroup</code> məntiqi ayrıca saxlayır — test etmək asanlaşır<br>
+          • <strong>Boolean çevrilmə</strong>: <code>role === "admin"</code> birbaşa <code>true/false</code> qaytarır
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="project-badge">🏢 Real Layihə</div>
+          <div class="explanation" style="border-left-color: var(--amber);">
+            <strong>Slack, Notion, Jira</strong> kimi SaaS platformalarda istifadəçi siyahıları bu cür formatlanır. Avatar üçün <code>initials</code>, axtarış üçün <code>fullName</code>, icazə yoxlama üçün <code>isAdmin</code> — hamısı eyni <code>.map()</code> içində hesablanır.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 2 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">02</div>
+        <div class="task-meta">
+          <div class="task-title">Məhsul kataloqonu filtrlayın</div>
+          <div class="task-desc">E-ticarət məhsullarını qiymət aralığına, stok vəziyyətinə və kateqoriyaya görə filtirləyin. Çoxlu şərt tətbiq edin.</div>
+          <div class="tags">
+            <span class="tag tag-green">.filter()</span>
+            <span class="tag tag-amber">E-commerce</span>
+            <span class="tag tag-cyan">Multi-criteria</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Məhsullar (mock API cavabı)</div>
+        <div class="api-mock">
+          <div class="api-mock-header"><span class="method-badge get">GET</span>/api/products?category=electronics</div>
+          <pre style="padding:0.9rem 1.1rem; font-size:0.74rem;"><span class="kw">const</span> products = [
+  { id: <span class="num">1</span>, name: <span class="str">"Laptop"</span>, price: <span class="num">1200</span>, inStock: <span class="kw">true</span>,  category: <span class="str">"electronics"</span> },
+  { id: <span class="num">2</span>, name: <span class="str">"Siçan"</span>,  price: <span class="num">45</span>,   inStock: <span class="kw">false</span>, category: <span class="str">"electronics"</span> },
+  { id: <span class="num">3</span>, name: <span class="str">"Monitor"</span>,price: <span class="num">350</span>,  inStock: <span class="kw">true</span>,  category: <span class="str">"electronics"</span> },
+  { id: <span class="num">4</span>, name: <span class="str">"Qələm"</span>,  price: <span class="num">5</span>,    inStock: <span class="kw">true</span>,  category: <span class="str">"office"</span>     }
+];</pre>
+        </div>
+
+        <div class="data-label">Həll</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="cm">// Filtr parametrləri (UI-dan gəlir)</span>
+<span class="kw">const</span> <span class="prop">filters</span> = {
+  minPrice: <span class="num">50</span>,
+  maxPrice: <span class="num">1500</span>,
+  inStockOnly: <span class="kw">true</span>,
+  category: <span class="str">"electronics"</span>
+};
+
+<span class="kw">const</span> <span class="prop">filtered</span> = <span class="prop">products</span>.<span class="fn">filter</span>(p <span class="op">=></span> {
+  <span class="kw">const</span> <span class="prop">priceOk</span> = p.price <span class="op">>=</span> filters.minPrice 
+                <span class="op">&&</span> p.price <span class="op"><=</span> filters.maxPrice;
+  <span class="kw">const</span> <span class="prop">stockOk</span> = filters.inStockOnly ? p.inStock : <span class="kw">true</span>;
+  <span class="kw">const</span> <span class="prop">catOk</span>   = p.category <span class="op">===</span> filters.category;
+  
+  <span class="kw">return</span> priceOk <span class="op">&&</span> stockOk <span class="op">&&</span> catOk;
+});
+
+<span class="cm">// Dinamik filtr funksiyası — istənilən şərtlər üçün</span>
+<span class="kw">const</span> <span class="fn">createFilter</span> = (conditions) <span class="op">=></span> (item) <span class="op">=></span>
+  conditions.<span class="fn">every</span>(fn <span class="op">=></span> <span class="fn">fn</span>(item));
+
+<span class="kw">const</span> <span class="prop">smartFilter</span> = <span class="fn">createFilter</span>([
+  p <span class="op">=></span> p.inStock,
+  p <span class="op">=></span> p.price <span class="op">></span> <span class="num">100</span>
+]);
+<span class="kw">const</span> <span class="prop">result</span> = <span class="prop">products</span>.<span class="fn">filter</span>(<span class="prop">smartFilter</span>);</pre>
+        </div>
+        <div class="output-box"><div class="output-label">filtered nəticəsi</div>[
+  { id: 1, name: "Laptop",   price: 1200, inStock: true, category: "electronics" },
+  { id: 3, name: "Monitor",  price: 350,  inStock: true, category: "electronics" }
+]</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 Ətraflı izah + Real nümunə</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>.filter()</strong> — <code>true</code> qaytaran elementləri saxlayır, <code>false</code> qaytaranları silir.<br><br>
+          • <strong>Ternary operator</strong>: <code>inStockOnly ? p.inStock : true</code> — filtr aktiv deyilsə bütün elementlər keçir<br>
+          • <strong>createFilter pattern</strong> — Higher-Order Function: şərtlər massivi qəbul edir, filtr funksiyası qaytarır. <code>every()</code> bütün şərtlər yerinə yetirilsə <code>true</code> qaytarır<br>
+          • Orijinal <code>products</code> massivi <strong>dəyişmir</strong> — immutability prinsipi
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="project-badge">🛒 Real Layihə — Trendyol / Amazon klon</div>
+          <div class="explanation" style="border-left-color: var(--amber);">
+            E-ticarət saytlarında sol panel filtrlər məhz bu pattern ilə işləyir. İstifadəçi qiymət sürüşdürücüsünü dəyişdikdə yeni <code>filters</code> obyekti yaranır, <code>.filter()</code> yenidən icra olunur, React state yenilənir. Backend-ə sorğu göndərilmir — <strong>client-side filtering</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 3 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">03</div>
+        <div class="task-meta">
+          <div class="task-title">Satış hesabatını hesablayın</div>
+          <div class="task-desc">Sifariş massivindən ümumi gəlir, ən çox satılan kateqoriya, ortalama qiymət hesablayın. reduce ilə kompleks aggregasiya.</div>
+          <div class="tags">
+            <span class="tag tag-coral">.reduce()</span>
+            <span class="tag tag-amber">Analytics</span>
+            <span class="tag tag-purple">Aggregation</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Sifarişlər (Backend mock)</div>
+        <div class="api-mock">
+          <div class="api-mock-header"><span class="method-badge get">GET</span>/api/orders?period=2024-Q1</div>
+          <pre style="padding:0.9rem 1.1rem; font-size:0.74rem;"><span class="kw">const</span> orders = [
+  { id: <span class="num">1</span>, category: <span class="str">"Elektronika"</span>, amount: <span class="num">1200</span>, qty: <span class="num">2</span> },
+  { id: <span class="num">2</span>, category: <span class="str">"Geyim"</span>,      amount: <span class="num">85</span>,   qty: <span class="num">5</span> },
+  { id: <span class="num">3</span>, category: <span class="str">"Elektronika"</span>, amount: <span class="num">450</span>,  qty: <span class="num">1</span> },
+  { id: <span class="num">4</span>, category: <span class="str">"Geyim"</span>,      amount: <span class="num">120</span>,  qty: <span class="num">3</span> },
+  { id: <span class="num">5</span>, category: <span class="str">"Kitab"</span>,       amount: <span class="num">30</span>,   qty: <span class="num">8</span> }
+];</pre>
+        </div>
+
+        <div class="data-label">Həll</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">report</span> = <span class="prop">orders</span>.<span class="fn">reduce</span>((acc, order) <span class="op">=></span> {
+  <span class="cm">// Ümumi gəlir</span>
+  acc.totalRevenue <span class="op">+=</span> order.amount <span class="op">*</span> order.qty;
+  
+  <span class="cm">// Kateqoriyaya görə qruplaşdır</span>
+  <span class="kw">if</span> (!acc.byCategory[order.category]) {
+    acc.byCategory[order.category] = { revenue: <span class="num">0</span>, count: <span class="num">0</span> };
+  }
+  acc.byCategory[order.category].revenue <span class="op">+=</span> order.amount <span class="op">*</span> order.qty;
+  acc.byCategory[order.category].count<span class="op">++</span>;
+  
+  <span class="cm">// Ən böyük sifariş</span>
+  <span class="kw">if</span> (order.amount <span class="op">></span> acc.maxOrder.amount) {
+    acc.maxOrder = order;
+  }
+  
+  <span class="kw">return</span> acc;
+}, { totalRevenue: <span class="num">0</span>, byCategory: {}, maxOrder: orders[<span class="num">0</span>] });
+
+<span class="cm">// Ən çox gəlir gətirən kateqoriya</span>
+<span class="prop">report</span>.<span class="prop">topCategory</span> = Object
+  .<span class="fn">entries</span>(<span class="prop">report</span>.byCategory)
+  .<span class="fn">sort</span>(([,a], [,b]) <span class="op">=></span> b.revenue <span class="op">-</span> a.revenue)[<span class="num">0</span>][<span class="num">0</span>];</pre>
+        </div>
+        <div class="output-box"><div class="output-label">report nəticəsi</div>{
+  totalRevenue: 3375,
+  byCategory: {
+    "Elektronika": { revenue: 2850, count: 2 },
+    "Geyim":       { revenue: 785,  count: 2 },
+    "Kitab":       { revenue: 240,  count: 1 }
+  },
+  maxOrder: { id: 1, category: "Elektronika", amount: 1200, qty: 2 },
+  topCategory: "Elektronika"
+}</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 Ətraflı izah</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>.reduce()</strong> — ən güclü massiv metodu. Bütün elementləri bir dəyərə (rəqəm, obyekt, massiv) çevirir.<br><br>
+          • <strong>Accumulator pattern</strong>: <code>acc</code> — hər iterasiyada yenilənən "yığım" obyekti<br>
+          • İlkin dəyər (<code>{ totalRevenue: 0, byCategory: {} }</code>) ikinci arqument kimi verilir<br>
+          • <strong>Dynamic key</strong>: <code>acc.byCategory[order.category]</code> — kateqoriya adı dinamik açar kimi istifadə olunur<br>
+          • <strong>Object.entries().sort()</strong> — kateqoriyaları gəlirə görə sıralayır, destructuring ilə <code>[,a]</code> dəyər götürülür (açar lazım deyil)
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="project-badge">📊 Real Layihə — Dashboard Analytics</div>
+          <div class="explanation" style="border-left-color: var(--amber);">
+            <strong>Google Analytics, Mixpanel</strong> kimi analitika platformalarında bu pattern əsasdır. Frontend chart kitabxanaları (Chart.js, Recharts) məhz belə strukturlaşdırılmış məlumat qəbul edir. <code>reduce()</code> ilə bir keçişdə bütün statistikalar hesablanır — performans üçün əladır.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== OBJECT ===================== -->
+<section id="object" class="section">
+  <div class="section-header">
+    <h2>🔷 Obyekt Çevirmə</h2>
+    <p>Object metodları ilə məlumat strukturlarını yenidən qurun</p>
+  </div>
+
+  <div class="tasks-grid">
+
+    <!-- TASK 4 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">04</div>
+        <div class="task-meta">
+          <div class="task-title">Massivdən lookup cədvəli yaradın</div>
+          <div class="task-desc">İstifadəçilər massivini ID-yə görə sürətli axtarış üçün obyektə çevirin. O(n) axtarış yerinə O(1) əldə edin.</div>
+          <div class="tags">
+            <span class="tag tag-cyan">reduce</span>
+            <span class="tag tag-green">Performance</span>
+            <span class="tag tag-purple">Normalize</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Giriş məlumatı</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">users</span> = [
+  { id: <span class="num">101</span>, name: <span class="str">"Leyla"</span>,  dept: <span class="str">"Engineering"</span> },
+  { id: <span class="num">102</span>, name: <span class="str">"Rauf"</span>,   dept: <span class="str">"Design"</span>      },
+  { id: <span class="num">103</span>, name: <span class="str">"Nigar"</span>,  dept: <span class="str">"Marketing"</span>   }
+];
+
+<span class="cm">// ❌ Yavaş yol — hər axtarışda bütün massivi tarayır O(n)</span>
+<span class="kw">const</span> <span class="prop">user</span> = <span class="prop">users</span>.<span class="fn">find</span>(u <span class="op">=></span> u.id <span class="op">===</span> <span class="num">102</span>);
+
+<span class="cm">// ✅ Sürətli yol — bir dəfə indeks qur, sonra O(1)</span>
+<span class="kw">const</span> <span class="prop">usersById</span> = <span class="prop">users</span>.<span class="fn">reduce</span>((acc, user) <span class="op">=></span> {
+  acc[user.id] = user;
+  <span class="kw">return</span> acc;
+}, {});
+
+<span class="cm">// Object.fromEntries ilə daha qısa:</span>
+<span class="kw">const</span> <span class="prop">usersById2</span> = Object.<span class="fn">fromEntries</span>(
+  <span class="prop">users</span>.<span class="fn">map</span>(u <span class="op">=></span> [u.id, u])
+);
+
+<span class="cm">// İstifadə:</span>
+console.<span class="fn">log</span>(<span class="prop">usersById</span>[<span class="num">102</span>].name); <span class="cm">// "Rauf" — ani!</span></pre>
+        </div>
+        <div class="output-box"><div class="output-label">usersById nəticəsi</div>{
+  "101": { id: 101, name: "Leyla",  dept: "Engineering" },
+  "102": { id: 102, name: "Rauf",   dept: "Design"      },
+  "103": { id: 103, name: "Nigar",  dept: "Marketing"   }
+}</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 Niyə vacibdir? Redux, React Query nümunəsi</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>Normalization (normallaşdırma)</strong> — Redux Toolkit, React Query, TanStack Query-nin əsas pattern-ı.<br><br>
+          10.000 istifadəçi varsa, <code>.find()</code> hər çağırışda 10.000 elementi nəzərdən keçirir. Lookup obyekti isə birbaşa əldə etməyə imkan verir. <strong>Əvvəl bir dəfə qur, sonra sonsuz dəfə sürətlə istifadə et.</strong>
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="project-badge">⚛️ Real Layihə — Redux State Shape</div>
+          <div class="code-block" style="margin-top:0.5rem;">
+            <div class="code-toolbar">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span class="code-lang">redux pattern</span>
+            </div>
+            <pre><span class="cm">// Redux-da normalized state:</span>
+state = {
+  users: {
+    ids: [<span class="num">101</span>, <span class="num">102</span>, <span class="num">103</span>],
+    entities: {
+      <span class="num">101</span>: { id: <span class="num">101</span>, name: <span class="str">"Leyla"</span>  },
+      <span class="num">102</span>: { id: <span class="num">102</span>, name: <span class="str">"Rauf"</span>   },
+    }
+  }
+}
+<span class="cm">// state.users.entities[userId] — O(1) əldə</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 5 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">05</div>
+        <div class="task-meta">
+          <div class="task-title">Obyekt açarlarını çevirin (rename keys)</div>
+          <div class="task-desc">Backend snake_case açarlarını (first_name) frontend camelCase-ə (firstName) çevirin. API kontrakt dəyişdikdə mərkəzləşdirilmiş çevirmə.</div>
+          <div class="tags">
+            <span class="tag tag-green">Object.entries</span>
+            <span class="tag tag-cyan">fromEntries</span>
+            <span class="tag tag-amber">API Transform</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Həll</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="cm">// Backend-dən gələn snake_case</span>
+<span class="kw">const</span> <span class="prop">apiUser</span> = {
+  first_name: <span class="str">"Günel"</span>,
+  last_name: <span class="str">"Əliyeva"</span>,
+  birth_date: <span class="str">"1995-03-12"</span>,
+  is_verified: <span class="kw">true</span>
+};
+
+<span class="cm">// snake_case → camelCase çeviricisi</span>
+<span class="kw">const</span> <span class="fn">toCamelCase</span> = (str) <span class="op">=></span>
+  str.<span class="fn">replace</span>(<span class="str">/_([a-z])/g</span>, (_, c) <span class="op">=></span> c.<span class="fn">toUpperCase</span>());
+
+<span class="kw">const</span> <span class="fn">transformKeys</span> = (obj) <span class="op">=></span>
+  Object.<span class="fn">fromEntries</span>(
+    Object.<span class="fn">entries</span>(obj).<span class="fn">map</span>(([key, val]) <span class="op">=></span> [<span class="fn">toCamelCase</span>(key), val])
+  );
+
+<span class="kw">const</span> <span class="prop">frontendUser</span> = <span class="fn">transformKeys</span>(<span class="prop">apiUser</span>);
+
+<span class="cm">// Massiv üçün:</span>
+<span class="kw">const</span> <span class="fn">transformAll</span> = (arr) <span class="op">=></span> arr.<span class="fn">map</span>(<span class="fn">transformKeys</span>);
+
+<span class="cm">// Xüsusi sahə xəritəsi ilə:</span>
+<span class="kw">const</span> <span class="prop">fieldMap</span> = { first_name: <span class="str">"name"</span>, birth_date: <span class="str">"dob"</span> };
+<span class="kw">const</span> <span class="fn">remapFields</span> = (obj) <span class="op">=></span>
+  Object.<span class="fn">fromEntries</span>(
+    Object.<span class="fn">entries</span>(obj).<span class="fn">map</span>(([k, v]) <span class="op">=></span> [<span class="prop">fieldMap</span>[k] ?? k, v])
+  );</pre>
+        </div>
+        <div class="output-box"><div class="output-label">frontendUser nəticəsi</div>{
+  firstName: "Günel",
+  lastName:  "Əliyeva",
+  birthDate: "1995-03-12",
+  isVerified: true
+}</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== API DATA ===================== -->
+<section id="api" class="section">
+  <div class="section-header">
+    <h2>🌐 API Məlumatları ilə İş</h2>
+    <p>Backend-dən gələn JSON cavablarını UI-a uyğun formata çevirin — mock data ilə real ssenarilər</p>
+  </div>
+
+  <div class="tasks-grid">
+
+    <!-- TASK 6 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">06</div>
+        <div class="task-meta">
+          <div class="task-title">Nested API cavabını düzləşdirin</div>
+          <div class="task-desc">Şirkət → Departament → İşçi kimi iç-içə strukturu düz siyahıya çevirin. flatMap ilə rekursiv flatten.</div>
+          <div class="tags">
+            <span class="tag tag-coral">.flatMap()</span>
+            <span class="tag tag-cyan">Nested data</span>
+            <span class="tag tag-purple">HR sistemi</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Nested API cavabı (mock)</div>
+        <div class="api-mock">
+          <div class="api-mock-header"><span class="method-badge get">GET</span>/api/company/structure</div>
+          <pre style="padding:0.9rem 1.1rem; font-size:0.74rem;"><span class="kw">const</span> company = {
+  name: <span class="str">"AzTech LLC"</span>,
+  departments: [
+    {
+      name: <span class="str">"Mühəndislik"</span>,
+      employees: [
+        { id: <span class="num">1</span>, name: <span class="str">"Elmar"</span>, salary: <span class="num">3500</span> },
+        { id: <span class="num">2</span>, name: <span class="str">"Sevinc"</span>, salary: <span class="num">3200</span> }
+      ]
+    },
+    {
+      name: <span class="str">"Dizayn"</span>,
+      employees: [
+        { id: <span class="num">3</span>, name: <span class="str">"Nərmin"</span>, salary: <span class="num">2800</span> }
+      ]
+    }
+  ]
+};</pre>
+        </div>
+
+        <div class="data-label">Həll — flatMap ilə düzləşdirmə</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="cm">// Bütün işçiləri departament məlumatı ilə düzləşdir</span>
+<span class="kw">const</span> <span class="prop">allEmployees</span> = <span class="prop">company</span>.departments.<span class="fn">flatMap</span>(dept <span class="op">=></span>
+  dept.employees.<span class="fn">map</span>(emp <span class="op">=></span> ({
+    ...emp,
+    department: dept.name,
+    company: company.name
+  }))
+);
+
+<span class="cm">// Ümumi maaş hesabatı</span>
+<span class="kw">const</span> <span class="prop">payroll</span> = <span class="prop">allEmployees</span>.<span class="fn">reduce</span>((acc, emp) <span class="op">=></span> {
+  acc.total <span class="op">+=</span> emp.salary;
+  acc.byDept[emp.department] <span class="op">??=</span> <span class="num">0</span>;
+  acc.byDept[emp.department] <span class="op">+=</span> emp.salary;
+  <span class="kw">return</span> acc;
+}, { total: <span class="num">0</span>, byDept: {} });
+
+<span class="cm">// flat() alternativis — iç-içə massivlər üçün</span>
+<span class="kw">const</span> <span class="prop">allEmps2</span> = <span class="prop">company</span>.departments
+  .<span class="fn">map</span>(d <span class="op">=></span> d.employees)  <span class="cm">// → [[emp1,emp2],[emp3]]</span>
+  .<span class="fn">flat</span>();               <span class="cm">// → [emp1, emp2, emp3]</span></pre>
+        </div>
+        <div class="output-box"><div class="output-label">allEmployees nəticəsi</div>[
+  { id: 1, name: "Elmar",  salary: 3500, department: "Mühəndislik", company: "AzTech LLC" },
+  { id: 2, name: "Sevinc", salary: 3200, department: "Mühəndislik", company: "AzTech LLC" },
+  { id: 3, name: "Nərmin", salary: 2800, department: "Dizayn",      company: "AzTech LLC" }
+]
+
+payroll: { total: 9500, byDept: { "Mühəndislik": 6700, "Dizayn": 2800 } }</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 flatMap vs flat().map() fərqi</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>.flatMap(fn)</strong> = <strong>.map(fn).flat(1)</strong> — daha qısa, daha sürətli.<br><br>
+          • <strong>Spread operator</strong> (<code>...emp</code>) — əsl obyektin bütün xüsusiyyətlərini kopyalayır, üstünə yeni sahələr əlavə edir<br>
+          • <strong>Nullish coalescing assignment</strong> (<code>??=</code>) — yalnız <code>undefined</code> və <code>null</code> olduqda dəyər təyin edir. <code>acc.byDept[dept] = acc.byDept[dept] || 0</code> əvəzinə<br>
+          • <strong>Dərin iç-içəlik</strong> üçün: <code>.flat(Infinity)</code> — bütün səviyyələri düzləşdirir
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="project-badge">👔 Real Layihə — İşçi İdarəetmə Sistemi</div>
+          <div class="explanation" style="border-left-color: var(--amber);">
+            <strong>SAP, Workday</strong> kimi HR sistemlərinin frontend hissəsi bu pattern-i geniş istifadə edir. Ağac strukturunu düz siyahıya çevirmək, həm cədvəl göstərmək, həm axtarış, həm Excel export üçün lazımdır.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 7 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">07</div>
+        <div class="task-meta">
+          <div class="task-title">Massivi kateqoriyaya görə qruplaşdırın</div>
+          <div class="task-desc">Xəbərlər massivini tarixə və kateqoriyaya görə qruplaşdırın. Yeni Object.groupBy() + reduce alternativin müqayisəsi.</div>
+          <div class="tags">
+            <span class="tag tag-green">groupBy</span>
+            <span class="tag tag-cyan">reduce</span>
+            <span class="tag tag-amber">News feed</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Həll</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">articles</span> = [
+  { id: <span class="num">1</span>, title: <span class="str">"Azərbaycan iqtisadiyyatı"</span>, cat: <span class="str">"Siyasət"</span>, date: <span class="str">"2024-01-15"</span> },
+  { id: <span class="num">2</span>, title: <span class="str">"Yeni texnologiyalar"</span>,      cat: <span class="str">"Tech"</span>,    date: <span class="str">"2024-01-15"</span> },
+  { id: <span class="num">3</span>, title: <span class="str">"Xəzər neft yataqları"</span>,    cat: <span class="str">"Siyasət"</span>, date: <span class="str">"2024-01-16"</span> }
+];
+
+<span class="cm">// ✅ Müasir: Object.groupBy() — ES2024</span>
+<span class="kw">const</span> <span class="prop">byCat</span> = Object.<span class="fn">groupBy</span>(<span class="prop">articles</span>, a <span class="op">=></span> a.cat);
+
+<span class="cm">// ✅ Universal: reduce ilə (bütün brauzerlərdə işləyir)</span>
+<span class="kw">const</span> <span class="fn">groupBy</span> = (arr, key) <span class="op">=></span>
+  arr.<span class="fn">reduce</span>((groups, item) <span class="op">=></span> {
+    <span class="kw">const</span> <span class="prop">group</span> = <span class="kw">typeof</span> key <span class="op">===</span> <span class="str">"function"</span> ? <span class="fn">key</span>(item) : item[key];
+    (groups[<span class="prop">group</span>] <span class="op">??=</span> []).<span class="fn">push</span>(item);
+    <span class="kw">return</span> groups;
+  }, {});
+
+<span class="cm">// İkili qruplaşdırma — tarix + kateqoriya</span>
+<span class="kw">const</span> <span class="prop">byDateAndCat</span> = <span class="fn">groupBy</span>(<span class="prop">articles</span>, a <span class="op">=></span> <span class="str">`${a.date}_${a.cat}`</span>);</pre>
+        </div>
+        <div class="output-box"><div class="output-label">byCat nəticəsi</div>{
+  "Siyasət": [
+    { id: 1, title: "Azərbaycan iqtisadiyyatı", ... },
+    { id: 3, title: "Xəzər neft yataqları", ...    }
+  ],
+  "Tech": [
+    { id: 2, title: "Yeni texnologiyalar", ... }
+  ]
+}</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 Real nümunə — News Feed, Trello board</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>groupBy pattern</strong> — Kanban board, News feed, Timeline kimi görünüşlər üçün vacibdir.<br><br>
+          • <strong>Object.groupBy()</strong> — ES2024, Chrome 117+, Node 21+. Köhnə mühit üçün polyfill lazımdır<br>
+          • <strong>Yenidən istifadə edilə bilən</strong> <code>groupBy()</code> yardımçı funksiyası həm string açar, həm funksiya qəbul edir<br>
+          • <strong>Template literal açar</strong> (<code>`${date}_${cat}`</code>) — çox kriterialı qruplaşdırma üçün sadə həll
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="project-badge">📋 Real Layihə — Trello / Linear / Jira</div>
+          <div class="explanation" style="border-left-color: var(--amber);">
+            Trello-da vəziyyətə (To Do, In Progress, Done) görə kart qruplaşdırması, LinkedIn-də tarixə görə qruplaşdırılmış aktiv lenti — hamısı bu pattern. Frontend bir siyahı alır, <code>groupBy</code> ilə sütunlara bölür, hər sütunu render edir.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 8 — Pagination transform -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">08</div>
+        <div class="task-meta">
+          <div class="task-title">Pagination cavabını emal edin</div>
+          <div class="task-desc">Müxtəlif backend-lərin fərqli pagination formatlarını vahid UI formatına gətirin. Cursor-based, offset-based müqayisəsi.</div>
+          <div class="tags">
+            <span class="tag tag-cyan">Pagination</span>
+            <span class="tag tag-green">Normalize</span>
+            <span class="tag tag-purple">Adapter pattern</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="data-label">Müxtəlif Backend Formatları (mock)</div>
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="cm">// 1-ci Backend: Laravel/Django stil (offset-based)</span>
+<span class="kw">const</span> <span class="prop">laravelResponse</span> = {
+  data: [{ id: <span class="num">1</span>, name: <span class="str">"Məhsul A"</span> }],
+  current_page: <span class="num">2</span>, last_page: <span class="num">10</span>,
+  per_page: <span class="num">15</span>, total: <span class="num">148</span>
+};
+
+<span class="cm">// 2-ci Backend: Node.js REST stil</span>
+<span class="kw">const</span> <span class="prop">nodeResponse</span> = {
+  items: [{ id: <span class="num">1</span>, name: <span class="str">"Məhsul A"</span> }],
+  pagination: { page: <span class="num">2</span>, pages: <span class="num">10</span>, limit: <span class="num">15</span>, total: <span class="num">148</span> }
+};
+
+<span class="cm">// 3-cü Backend: GraphQL cursor-based</span>
+<span class="kw">const</span> <span class="prop">graphqlResponse</span> = {
+  edges: [{ node: { id: <span class="num">1</span>, name: <span class="str">"Məhsul A"</span> }, cursor: <span class="str">"abc123"</span> }],
+  pageInfo: { hasNextPage: <span class="kw">true</span>, endCursor: <span class="str">"abc123"</span> }
+};
+
+<span class="cm">// ✅ Adapter: hamısını vahid formata çevir</span>
+<span class="kw">const</span> <span class="fn">normalizePage</span> = (response, type = <span class="str">"laravel"</span>) <span class="op">=></span> {
+  <span class="kw">if</span> (type <span class="op">===</span> <span class="str">"laravel"</span>) <span class="kw">return</span> {
+    items: response.data,
+    currentPage: response.current_page,
+    totalPages: response.last_page,
+    total: response.total,
+    hasMore: response.current_page <span class="op"><</span> response.last_page
+  };
+  <span class="kw">if</span> (type <span class="op">===</span> <span class="str">"graphql"</span>) <span class="kw">return</span> {
+    items: response.edges.<span class="fn">map</span>(e <span class="op">=></span> e.node),
+    cursor: response.pageInfo.endCursor,
+    hasMore: response.pageInfo.hasNextPage
+  };
+};
+
+<span class="kw">const</span> <span class="prop">unified</span> = <span class="fn">normalizePage</span>(<span class="prop">laravelResponse</span>, <span class="str">"laravel"</span>);</pre>
+        </div>
+        <div class="output-box"><div class="output-label">unified nəticəsi</div>{
+  items: [{ id: 1, name: "Məhsul A" }],
+  currentPage: 2,
+  totalPages: 10,
+  total: 148,
+  hasMore: true
+}</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== ADVANCED ===================== -->
+<section id="advanced" class="section">
+  <div class="section-header">
+    <h2>⚡ Qabaqcıl Texnikalar</h2>
+    <p>Zəncirvari çevirmə, memoization, compose pattern</p>
+  </div>
+
+  <div class="tasks-grid">
+
+    <!-- TASK 9 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">09</div>
+        <div class="task-meta">
+          <div class="task-title">Çevirmə boru kəməri (Pipeline)</div>
+          <div class="task-desc">Bir neçə çevirmə addımını ardıcıl tətbiq edin. pipe() / compose() pattern ilə funksional yanaşma.</div>
+          <div class="tags">
+            <span class="tag tag-coral">Functional</span>
+            <span class="tag tag-purple">compose</span>
+            <span class="tag tag-cyan">pipe</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="cm">// pipe: soldan sağa icra (sol → sağ)</span>
+<span class="kw">const</span> <span class="fn">pipe</span> = (...fns) <span class="op">=></span> (x) <span class="op">=></span>
+  fns.<span class="fn">reduce</span>((v, fn) <span class="op">=></span> <span class="fn">fn</span>(v), x);
+
+<span class="cm">// compose: sağdan sola icra (riyazi notasiya)</span>
+<span class="kw">const</span> <span class="fn">compose</span> = (...fns) <span class="op">=></span> (x) <span class="op">=></span>
+  fns.<span class="fn">reduceRight</span>((v, fn) <span class="op">=></span> <span class="fn">fn</span>(v), x);
+
+<span class="cm">// Çevirmə addımları</span>
+<span class="kw">const</span> <span class="fn">removeInactive</span>  = users <span class="op">=></span> users.<span class="fn">filter</span>(u <span class="op">=></span> u.active);
+<span class="kw">const</span> <span class="fn">sortByName</span>      = users <span class="op">=></span> [...users].<span class="fn">sort</span>((a,b) <span class="op">=></span> a.name.<span class="fn">localeCompare</span>(b.name, <span class="str">"az"</span>));
+<span class="kw">const</span> <span class="fn">addDisplayName</span>  = users <span class="op">=></span> users.<span class="fn">map</span>(u <span class="op">=></span> ({...u, display: <span class="str">`${u.name} (${u.role})`</span>}));
+<span class="kw">const</span> <span class="fn">limitTo10</span>       = users <span class="op">=></span> users.<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">10</span>);
+
+<span class="cm">// Pipeline qur — oxunması asan, test etmək rahat</span>
+<span class="kw">const</span> <span class="fn">prepareUserList</span> = <span class="fn">pipe</span>(
+  <span class="fn">removeInactive</span>,
+  <span class="fn">sortByName</span>,
+  <span class="fn">addDisplayName</span>,
+  <span class="fn">limitTo10</span>
+);
+
+<span class="kw">const</span> <span class="prop">rawUsers</span> = [
+  { name: <span class="str">"Zaur"</span>,  role: <span class="str">"dev"</span>,     active: <span class="kw">true</span>  },
+  { name: <span class="str">"Aynur"</span>, role: <span class="str">"design"</span>,  active: <span class="kw">false</span> },
+  { name: <span class="str">"Elşən"</span>, role: <span class="str">"manager"</span>, active: <span class="kw">true</span>  }
+];
+
+<span class="kw">const</span> <span class="prop">displayUsers</span> = <span class="fn">prepareUserList</span>(<span class="prop">rawUsers</span>);</pre>
+        </div>
+        <div class="output-box"><div class="output-label">displayUsers nəticəsi</div>[
+  { name: "Elşən", role: "manager", active: true, display: "Elşən (manager)" },
+  { name: "Zaur",  role: "dev",     active: true, display: "Zaur (dev)"     }
+]</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 Niyə Pipeline? Redux middleware ilə əlaqə</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>Pipeline pattern</strong> — funksional proqramlaşdırmanın ürəyi.<br><br>
+          • Hər addım <strong>pure function</strong> — eyni giriş, eyni çıxış. Test etmək sadədir<br>
+          • Addımları asanlıqla yenidən sıralamaq, əlavə etmək, çıxarmaq olar<br>
+          • <strong>Redux middleware</strong> eyni pattern: <code>applyMiddleware(logger, thunk, saga)</code><br>
+          • <strong>Express.js middleware</strong>: <code>app.use(cors(), auth(), rateLimit())</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 10 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">10</div>
+        <div class="task-meta">
+          <div class="task-title">Memoize ilə hesablama keşləyin</div>
+          <div class="task-desc">Bahalı hesablamaları keşləyin. Eyni arqumentlə ikinci çağırışda hesablamadan keşdən götürün.</div>
+          <div class="tags">
+            <span class="tag tag-amber">Memoization</span>
+            <span class="tag tag-green">Performance</span>
+            <span class="tag tag-coral">Cache</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot on hard"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="cm">// Ümumi memoize funksiyası</span>
+<span class="kw">const</span> <span class="fn">memoize</span> = (fn) <span class="op">=></span> {
+  <span class="kw">const</span> <span class="prop">cache</span> = <span class="kw">new</span> <span class="fn">Map</span>();
+  <span class="kw">return</span> (...args) <span class="op">=></span> {
+    <span class="kw">const</span> <span class="prop">key</span> = JSON.<span class="fn">stringify</span>(args);
+    <span class="kw">if</span> (<span class="prop">cache</span>.<span class="fn">has</span>(<span class="prop">key</span>)) {
+      console.<span class="fn">log</span>(<span class="str">"Keşdən götürüldü:"</span>, key);
+      <span class="kw">return</span> <span class="prop">cache</span>.<span class="fn">get</span>(<span class="prop">key</span>);
+    }
+    <span class="kw">const</span> <span class="prop">result</span> = <span class="fn">fn</span>(...args);
+    <span class="prop">cache</span>.<span class="fn">set</span>(<span class="prop">key</span>, <span class="prop">result</span>);
+    <span class="kw">return</span> <span class="prop">result</span>;
+  };
+};
+
+<span class="cm">// Ağır hesablama — məsələn, böyük data analizi</span>
+<span class="kw">const</span> <span class="fn">analyzeData</span> = <span class="fn">memoize</span>((dataset, year) <span class="op">=></span> {
+  console.<span class="fn">log</span>(<span class="str">`${year} üçün analiz aparılır...`</span>);
+  <span class="cm">// Bura ağır hesablama: filtrlər, aggregasiya, sort</span>
+  <span class="kw">return</span> dataset
+    .<span class="fn">filter</span>(d <span class="op">=></span> d.year <span class="op">===</span> year)
+    .<span class="fn">reduce</span>((sum, d) <span class="op">=></span> sum <span class="op">+</span> d.revenue, <span class="num">0</span>);
+});
+
+<span class="kw">const</span> <span class="prop">data</span> = [
+  { year: <span class="num">2023</span>, revenue: <span class="num">5000</span> },
+  { year: <span class="num">2024</span>, revenue: <span class="num">7500</span> }
+];
+
+analyzeData(data, <span class="num">2023</span>); <span class="cm">// Hesablanır → 5000</span>
+analyzeData(data, <span class="num">2023</span>); <span class="cm">// Keşdən → 5000 (sürətli!)</span>
+analyzeData(data, <span class="num">2024</span>); <span class="cm">// Hesablanır → 7500</span></pre>
+        </div>
+        <div class="output-box"><div class="output-label">Konsol çıxışı</div>2023 üçün analiz aparılır...
+Keşdən götürüldü: "[...,2023]"
+2024 üçün analiz aparılır...
+
+Nəticələr: 5000 → 5000 → 7500</div>
+      </div>
+    </div>
+
+    <!-- TASK 11 — Sorting -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">11</div>
+        <div class="task-meta">
+          <div class="task-title">Azərbaycan əlifbası ilə sıralama</div>
+          <div class="task-desc">Azərbaycan hərfləri (ə, ğ, ı, ö, ü, ş, ç) ilə söz sıralama. localeCompare("az") istifadəsi.</div>
+          <div class="tags">
+            <span class="tag tag-green">localeCompare</span>
+            <span class="tag tag-cyan">Azərbaycan</span>
+            <span class="tag tag-amber">Collation</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">names</span> = [
+  <span class="str">"Ülfət"</span>, <span class="str">"Aytən"</span>, <span class="str">"Şəbnəm"</span>, <span class="str">"Çiçək"</span>,
+  <span class="str">"Əsmər"</span>, <span class="str">"Gülnar"</span>, <span class="str">"Ömər"</span>, <span class="str">"İlham"</span>
+];
+
+<span class="cm">// ❌ Yanlış — ASCII sıralaması Azərbaycan üçün işləmir</span>
+<span class="kw">const</span> <span class="prop">wrongSort</span> = [...<span class="prop">names</span>].<span class="fn">sort</span>();
+<span class="cm">// Ç, Ə, İ, Ö, Ş, Ü ASCII-də böyük dəyərə malikdir</span>
+
+<span class="cm">// ✅ Düzgün — Azərbaycan locale ilə</span>
+<span class="kw">const</span> <span class="prop">azSort</span> = [...<span class="prop">names</span>].<span class="fn">sort</span>((a, b) <span class="op">=></span>
+  a.<span class="fn">localeCompare</span>(b, <span class="str">"az"</span>, { sensitivity: <span class="str">"base"</span> })
+);
+
+<span class="cm">// Collator — daha sürətli (böyük siyahılar üçün)</span>
+<span class="kw">const</span> <span class="prop">azCollator</span> = <span class="kw">new</span> Intl.<span class="fn">Collator</span>(<span class="str">"az"</span>, {
+  sensitivity: <span class="str">"base"</span>,
+  numeric: <span class="kw">true</span>   <span class="cm">// "10" > "9" kimi sıralayır</span>
+});
+
+<span class="kw">const</span> <span class="prop">fastSort</span> = [...<span class="prop">names</span>].<span class="fn">sort</span>(<span class="prop">azCollator</span>.compare);
+
+<span class="cm">// Çoxlu sahə üzrə sıralama</span>
+<span class="kw">const</span> <span class="prop">people</span> = [
+  { ad: <span class="str">"Əli"</span>,   yas: <span class="num">25</span> }, { ad: <span class="str">"Aynur"</span>, yas: <span class="num">30</span> },
+  { ad: <span class="str">"Əli"</span>,   yas: <span class="num">22</span> }
+];
+
+<span class="kw">const</span> <span class="prop">multiSort</span> = [...<span class="prop">people</span>].<span class="fn">sort</span>((a, b) <span class="op">=></span>
+  a.ad.<span class="fn">localeCompare</span>(b.ad, <span class="str">"az"</span>) <span class="op">||</span> a.yas <span class="op">-</span> b.yas
+);</pre>
+        </div>
+        <div class="output-box"><div class="output-label">azSort nəticəsi — düzgün Azərbaycan sırası</div>["Aytən", "Çiçək", "Əsmər", "Gülnar", "İlham", "Ömər", "Şəbnəm", "Ülfət"]
+
+multiSort: [
+  { ad: "Aynur", yas: 30 },
+  { ad: "Əli",   yas: 22 },  ← əvvəl gənc Əli
+  { ad: "Əli",   yas: 25 }
+]</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 localeCompare vs sort() fərqi</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>Müqayisə:</strong><br><br>
+          • <code>.sort()</code> — Unicode kod nöqtəsinə görə. "Ə" (U+018F) > "Z" (U+005A), buna görə Azərbaycan hərfləri axıra düşür<br>
+          • <code>localeCompare("az")</code> — OS-in Azərbaycan əlifbasını bilən sıralama qaydalarından istifadə edir<br>
+          • <strong>Intl.Collator</strong> — böyük massivlər üçün daha sürətli, çünki bir dəfə yaranır, dəfələrlə <code>.compare()</code> çağırılır<br>
+          • <strong>sensitivity: "base"</strong> — Böyük/kiçik hərfə əhəmiyyət vermir: "Əli" = "əli"
+        </div>
+      </div>
+    </div>
+
+    <!-- TASK 12 -->
+    <div class="task-card">
+      <div class="task-header">
+        <div class="task-num">12</div>
+        <div class="task-meta">
+          <div class="task-title">Dərin klon və immutable yeniləmə</div>
+          <div class="task-desc">Obyekti mutasiya etmədən yeniləyin. structuredClone(), immer pattern, spread operator ilə dərin kopyalama.</div>
+          <div class="tags">
+            <span class="tag tag-cyan">Immutability</span>
+            <span class="tag tag-green">structuredClone</span>
+            <span class="tag tag-purple">State management</span>
+          </div>
+        </div>
+        <div class="difficulty">
+          <div class="diff-dot on"></div>
+          <div class="diff-dot on"></div>
+          <div class="diff-dot"></div>
+        </div>
+      </div>
+      <div class="task-body">
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">javascript</span>
+            <button class="copy-btn" onclick="copyCode(this)">Kopyala</button>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">state</span> = {
+  user: { name: <span class="str">"Fidan"</span>, age: <span class="num">26</span> },
+  settings: { theme: <span class="str">"dark"</span>, lang: <span class="str">"az"</span> },
+  cart: [{ id: <span class="num">1</span>, qty: <span class="num">2</span> }]
+};
+
+<span class="cm">// ❌ Problem: sığ kopyalama (shallow copy)</span>
+<span class="kw">const</span> <span class="prop">copy1</span> = { ...<span class="prop">state</span> };
+<span class="prop">copy1</span>.user.age = <span class="num">30</span>; <span class="cm">// state.user.age da dəyişir!</span>
+
+<span class="cm">// ✅ structuredClone — tam dərin klon (ES2022)</span>
+<span class="kw">const</span> <span class="prop">deepCopy</span> = <span class="fn">structuredClone</span>(<span class="prop">state</span>);
+<span class="prop">deepCopy</span>.user.age = <span class="num">30</span>; <span class="cm">// orijinal dəyişmir ✓</span>
+
+<span class="cm">// ✅ İmmutable yeniləmə (React/Redux pattern)</span>
+<span class="kw">const</span> <span class="fn">updateUserAge</span> = (state, newAge) <span class="op">=></span> ({
+  ...<span class="prop">state</span>,
+  user: { ...<span class="prop">state</span>.user, age: newAge }
+});
+
+<span class="kw">const</span> <span class="fn">addToCart</span> = (state, item) <span class="op">=></span> ({
+  ...<span class="prop">state</span>,
+  cart: [...<span class="prop">state</span>.cart, item]
+});
+
+<span class="kw">const</span> <span class="fn">removeFromCart</span> = (state, id) <span class="op">=></span> ({
+  ...<span class="prop">state</span>,
+  cart: <span class="prop">state</span>.cart.<span class="fn">filter</span>(i <span class="op">=></span> i.id <span class="op">!==</span> id)
+});
+
+<span class="cm">// Zəncirvari state yeniləmə</span>
+<span class="kw">const</span> <span class="prop">newState</span> = <span class="fn">pipe</span>(
+  s <span class="op">=></span> <span class="fn">updateUserAge</span>(s, <span class="num">27</span>),
+  s <span class="op">=></span> <span class="fn">addToCart</span>(s, { id: <span class="num">2</span>, qty: <span class="num">1</span> })
+)(<span class="prop">state</span>);</pre>
+        </div>
+        <div class="output-box"><div class="output-label">newState nəticəsi (orijinal dəyişməyib)</div>{
+  user: { name: "Fidan", age: 27 },     ← yeniləndi
+  settings: { theme: "dark", lang: "az" },
+  cart: [{ id: 1, qty: 2 }, { id: 2, qty: 1 }]  ← əlavə edildi
+}
+
+state.user.age hələ də 26-dır ✓</div>
+      </div>
+      <button class="toggle-btn" onclick="toggleSection(this)">
+        <span>💡 React state ilə əlaqə</span>
+        <span class="toggle-icon">▼</span>
+      </button>
+      <div class="collapsible-content">
+        <div class="explanation">
+          <strong>Immutability</strong> React-in state yeniləməsinin əsasıdır — React dəyişikliyi yalnız yeni referans ilə aşkar edir.<br><br>
+          • <code>structuredClone()</code> — Date, Map, Set, RegExp, ArrayBuffer dəstəkləyir. JSON.parse(JSON.stringify()) bu tipləri pozur<br>
+          • <strong>Spread</strong> (<code>...</code>) yalnız sığ kopyalar — iç-içə obyektlər üçün hər səviyyəni ayrıca spread etmək lazımdır<br>
+          • <strong>Immer.js</strong> kitabxanası bu ağrıpointini həll edir: mutable sintaksis yazırsınız, immutable nəticə əldə edirsiniz
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== CHEATSHEET ===================== -->
+<section id="cheat" class="section">
+  <div class="section-header">
+    <h2>📝 Xülasə Cədvəl</h2>
+    <p>Tez baxmaq üçün bütün əsas metodlar bir yerdə</p>
+  </div>
+
+  <div class="cheat-grid">
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--accent);">
+        📋 .map() — Çevirmə
+      </div>
+      <div class="cheat-body"><pre><span class="cm">// Hər elementi çevirir</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">map</span>(x <span class="op">=></span> x <span class="op">*</span> <span class="num">2</span>)
+<span class="cm">// → [2, 4, 6]</span>
+
+users.<span class="fn">map</span>(u <span class="op">=></span> ({
+  id: u.id,
+  label: u.name
+}));</pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--green);">
+        🔍 .filter() — Seçmə
+      </div>
+      <div class="cheat-body"><pre><span class="cm">// true qaytaranları saxla</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>].<span class="fn">filter</span>(x <span class="op">=></span> x <span class="op">></span> <span class="num">2</span>)
+<span class="cm">// → [3, 4]</span>
+
+users.<span class="fn">filter</span>(u <span class="op">=></span>
+  u.active <span class="op">&&</span> u.age <span class="op">>=</span> <span class="num">18</span>
+);</pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--coral);">
+        🔢 .reduce() — Yığma
+      </div>
+      <div class="cheat-body"><pre><span class="cm">// Bir dəyərə topla</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">reduce</span>(
+  (acc, x) <span class="op">=></span> acc <span class="op">+</span> x, <span class="num">0</span>
+) <span class="cm">// → 6</span>
+
+<span class="cm">// Obyektə çevir</span>
+arr.<span class="fn">reduce</span>((acc, x) <span class="op">=></span> ({
+  ...acc, [x.id]: x
+}), {});</pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--cyan);">
+        🔷 Object metodları
+      </div>
+      <div class="cheat-body"><pre>Object.<span class="fn">keys</span>(obj)    <span class="cm">// açarlar</span>
+Object.<span class="fn">values</span>(obj)  <span class="cm">// dəyərlər</span>
+Object.<span class="fn">entries</span>(obj) <span class="cm">// [k,v] cütləri</span>
+Object.<span class="fn">fromEntries</span>(entries)
+<span class="cm">// [k,v] cütlərini obyektə çevirir</span>
+<span class="fn">structuredClone</span>(obj) <span class="cm">// dərin klon</span></pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--amber);">
+        📦 Spread + Destructuring
+      </div>
+      <div class="cheat-body"><pre><span class="cm">// Kopyala + birləşdir</span>
+<span class="kw">const</span> <span class="prop">new</span> = { ...<span class="prop">old</span>, key: <span class="str">"val"</span> };
+<span class="kw">const</span> <span class="prop">merged</span> = [...arr1, ...arr2];
+
+<span class="cm">// Destructuring</span>
+<span class="kw">const</span> { name, ...rest } = user;
+<span class="kw">const</span> [first, ...others] = arr;</pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--purple);">
+        🌐 Azərbaycan Locale
+      </div>
+      <div class="cheat-body"><pre><span class="cm">// Düzgün sıralama</span>
+arr.<span class="fn">sort</span>((a,b) <span class="op">=></span>
+  a.<span class="fn">localeCompare</span>(b, <span class="str">"az"</span>)
+);
+
+<span class="cm">// Sürətli collator</span>
+<span class="kw">const</span> <span class="prop">az</span> = <span class="kw">new</span> Intl.<span class="fn">Collator</span>(<span class="str">"az"</span>);
+arr.<span class="fn">sort</span>(<span class="prop">az</span>.compare);</pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--green);">
+        ⚡ flatMap + flat
+      </div>
+      <div class="cheat-body"><pre><span class="cm">// map + flatten</span>
+[[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>]].<span class="fn">flat</span>()
+<span class="cm">// → [1, 2, 3]</span>
+
+arr.<span class="fn">flatMap</span>(x <span class="op">=></span> [x, x <span class="op">*</span> <span class="num">2</span>])
+<span class="cm">// hər elementdən 2 element</span></pre></div>
+    </div>
+
+    <div class="cheat-card">
+      <div class="cheat-header" style="border-left: 3px solid var(--coral);">
+        🔍 Axtarış metodları
+      </div>
+      <div class="cheat-body"><pre>arr.<span class="fn">find</span>(fn)       <span class="cm">// ilk element</span>
+arr.<span class="fn">findIndex</span>(fn)  <span class="cm">// ilk indeks</span>
+arr.<span class="fn">some</span>(fn)       <span class="cm">// biri keçirsə true</span>
+arr.<span class="fn">every</span>(fn)      <span class="cm">// hamısı keçirsə true</span>
+arr.<span class="fn">includes</span>(val)  <span class="cm">// var mı?</span></pre></div>
+    </div>
+  </div>
+
+  <div style="margin-top:2rem;">
+    <div class="section-header">
+      <h2>⏱ Mürəkkəblik — Big O</h2>
+      <p>Hansı metodun nə qədər sürətli olduğunu bilin</p>
+    </div>
+    <div class="task-card">
+      <div class="task-body">
+        <div class="code-block">
+          <div class="code-toolbar">
+            <div class="code-dots"><span></span><span></span><span></span></div>
+            <span class="code-lang">complexity</span>
+          </div>
+          <pre><span class="prop">map, filter, reduce, forEach</span>  → O(n)   <span class="cm">// xətti — hər element 1 dəfə</span>
+<span class="prop">find, findIndex, some</span>         → O(n)   <span class="cm">// ən pis halda — sonuncu element</span>
+<span class="prop">includes (array)</span>              → O(n)   <span class="cm">// bütünü tarayır</span>
+<span class="prop">includes (Set)</span>                → O(1)   <span class="cm">// hash əsaslı — ani</span>
+<span class="prop">sort</span>                          → O(n log n) <span class="cm">// müqayisəli sıralama</span>
+<span class="prop">obj[key], Map.get()</span>           → O(1)   <span class="cm">// birbaşa əldə</span>
+<span class="prop">flat(Infinity)</span>                → O(n*d) <span class="cm">// n element, d dərinlik</span>
+
+<span class="cm">// Misal: 10.000 elementdə axtarış</span>
+arr.<span class="fn">find</span>(x <span class="op">=></span> x.id <span class="op">===</span> id)  <span class="cm">// O(n) → max 10.000 müqayisə</span>
+map[id]                         <span class="cm">// O(1) → 1 müqayisə  ← ✅</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>JavaScript Data Transformation · Azərbaycan dili ilə · Inter + IBM Plex Mono</p>
+</footer>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['overview','array','object','api','advanced','cheat'].indexOf(id);
+  document.querySelectorAll('.nav-btn')[idx]?.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleSection(btn) {
+  const icon = btn.querySelector('.toggle-icon');
+  const content = btn.nextElementSibling;
+  const isOpen = content.classList.contains('visible');
+  content.classList.toggle('visible', !isOpen);
+  icon.classList.toggle('open', !isOpen);
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText || pre.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Kopyalandı';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Kopyala';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>

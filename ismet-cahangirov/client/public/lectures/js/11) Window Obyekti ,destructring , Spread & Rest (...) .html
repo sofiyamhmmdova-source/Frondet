@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Dərslik — Window, Destructuring, Spread/Rest</title>
+
+<style>
+/* ── Şriftlər ── */
+@import url('https://fonts.googleapis.com/css2?family=DejaVu+Sans:wght@400;700&display=swap');
+
+@font-face {
+  font-family: 'DejaVu Sans';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/dejavu-sans@4.5.0/files/dejavu-sans-latin-ext-400-normal.woff2') format('woff2');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'DejaVu Sans';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/dejavu-sans@4.5.0/files/dejavu-sans-latin-ext-700-normal.woff2') format('woff2');
+  font-weight: 700;
+}
+
+/* ── Reset & Tokens ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #060D1A;
+  --surface:     #0D1F36;
+  --surface2:    #132840;
+  --border:      #1E3F60;
+  --accent:      #00CFFF;
+  --accent2:     #7B61FF;
+  --gold:        #FFD166;
+  --red:         #FF6B6B;
+  --green:       #06D6A0;
+  --text:        #D8E8F8;
+  --text-muted:  #7A9ABB;
+  --code-bg:     #091525;
+  --radius:      10px;
+  --font:        'DejaVu Sans', 'Segoe UI', Arial, sans-serif;
+  --mono:        'DejaVu Sans Mono', 'Consolas', monospace;
+  --sidebar-w:   260px;
+  --transition:  .2s ease;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  font-size: 15px;
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-logo {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .logo-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.sidebar-logo h2 {
+  font-size: 14px;
+  color: var(--text);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+nav { padding: 10px 0 20px; flex: 1; }
+.nav-group { margin-bottom: 6px; }
+.nav-group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  padding: 10px 18px 4px;
+  font-weight: 700;
+}
+nav a {
+  display: block;
+  padding: 7px 18px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  transition: all var(--transition);
+}
+nav a:hover { color: var(--text); background: var(--surface2); border-left-color: var(--border); }
+nav a.active { color: var(--accent); background: rgba(0,207,255,.08); border-left-color: var(--accent); }
+
+/* ── Main ── */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #060D1A 0%, #0D1F36 50%, #0A1628 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 56px 48px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,207,255,.12) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(123,97,255,.1) 0%, transparent 70%);
+  bottom: -80px; left: 40%;
+  pointer-events: none;
+}
+.hero-tag {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  background: rgba(0,207,255,.1);
+  border: 1px solid rgba(0,207,255,.25);
+  border-radius: 20px;
+  padding: 4px 14px;
+  margin-bottom: 18px;
+  font-weight: 700;
+}
+.hero h1 {
+  font-size: clamp(24px, 4vw, 40px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #fff;
+  margin-bottom: 14px;
+  position: relative;
+}
+.hero h1 span { color: var(--accent); }
+.hero p {
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 580px;
+  margin-bottom: 24px;
+}
+.hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* ── Content ── */
+.content { padding: 0 48px 80px; max-width: 900px; }
+
+/* ── Section ── */
+.section {
+  padding-top: 64px;
+}
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.section > h2 {
+  font-size: clamp(20px, 3vw, 28px);
+  color: #fff;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.section > p, .section > ul, .section > ol { margin-bottom: 16px; color: var(--text); }
+.section ul, .section ol { padding-left: 22px; }
+.section li { margin-bottom: 6px; }
+
+h3 {
+  font-size: 17px;
+  color: var(--gold);
+  margin: 28px 0 12px;
+}
+h4 {
+  font-size: 14px;
+  color: var(--accent2);
+  margin: 20px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── Code Block ── */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 18px 0;
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 16px;
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid var(--border);
+}
+.code-lang {
+  font-size: 11px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.copy-btn {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+pre {
+  padding: 20px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: #C8D8E8;
+}
+pre .kw  { color: #7B61FF; font-weight: 700; }
+pre .fn  { color: #00CFFF; }
+pre .str { color: #A8E6CF; }
+pre .num { color: #FFD166; }
+pre .cmt { color: #3D6080; font-style: italic; }
+pre .prop{ color: #F8A5C2; }
+pre .op  { color: #FFB347; }
+
+/* ── Info Boxes ── */
+.box {
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 18px 0;
+  border-left: 4px solid;
+  font-size: 14px;
+}
+.box-title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.info  { background: rgba(0,207,255,.07);  border-color: var(--accent);  }
+.info .box-title  { color: var(--accent); }
+.warn  { background: rgba(255,209,102,.07); border-color: var(--gold); }
+.warn .box-title  { color: var(--gold); }
+.error { background: rgba(255,107,107,.07); border-color: var(--red); }
+.error .box-title { color: var(--red); }
+.success { background: rgba(6,214,160,.07); border-color: var(--green); }
+.success .box-title { color: var(--green); }
+
+/* ── Table ── */
+.table-wrap { overflow-x: auto; margin: 18px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th {
+  background: var(--surface2);
+  color: var(--accent);
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+tr:hover td { background: rgba(255,255,255,.02); }
+
+/* ── Compare ── */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0;
+}
+.compare-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.compare-card .card-head {
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.compare-card.good .card-head { background: rgba(6,214,160,.12); color: var(--green); }
+.compare-card.bad  .card-head { background: rgba(255,107,107,.12); color: var(--red); }
+.compare-card pre { font-size: 12.5px; padding: 14px; }
+
+/* ── Interactive Demo ── */
+.demo-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 22px 0;
+  overflow: hidden;
+}
+.demo-head {
+  padding: 12px 18px;
+  background: rgba(123,97,255,.1);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.demo-head .dot { width: 8px; height: 8px; border-radius: 50%; }
+.demo-head .dot-r { background: var(--red); }
+.demo-head .dot-y { background: var(--gold); }
+.demo-head .dot-g { background: var(--green); }
+.demo-head span { font-size: 12px; color: var(--text-muted); margin-left: 4px; }
+.demo-body { padding: 18px; }
+.demo-editor {
+  width: 100%;
+  min-height: 120px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: #C8D8E8;
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.demo-editor:focus { border-color: var(--accent2); }
+.run-btn {
+  margin-top: 10px;
+  background: linear-gradient(135deg, var(--accent2), #5B41FF);
+  color: #fff;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  transition: opacity var(--transition);
+}
+.run-btn:hover { opacity: .85; }
+.demo-output {
+  margin-top: 12px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 50px;
+  color: var(--green);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.demo-output.err { color: var(--red); }
+
+/* ── Badge ── */
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.badge-new { background: rgba(6,214,160,.2); color: var(--green); }
+.badge-warn { background: rgba(255,209,102,.2); color: var(--gold); }
+
+/* ── Progress TOC ── */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  z-index: 200;
+  transition: width .1s;
+}
+
+/* ── Mobile hamburger ── */
+.menu-btn {
+  display: none;
+  position: fixed;
+  top: 14px; left: 14px;
+  z-index: 300;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+}
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 90;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 30px rgba(0,0,0,.5);
+  }
+  .main { margin-left: 0; }
+  .hero { padding: 64px 20px 36px; }
+  .content { padding: 0 20px 60px; }
+  .menu-btn { display: block; }
+  .overlay.show { display: block; }
+  .compare { grid-template-columns: 1fr; }
+}
+
+/* ── Anchor offset ── */
+.anchor { display: block; height: 80px; margin-top: -80px; visibility: hidden; }
+
+/* ── Footer ── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 48px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+@media(max-width:768px){ .footer{ padding: 24px 20px; } }
+
+/* ── Highlight inline code ── */
+code {
+  font-family: var(--mono);
+  background: rgba(0,207,255,.1);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* ── Sub-section divider ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 36px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<button class="menu-btn" id="menuBtn">☰</button>
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-tag">JavaScript Dərslik</div>
+    <h2>Window · Destructuring<br>Spread &amp; Rest</h2>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-group-title">Window Obyekti</div>
+      <a href="#window-intro">Giriş</a>
+      <a href="#window-props">Xüsusiyyətlər</a>
+      <a href="#window-methods">Metodlar</a>
+      <a href="#window-storage">localStorage &amp; sessionStorage</a>
+      <a href="#window-events">Hadisələr</a>
+      <a href="#window-bugs">Xətalar &amp; Buqlar</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Destructuring</div>
+      <a href="#destr-array">Massiv Destructuring</a>
+      <a href="#destr-obj">Obyekt Destructuring</a>
+      <a href="#destr-default">Standart dəyərlər</a>
+      <a href="#destr-nested">İç-içə Destructuring</a>
+      <a href="#destr-fn">Funksiyalarda</a>
+      <a href="#destr-bugs">Xətalar &amp; Buqlar</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Spread &amp; Rest</div>
+      <a href="#spread-array">Spread — Massivlər</a>
+      <a href="#spread-obj">Spread — Obyektlər</a>
+      <a href="#rest-fn">Rest parametrləri</a>
+      <a href="#spread-rest-bugs">Xətalar &amp; Buqlar</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Əlavə</div>
+      <a href="#combined">Birlikdə istifadə</a>
+      <a href="#quiz">Özünüyoxlama</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">ES6+ · Azərbaycan dilində</div>
+  <h1>JavaScript <span>Dərin Dərsliyi</span></h1>
+  <p>Window obyekti, Destructuring, Spread və Rest operatoru — hər mövzunu real kod nümunələri, ola biləcək xətalar və interaktiv testlərlə öyrənin.</p>
+  <div class="hero-pills">
+    <span class="pill">🖥️ Window API</span>
+    <span class="pill">📦 Destructuring</span>
+    <span class="pill">✨ Spread Operator</span>
+    <span class="pill">📋 Rest Operator</span>
+    <span class="pill">⚠️ Xəta Analizi</span>
+    <span class="pill">⚡ İnteraktiv Demo</span>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════════════════════════════════
+     BÖLMƏ 1: WINDOW OBYEKTİ
+═══════════════════════════════════════════ -->
+<section class="section" id="window-intro">
+  <span id="anc-window" class="anchor"></span>
+  <div class="section-label">Bölmə 1</div>
+  <h2>🖥️ Window Obyekti</h2>
+
+  <p><strong>Window</strong> — brauzerdəki bütün JavaScript kodunun işlədiyi qlobal mühitdir. Brauzer pəncərəsini təmsil edir. Kodunuzdakı hər bir qlobal dəyişən avtomatik olaraq <code>window</code> obyektinin xüsusiyyətinə çevrilir.</p>
+
+  <div class="box info">
+    <div class="box-title">💡 Vacib məlumat</div>
+    <code>window</code> yazmasanız da, brauzer onu avtomatik anlar. Yəni <code>alert("Salam")</code> ilə <code>window.alert("Salam")</code> eynidir.
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Bunlar eyni şeydir:</span>
+<span class="fn">alert</span>(<span class="str">"Salam"</span>);
+<span class="prop">window</span>.<span class="fn">alert</span>(<span class="str">"Salam"</span>);
+
+<span class="cmt">// Qlobal dəyişən = window xüsusiyyəti</span>
+<span class="kw">var</span> <span class="prop">ad</span> <span class="op">=</span> <span class="str">"Əli"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">window</span>.<span class="prop">ad</span>); <span class="cmt">// "Əli"</span>
+
+<span class="cmt">// let/const isə window-a əlavə olunmur!</span>
+<span class="kw">let</span> <span class="prop">soyad</span> <span class="op">=</span> <span class="str">"Həsənov"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">window</span>.<span class="prop">soyad</span>); <span class="cmt">// undefined</span></pre>
+  </div>
+
+  <div class="box warn">
+    <div class="box-title">⚠️ Fərq: var vs let/const</div>
+    <code>var</code> ilə elan edilən dəyişənlər <code>window</code>-a əlavə olunur. Lakin <code>let</code> və <code>const</code> ilə elan edilənlər <strong>əlavə olunmur</strong>. Bu, ən çox çaşdıran məqamlardan biridir!
+  </div>
+</section>
+
+<!-- WINDOW PROPS -->
+<section class="section" id="window-props">
+  <h3>📐 Window Xüsusiyyətləri</h3>
+  <p>Window-un ən çox istifadə edilən xüsusiyyətləri:</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Xüsusiyyət</th><th>Açıqlama</th><th>Nümunə dəyər</th></tr>
+      <tr><td><code>window.innerWidth</code></td><td>Pəncərənin daxili eni (px)</td><td>1366</td></tr>
+      <tr><td><code>window.innerHeight</code></td><td>Pəncərənin daxili hündürlüyü (px)</td><td>768</td></tr>
+      <tr><td><code>window.outerWidth</code></td><td>Pəncərənin tam eni (panel daxil)</td><td>1380</td></tr>
+      <tr><td><code>window.outerHeight</code></td><td>Pəncərənin tam hündürlüyü</td><td>800</td></tr>
+      <tr><td><code>window.scrollX</code></td><td>Üfüqi sürüşmə miqdarı</td><td>0</td></tr>
+      <tr><td><code>window.scrollY</code></td><td>Şaquli sürüşmə miqdarı</td><td>350</td></tr>
+      <tr><td><code>window.location</code></td><td>URL məlumatları obyekti</td><td>Location {...}</td></tr>
+      <tr><td><code>window.navigator</code></td><td>Brauzer/cihaz məlumatları</td><td>Navigator {...}</td></tr>
+      <tr><td><code>window.history</code></td><td>Brauzer tarixçəsi</td><td>History {...}</td></tr>
+      <tr><td><code>window.document</code></td><td>DOM (HTML sənədi)</td><td>Document {...}</td></tr>
+      <tr><td><code>window.screen</code></td><td>Ekran ölçüləri</td><td>Screen {...}</td></tr>
+      <tr><td><code>window.devicePixelRatio</code></td><td>Piksel nisbəti (Retina üçün)</td><td>2</td></tr>
+    </table>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Pəncərə ölçüləri</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"En:"</span>, <span class="prop">window</span>.<span class="prop">innerWidth</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Hündürlük:"</span>, <span class="prop">window</span>.<span class="prop">innerHeight</span>);
+
+<span class="cmt">// URL məlumatları</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">window</span>.<span class="prop">location</span>.<span class="prop">href</span>);     <span class="cmt">// Tam URL</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">window</span>.<span class="prop">location</span>.<span class="prop">hostname</span>); <span class="cmt">// "example.com"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">window</span>.<span class="prop">location</span>.<span class="prop">pathname</span>); <span class="cmt">// "/səhifə/yolu"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">window</span>.<span class="prop">location</span>.<span class="prop">hash</span>);     <span class="cmt">// "#bölmə"</span>
+
+<span class="cmt">// Brauzer məlumatı</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">navigator</span>.<span class="prop">userAgent</span>);  <span class="cmt">// Brauzer növü</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">navigator</span>.<span class="prop">language</span>);  <span class="cmt">// "az" / "en-US"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">navigator</span>.<span class="prop">onLine</span>);   <span class="cmt">// true/false — internet var?</span></pre>
+  </div>
+
+  <!-- Demo 1 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ İnteraktiv Demo — Window Xüsusiyyətləri</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo1code">// Bu kodu çalışdıraraq window məlumatlarını görün
+console.log("📐 Pəncərə eni:", window.innerWidth);
+console.log("📏 Pəncərə hündürlüyü:", window.innerHeight);
+console.log("🌐 URL:", window.location.href);
+console.log("💻 Platform:", navigator.platform);
+console.log("🌍 Dil:", navigator.language);
+console.log("📶 İnternet:", navigator.onLine ? "Var ✓" : "Yoxdur ✗");
+console.log("🔍 Piksel nisbəti:", window.devicePixelRatio);</textarea>
+      <button class="run-btn" onclick="runDemo('demo1code','demo1out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo1out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<!-- WINDOW METHODS -->
+<section class="section" id="window-methods">
+  <h3>⚙️ Window Metodları</h3>
+
+  <h4>Dialoq Qutuları</h4>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// 1. alert() — sadə mesaj qutusu (qaytarır: undefined)</span>
+<span class="fn">alert</span>(<span class="str">"Salam, dünya!"</span>);
+
+<span class="cmt">// 2. confirm() — Bəli/Xeyr qutusu (qaytarır: true/false)</span>
+<span class="kw">const</span> <span class="prop">cavab</span> <span class="op">=</span> <span class="fn">confirm</span>(<span class="str">"Silmək istəyirsiniz?"</span>);
+<span class="kw">if</span> (<span class="prop">cavab</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Silindi!"</span>);
+} <span class="kw">else</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Ləğv edildi"</span>);
+}
+
+<span class="cmt">// 3. prompt() — mətn daxiletmə qutusu (qaytarır: string/null)</span>
+<span class="kw">const</span> <span class="prop">ad</span> <span class="op">=</span> <span class="fn">prompt</span>(<span class="str">"Adınızı daxil edin:"</span>, <span class="str">"Əli"</span>);
+<span class="kw">if</span> (<span class="prop">ad</span> <span class="op">!==</span> <span class="kw">null</span>) {
+  <span class="fn">alert</span>(<span class="str">"Salam, "</span> <span class="op">+</span> <span class="prop">ad</span> <span class="op">+</span> <span class="str">"!"</span>);
+}</pre>
+  </div>
+
+  <h4>Yönləndirmə və Tarixçə</h4>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Yönləndirmə</span>
+<span class="prop">window</span>.<span class="prop">location</span>.<span class="prop">href</span> <span class="op">=</span> <span class="str">"https://google.com"</span>; <span class="cmt">// Keçid</span>
+<span class="prop">window</span>.<span class="prop">location</span>.<span class="fn">replace</span>(<span class="str">"https://google.com"</span>); <span class="cmt">// Tarixçəsiz keçid</span>
+<span class="prop">window</span>.<span class="prop">location</span>.<span class="fn">reload</span>();   <span class="cmt">// Səhifəni yenilə</span>
+
+<span class="cmt">// Tarixçə</span>
+<span class="prop">history</span>.<span class="fn">back</span>();    <span class="cmt">// Geri qayıt</span>
+<span class="prop">history</span>.<span class="fn">forward</span>(); <span class="cmt">// İrəli get</span>
+<span class="prop">history</span>.<span class="fn">go</span>(<span class="op">-</span><span class="num">2</span>);    <span class="cmt">// 2 addım geri</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">history</span>.<span class="prop">length</span>); <span class="cmt">// Tarixçə uzunluğu</span>
+
+<span class="cmt">// Yeni pəncərə/tab</span>
+<span class="prop">window</span>.<span class="fn">open</span>(<span class="str">"https://google.com"</span>, <span class="str">"_blank"</span>);</pre>
+  </div>
+
+  <h4>Vaxt Funksiyaları</h4>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// setTimeout — Bir dəfə, müddət sonra icra et</span>
+<span class="kw">const</span> <span class="prop">timer1</span> <span class="op">=</span> <span class="fn">setTimeout</span>(<span class="kw">function</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"3 saniyə keçdi!"</span>);
+}, <span class="num">3000</span>); <span class="cmt">// 3000ms = 3 saniyə</span>
+
+<span class="cmt">// Ləğv et</span>
+<span class="fn">clearTimeout</span>(<span class="prop">timer1</span>);
+
+<span class="cmt">// setInterval — Hər X millisaniyədə bir təkrar et</span>
+<span class="kw">let</span> <span class="prop">sayac</span> <span class="op">=</span> <span class="num">0</span>;
+<span class="kw">const</span> <span class="prop">interval</span> <span class="op">=</span> <span class="fn">setInterval</span>(<span class="kw">function</span>() {
+  <span class="prop">sayac</span><span class="op">++</span>;
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Sayac:"</span>, <span class="prop">sayac</span>);
+  <span class="kw">if</span> (<span class="prop">sayac</span> <span class="op">>=</span> <span class="num">5</span>) <span class="fn">clearInterval</span>(<span class="prop">interval</span>); <span class="cmt">// 5-ə çatdıqda dayandır</span>
+}, <span class="num">1000</span>);
+
+<span class="cmt">// requestAnimationFrame — Animasiya üçün optimal</span>
+<span class="kw">function</span> <span class="fn">animasiya</span>() {
+  <span class="cmt">// Hər kadr yenilənməsində çağırılır (~60fps)</span>
+  <span class="fn">requestAnimationFrame</span>(<span class="prop">animasiya</span>);
+}
+<span class="fn">requestAnimationFrame</span>(<span class="prop">animasiya</span>);</pre>
+  </div>
+
+  <!-- Demo 2 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ İnteraktiv Demo — Vaxt Funksiyaları</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo2code">// Sayac nümunəsi
+let say = 0;
+const id = setInterval(() => {
+  say++;
+  console.log("⏱️ Saniyə:", say);
+  if (say >= 5) {
+    clearInterval(id);
+    console.log("✅ Sayac bitdi!");
+  }
+}, 500); // Demo üçün 500ms istifadə edirik</textarea>
+      <button class="run-btn" onclick="runDemo('demo2code','demo2out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo2out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<!-- STORAGE -->
+<section class="section" id="window-storage">
+  <h3>🗄️ localStorage &amp; sessionStorage</h3>
+  <p>Brauzer yaddaşında məlumat saxlamağa imkan verir. Hər iki yaddaş növü <strong>yalnız string</strong> saxlayır.</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Xüsusiyyət</th><th>localStorage</th><th>sessionStorage</th></tr>
+      <tr><td>Ömür</td><td>Silinənə qədər qalır</td><td>Tab bağlananda silinir</td></tr>
+      <tr><td>Həcm</td><td>~5-10 MB</td><td>~5 MB</td></tr>
+      <tr><td>Tab paylaşımı</td><td>Bütün tablarda eyni</td><td>Yalnız bu tabda</td></tr>
+      <tr><td>Serverdə</td><td>Göndərilmir</td><td>Göndərilmir</td></tr>
+    </table>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// ── localStorage ──</span>
+<span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="str">"istifadeci"</span>, <span class="str">"Əli"</span>);
+<span class="kw">const</span> <span class="prop">ad</span> <span class="op">=</span> <span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"istifadeci"</span>); <span class="cmt">// "Əli"</span>
+<span class="prop">localStorage</span>.<span class="fn">removeItem</span>(<span class="str">"istifadeci"</span>);
+<span class="prop">localStorage</span>.<span class="fn">clear</span>(); <span class="cmt">// Hamısını sil</span>
+
+<span class="cmt">// Obyekt saxlamaq üçün JSON istifadə edilməlidir!</span>
+<span class="kw">const</span> <span class="prop">melumat</span> <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Əli"</span>, <span class="prop">yas</span>: <span class="num">25</span> };
+<span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="str">"melumat"</span>, <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="prop">melumat</span>));
+
+<span class="cmt">// Oxumaq</span>
+<span class="kw">const</span> <span class="prop">oxunan</span> <span class="op">=</span> <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"melumat"</span>));
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">oxunan</span>.<span class="prop">ad</span>); <span class="cmt">// "Əli"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">oxunan</span>.<span class="prop">yas</span>); <span class="cmt">// 25</span></pre>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Tez-tez rast gəlinən bug</div>
+    Obyekti birbaşa localStorage-a yazsanız, <code>"[object Object]"</code> string-i saxlanır! Həmişə <code>JSON.stringify()</code> və <code>JSON.parse()</code> istifadə edin.
+    <div class="code-block" style="margin-top:10px">
+      <div class="code-header"><span class="code-lang">bug nümunəsi</span></div>
+      <pre><span class="cmt">// ❌ YANLIŞ</span>
+<span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="str">"data"</span>, {<span class="prop">ad</span>: <span class="str">"Əli"</span>});
+<span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"data"</span>); <span class="cmt">// "[object Object]" ← BUG!</span>
+
+<span class="cmt">// ✅ DOĞRU</span>
+<span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="str">"data"</span>, <span class="fn">JSON</span>.<span class="fn">stringify</span>({<span class="prop">ad</span>: <span class="str">"Əli"</span>}));
+<span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"data"</span>)); <span class="cmt">// {ad: "Əli"} ✓</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- WINDOW EVENTS -->
+<section class="section" id="window-events">
+  <h3>📡 Window Hadisələri (Events)</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Səhifə tam yükləndikdə</span>
+<span class="prop">window</span>.<span class="fn">addEventListener</span>(<span class="str">"load"</span>, <span class="kw">function</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Səhifə tam yükləndi"</span>);
+});
+
+<span class="cmt">// Pəncərə ölçüsü dəyişdikdə</span>
+<span class="prop">window</span>.<span class="fn">addEventListener</span>(<span class="str">"resize"</span>, <span class="kw">function</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Yeni en:"</span>, <span class="prop">window</span>.<span class="prop">innerWidth</span>);
+});
+
+<span class="cmt">// Sürüşdürüldükdə</span>
+<span class="prop">window</span>.<span class="fn">addEventListener</span>(<span class="str">"scroll"</span>, <span class="kw">function</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"ScrollY:"</span>, <span class="prop">window</span>.<span class="prop">scrollY</span>);
+});
+
+<span class="cmt">// Klaviatura basıldıqda</span>
+<span class="prop">window</span>.<span class="fn">addEventListener</span>(<span class="str">"keydown"</span>, <span class="kw">function</span>(<span class="prop">e</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Basılan düymə:"</span>, <span class="prop">e</span>.<span class="prop">key</span>);
+});
+
+<span class="cmt">// Pəncərə bağlanmadan əvvəl</span>
+<span class="prop">window</span>.<span class="fn">addEventListener</span>(<span class="str">"beforeunload"</span>, <span class="kw">function</span>(<span class="prop">e</span>) {
+  <span class="prop">e</span>.<span class="fn">preventDefault</span>();
+  <span class="cmt">// "Dəyişiklikləri saxlamaq istəyirsiniz?" mesajı göstərilir</span>
+});</pre>
+  </div>
+</section>
+
+<!-- WINDOW BUGS -->
+<section class="section" id="window-bugs">
+  <h3>⚠️ Window — Xətalar &amp; Buqlar</h3>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 1 — Qlobal çirkləndirmə (Global Pollution)</div>
+    <code>var</code> ilə yazılan dəyişənlər window-a əlavə olunur və başqa kodlarla toqquşa bilər. Həmişə <code>let</code>/<code>const</code> istifadə edin.
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ Yanlış</div>
+      <pre><span class="kw">var</span> <span class="prop">name</span> <span class="op">=</span> <span class="str">"Əli"</span>;
+<span class="cmt">// window.name-i əvəz edir!
+// window.name artıq brauzer üçün
+// xüsusi məna daşıyır</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Doğru</div>
+      <pre><span class="kw">let</span> <span class="prop">istifadeciAdi</span> <span class="op">=</span> <span class="str">"Əli"</span>;
+<span class="cmt">// Unikal ad seçin
+// let/const istifadə edin</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 2 — setInterval dayandırılmır (Memory Leak)</div>
+    <code>setInterval</code>-ı dayandırmasanız, yaddaş sızıntısı (memory leak) baş verir. Həmişə ID-ni saxlayın.
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ Yanlış</div>
+      <pre><span class="fn">setInterval</span>(() => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"işləyir"</span>)
+}, <span class="num">1000</span>);
+<span class="cmt">// ID yoxdur, dayandırmaq
+// mümkün deyil! ← BUG</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Doğru</div>
+      <pre><span class="kw">const</span> <span class="prop">id</span> <span class="op">=</span> <span class="fn">setInterval</span>(() => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"işləyir"</span>)
+}, <span class="num">1000</span>);
+<span class="cmt">// Lazım olduqda:</span>
+<span class="fn">clearInterval</span>(<span class="prop">id</span>); <span class="cmt">// ✓</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 3 — localStorage-da tip itkisi</div>
+    localStorage yalnız string saxlayır. Rəqəm yazsanız, geri oxuyanda string kimi gəlir.
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ Yanlış</div>
+      <pre><span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="str">"yas"</span>, <span class="num">25</span>);
+<span class="kw">const</span> <span class="prop">yas</span> <span class="op">=</span> <span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"yas"</span>);
+<span class="prop">yas</span> <span class="op">+</span> <span class="num">5</span>; <span class="cmt">// "255" ← String!!</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Doğru</div>
+      <pre><span class="prop">localStorage</span>.<span class="fn">setItem</span>(<span class="str">"yas"</span>, <span class="num">25</span>);
+<span class="kw">const</span> <span class="prop">yas</span> <span class="op">=</span> <span class="fn">Number</span>(
+  <span class="prop">localStorage</span>.<span class="fn">getItem</span>(<span class="str">"yas"</span>));
+<span class="prop">yas</span> <span class="op">+</span> <span class="num">5</span>; <span class="cmt">// 30 ✓</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     BÖLMƏ 2: DESTRUCTURING
+═══════════════════════════════════════════ -->
+<section class="section" id="destr-array">
+  <span class="anchor" id="anc-destr"></span>
+  <div class="section-label">Bölmə 2</div>
+  <h2>📦 Destructuring (Parçalama)</h2>
+
+  <p><strong>Destructuring</strong> massivlərdən və ya obyektlərdən dəyərləri çıxarıb dəyişənlərə mənimsətməyin qısa yoludur. ES6 ilə gəldi.</p>
+
+  <div class="box info">
+    <div class="box-title">💡 Niyə lazımdır?</div>
+    Əvvəllər massivdən hər elementi ayrıca yazmaq lazım idi. Destructuring ilə bunu bir sətrdə etmək olur.
+  </div>
+
+  <h3>📋 Massiv Destructuring</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Əvvəlki üsul</span>
+<span class="kw">const</span> <span class="prop">meyveler</span> <span class="op">=</span> [<span class="str">"alma"</span>, <span class="str">"armud"</span>, <span class="str">"gilas"</span>];
+<span class="kw">const</span> <span class="prop">birinci</span> <span class="op">=</span> <span class="prop">meyveler</span>[<span class="num">0</span>]; <span class="cmt">// köhnə üsul</span>
+<span class="kw">const</span> <span class="prop">ikinci</span>  <span class="op">=</span> <span class="prop">meyveler</span>[<span class="num">1</span>]; <span class="cmt">// köhnə üsul</span>
+
+<span class="cmt">// Destructuring ilə (ES6)</span>
+<span class="kw">const</span> [<span class="prop">birinci</span>, <span class="prop">ikinci</span>, <span class="prop">ucuncu</span>] <span class="op">=</span> <span class="prop">meyveler</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">birinci</span>); <span class="cmt">// "alma"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ikinci</span>);  <span class="cmt">// "armud"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ucuncu</span>); <span class="cmt">// "gilas"</span>
+
+<span class="cmt">// Element atlamaq — vergül istifadə edin</span>
+<span class="kw">const</span> [<span class="prop">a</span>, , <span class="prop">c</span>] <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">a</span>); <span class="cmt">// 1</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">c</span>); <span class="cmt">// 3 (2-ci atlandı)</span>
+
+<span class="cmt">// Dəyişənləri yer dəyişmək (SWAP)</span>
+<span class="kw">let</span> <span class="prop">x</span> <span class="op">=</span> <span class="num">10</span>, <span class="prop">y</span> <span class="op">=</span> <span class="num">20</span>;
+[<span class="prop">x</span>, <span class="prop">y</span>] <span class="op">=</span> [<span class="prop">y</span>, <span class="prop">x</span>]; <span class="cmt">// Əla trick!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">x</span>); <span class="cmt">// 20</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">y</span>); <span class="cmt">// 10</span></pre>
+  </div>
+
+  <!-- Demo 3 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ Massiv Destructuring — Canlı sınaq</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo3code">const rengller = ["qırmızı", "yaşıl", "mavi", "sarı"];
+
+// Birinci iki rəngi al
+const [birinci, ikinci] = rengller;
+console.log("1-ci rəng:", birinci);
+console.log("2-ci rəng:", ikinci);
+
+// 3-cünü atla, 4-cünü al
+const [,, , dorduncu] = rengller;
+console.log("4-cü rəng:", dorduncu);
+
+// Swap etmək
+let a = "alma", b = "armud";
+[a, b] = [b, a];
+console.log("a:", a, "| b:", b);</textarea>
+      <button class="run-btn" onclick="runDemo('demo3code','demo3out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo3out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<!-- OBJECT DESTRUCTURING -->
+<section class="section" id="destr-obj">
+  <h3>🧩 Obyekt Destructuring</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="kw">const</span> <span class="prop">telebe</span> <span class="op">=</span> {
+  <span class="prop">ad</span>: <span class="str">"Nigar"</span>,
+  <span class="prop">yas</span>: <span class="num">21</span>,
+  <span class="prop">sehir</span>: <span class="str">"Bakı"</span>,
+  <span class="prop">bal</span>: <span class="num">95</span>
+};
+
+<span class="cmt">// Əsas istifadə — açar adına görə çıxarılır</span>
+<span class="kw">const</span> { <span class="prop">ad</span>, <span class="prop">yas</span>, <span class="prop">sehir</span> } <span class="op">=</span> <span class="prop">telebe</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ad</span>);    <span class="cmt">// "Nigar"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">yas</span>);   <span class="cmt">// 21</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">sehir</span>); <span class="cmt">// "Bakı"</span>
+
+<span class="cmt">// Yenidən adlandırma — açar: yeniAd</span>
+<span class="kw">const</span> { <span class="prop">ad</span>: <span class="prop">telebeAdi</span>, <span class="prop">bal</span>: <span class="prop">imtahanBali</span> } <span class="op">=</span> <span class="prop">telebe</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">telebeAdi</span>);    <span class="cmt">// "Nigar"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">imtahanBali</span>); <span class="cmt">// 95</span></pre>
+  </div>
+</section>
+
+<!-- DEFAULT VALUES -->
+<section class="section" id="destr-default">
+  <h3>🔧 Standart Dəyərlər (Default Values)</h3>
+  <p>Əgər xüsusiyyət mövcud deyilsə və ya <code>undefined</code>-dirsə, standart dəyər istifadə olunur.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Massivdə standart dəyər</span>
+<span class="kw">const</span> [<span class="prop">a</span> <span class="op">=</span> <span class="num">10</span>, <span class="prop">b</span> <span class="op">=</span> <span class="num">20</span>] <span class="op">=</span> [<span class="num">5</span>];
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">a</span>); <span class="cmt">// 5   (massivdən gəldi)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">b</span>); <span class="cmt">// 20  (standart dəyər işləndi)</span>
+
+<span class="cmt">// Obyektdə standart dəyər</span>
+<span class="kw">const</span> <span class="prop">istifadeci</span> <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Kamran"</span> };
+<span class="kw">const</span> {
+  <span class="prop">ad</span>,
+  <span class="prop">yas</span> <span class="op">=</span> <span class="num">18</span>,       <span class="cmt">// mövcud deyil → 18 istifadə olunur</span>
+  <span class="prop">rol</span> <span class="op">=</span> <span class="str">"tələbə"</span>   <span class="cmt">// mövcud deyil → "tələbə" istifadə olunur</span>
+} <span class="op">=</span> <span class="prop">istifadeci</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ad</span>);  <span class="cmt">// "Kamran"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">yas</span>); <span class="cmt">// 18</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">rol</span>); <span class="cmt">// "tələbə"</span>
+
+<span class="cmt">// Adlandırma + standart dəyər birlikdə</span>
+<span class="kw">const</span> { <span class="prop">ad</span>: <span class="prop">tam_ad</span> <span class="op">=</span> <span class="str">"Naməlum"</span> } <span class="op">=</span> {};
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">tam_ad</span>); <span class="cmt">// "Naməlum"</span></pre>
+  </div>
+
+  <div class="box warn">
+    <div class="box-title">⚠️ Diqqət: null vs undefined</div>
+    Standart dəyər yalnız <code>undefined</code> olduqda işlənir. <code>null</code> olduqda işlənmir!
+    <div class="code-block" style="margin-top:10px">
+      <div class="code-header"><span class="code-lang">javascript</span></div>
+      <pre><span class="kw">const</span> { <span class="prop">a</span> <span class="op">=</span> <span class="num">5</span> } <span class="op">=</span> { <span class="prop">a</span>: <span class="kw">undefined</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">a</span>); <span class="cmt">// 5  ← standart işləndi (undefined)</span>
+
+<span class="kw">const</span> { <span class="prop">b</span> <span class="op">=</span> <span class="num">5</span> } <span class="op">=</span> { <span class="prop">b</span>: <span class="kw">null</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">b</span>); <span class="cmt">// null ← standart işlənmədi! (null dəyərdir)</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- NESTED -->
+<section class="section" id="destr-nested">
+  <h3>🏗️ İç-içə (Nested) Destructuring</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="kw">const</span> <span class="prop">mekteb</span> <span class="op">=</span> {
+  <span class="prop">ad</span>: <span class="str">"Bakı Universiteti"</span>,
+  <span class="prop">unvan</span>: {
+    <span class="prop">sehir</span>: <span class="str">"Bakı"</span>,
+    <span class="prop">kuce</span>: <span class="str">"İstiqlaliyyət"</span>,
+    <span class="prop">koordinatlar</span>: [<span class="num">40.4093</span>, <span class="num">49.8671</span>]
+  },
+  <span class="prop">fakulteler</span>: [<span class="str">"Texniki"</span>, <span class="str">"İqtisadi"</span>, <span class="str">"Hüquq"</span>]
+};
+
+<span class="cmt">// İç-içə obyekt destructuring</span>
+<span class="kw">const</span> {
+  <span class="prop">ad</span>,
+  <span class="prop">unvan</span>: { <span class="prop">sehir</span>, <span class="prop">kuce</span> },
+  <span class="prop">fakulteler</span>: [<span class="prop">birFakulte</span>]
+} <span class="op">=</span> <span class="prop">mekteb</span>;
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ad</span>);          <span class="cmt">// "Bakı Universiteti"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">sehir</span>);       <span class="cmt">// "Bakı"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">kuce</span>);        <span class="cmt">// "İstiqlaliyyət"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">birFakulte</span>);  <span class="cmt">// "Texniki"</span>
+
+<span class="cmt">// ⚠️ unvan dəyişəni artıq mövcud deyil!</span>
+<span class="cmt">// Destructuring zamanı unvan "pattern" kimi istifadə edildi</span></pre>
+  </div>
+</section>
+
+<!-- DESTRUCTURING IN FUNCTIONS -->
+<section class="section" id="destr-fn">
+  <h3>🔄 Funksiyalarda Destructuring</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Parametr kimi obyekt destructuring</span>
+<span class="kw">function</span> <span class="fn">salamVer</span>({ <span class="prop">ad</span>, <span class="prop">yas</span> <span class="op">=</span> <span class="num">0</span>, <span class="prop">sehir</span> <span class="op">=</span> <span class="str">"Bakı"</span> }) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`Salam, ${<span class="prop">ad</span>}! Yaşın: ${<span class="prop">yas</span>}, Şəhər: ${<span class="prop">sehir</span>}`</span>);
+}
+
+<span class="fn">salamVer</span>({ <span class="prop">ad</span>: <span class="str">"Leyla"</span>, <span class="prop">yas</span>: <span class="num">23</span> });
+<span class="cmt">// "Salam, Leyla! Yaşın: 23, Şəhər: Bakı"</span>
+
+<span class="cmt">// Funksiyadan massiv qaytarmaq + destructuring</span>
+<span class="kw">function</span> <span class="fn">getMinMax</span>(<span class="prop">arr</span>) {
+  <span class="kw">return</span> [<span class="fn">Math</span>.<span class="fn">min</span>(...<span class="prop">arr</span>), <span class="fn">Math</span>.<span class="fn">max</span>(...<span class="prop">arr</span>)];
+}
+
+<span class="kw">const</span> [<span class="prop">min</span>, <span class="prop">max</span>] <span class="op">=</span> <span class="fn">getMinMax</span>([<span class="num">3</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">5</span>, <span class="num">2</span>]);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">min</span>); <span class="cmt">// 1</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">max</span>); <span class="cmt">// 9</span>
+
+<span class="cmt">// for...of ilə destructuring</span>
+<span class="kw">const</span> <span class="prop">telebeler</span> <span class="op">=</span> [
+  { <span class="prop">ad</span>: <span class="str">"Anar"</span>, <span class="prop">bal</span>: <span class="num">88</span> },
+  { <span class="prop">ad</span>: <span class="str">"Günel"</span>, <span class="prop">bal</span>: <span class="num">95</span> },
+];
+<span class="kw">for</span> (<span class="kw">const</span> { <span class="prop">ad</span>, <span class="prop">bal</span> } <span class="kw">of</span> <span class="prop">telebeler</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`${<span class="prop">ad</span>}: ${<span class="prop">bal</span>} bal`</span>);
+}</pre>
+  </div>
+
+  <!-- Demo 4 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ Obyekt Destructuring — Canlı sınaq</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo4code">const telebe = {
+  ad: "Nigar",
+  yas: 21,
+  sehir: "Gəncə",
+  dersler: ["Riyaziyyat", "Fizika", "İnformatika"]
+};
+
+// Destructuring et
+const { ad, yas, sehir, dersler: [birinci_ders] } = telebe;
+
+console.log("Ad:", ad);
+console.log("Yaş:", yas);
+console.log("Şəhər:", sehir);
+console.log("İlk dərs:", birinci_ders);
+
+// Standart dəyərlə
+const { gpa = 4.0, rol = "tələbə" } = telebe;
+console.log("GPA:", gpa);
+console.log("Rol:", rol);</textarea>
+      <button class="run-btn" onclick="runDemo('demo4code','demo4out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo4out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<!-- DESTRUCTURING BUGS -->
+<section class="section" id="destr-bugs">
+  <h3>⚠️ Destructuring — Xətalar &amp; Buqlar</h3>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 1 — null/undefined-dan destructuring</div>
+    <code>null</code> və ya <code>undefined</code> dəyərindən destructuring etmək <strong>TypeError</strong> verir!
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ Xəta — TypeError</div>
+      <pre><span class="kw">const</span> <span class="prop">data</span> <span class="op">=</span> <span class="kw">null</span>;
+<span class="kw">const</span> { <span class="prop">ad</span> } <span class="op">=</span> <span class="prop">data</span>;
+<span class="cmt">// TypeError: Cannot destructure
+// property 'ad' of null</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Müdafiəli yazı</div>
+      <pre><span class="kw">const</span> <span class="prop">data</span> <span class="op">=</span> <span class="kw">null</span>;
+<span class="kw">const</span> { <span class="prop">ad</span> } <span class="op">=</span> <span class="prop">data</span> <span class="op">||</span> {};
+<span class="cmt">// "" — null olarsa boş
+// obyekt istifadə olunur</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 2 — Obyekt destructuringdə mötərizə xətası</div>
+    Artıq elan edilmiş dəyişənlərə obyekt destructuring etdikdə <code>{}</code> ifadəsi blok kimi oxunur.
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ SyntaxError</div>
+      <pre><span class="kw">let</span> <span class="prop">ad</span>, <span class="prop">yas</span>;
+{ <span class="prop">ad</span>, <span class="prop">yas</span> } <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Əli"</span>, <span class="prop">yas</span>: <span class="num">25</span> };
+<span class="cmt">// SyntaxError! {} blok sayılır</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Mötərizə əlavə et</div>
+      <pre><span class="kw">let</span> <span class="prop">ad</span>, <span class="prop">yas</span>;
+({ <span class="prop">ad</span>, <span class="prop">yas</span> } <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Əli"</span>, <span class="prop">yas</span>: <span class="num">25</span> });
+<span class="cmt">// () içinə aldıqda işləyir ✓</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 3 — Mövcud olmayan açar</div>
+    Olmayan açarı destructuring etsəniz <code>undefined</code> alırsınız, xəta yox. Bu gizli buqlara səbəb ola bilər.
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="kw">const</span> { <span class="prop">ad</span>, <span class="prop">telefon</span> } <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Murad"</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ad</span>);      <span class="cmt">// "Murad"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">telefon</span>); <span class="cmt">// undefined ← Xəta yox, amma diqqətli olun!</span>
+
+<span class="cmt">// Həll: standart dəyər istifadə edin</span>
+<span class="kw">const</span> { <span class="prop">telefon</span>: <span class="prop">tel</span> <span class="op">=</span> <span class="str">"Naməlum"</span> } <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Murad"</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">tel</span>); <span class="cmt">// "Naməlum"</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     BÖLMƏ 3: SPREAD & REST
+═══════════════════════════════════════════ -->
+<section class="section" id="spread-array">
+  <span class="anchor" id="anc-spread"></span>
+  <div class="section-label">Bölmə 3</div>
+  <h2>✨ Spread &amp; Rest Operatoru (<code>...</code>)</h2>
+
+  <p>Hər ikisi eyni simvoldan (<code>...</code>) istifadə edir, lakin <strong>fərqli yerlərdə</strong> fərqli işlər görür:</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>Operator</th><th>Harada</th><th>Nə edir</th></tr>
+      <tr><td><strong>Spread</strong> <code>...</code></td><td>Funksiyanı çağırmaqda, massiv/obyekt literalında</td><td>Massiv/obyekti <strong>açır, yayır</strong></td></tr>
+      <tr><td><strong>Rest</strong> <code>...</code></td><td>Funksiya parametrindəm destructuringdə</td><td>Qalan elementləri <strong>massivə toplayır</strong></td></tr>
+    </table>
+  </div>
+
+  <h3>🔀 Spread — Massivlərdə</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Massivləri birləşdirmək</span>
+<span class="kw">const</span> <span class="prop">sebzeler</span> <span class="op">=</span> [<span class="str">"pomidor"</span>, <span class="str">"xiyar"</span>];
+<span class="kw">const</span> <span class="prop">meyveler</span> <span class="op">=</span> [<span class="str">"alma"</span>, <span class="str">"armud"</span>];
+
+<span class="kw">const</span> <span class="prop">qida</span> <span class="op">=</span> [...<span class="prop">sebzeler</span>, ...<span class="prop">meyveler</span>];
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">qida</span>);
+<span class="cmt">// ["pomidor", "xiyar", "alma", "armud"]</span>
+
+<span class="cmt">// Massivi kopyalamaq (dayaz nüsxə)</span>
+<span class="kw">const</span> <span class="prop">original</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="kw">const</span> <span class="prop">kopya</span> <span class="op">=</span> [...<span class="prop">original</span>];
+<span class="prop">kopya</span>.<span class="fn">push</span>(<span class="num">4</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">original</span>); <span class="cmt">// [1, 2, 3]  ← dəyişmədi</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">kopya</span>);    <span class="cmt">// [1, 2, 3, 4]</span>
+
+<span class="cmt">// Funksiyaya argument kimi</span>
+<span class="kw">const</span> <span class="prop">reqemler</span> <span class="op">=</span> [<span class="num">8</span>, <span class="num">3</span>, <span class="num">5</span>, <span class="num">1</span>, <span class="num">9</span>, <span class="num">2</span>];
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">Math</span>.<span class="fn">max</span>(...<span class="prop">reqemler</span>)); <span class="cmt">// 9</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">Math</span>.<span class="fn">min</span>(...<span class="prop">reqemler</span>)); <span class="cmt">// 1</span>
+
+<span class="cmt">// String-dən massiv yaratmaq</span>
+<span class="kw">const</span> <span class="prop">herfler</span> <span class="op">=</span> [..."Salam"];
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">herfler</span>); <span class="cmt">// ["S","a","l","a","m"]</span></pre>
+  </div>
+
+  <!-- Demo 5 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ Spread Massiv — Canlı sınaq</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo5code">const a = [1, 2, 3];
+const b = [4, 5, 6];
+
+// Birləşdirmə
+const c = [...a, ...b];
+console.log("Birləşdirilmiş:", c);
+
+// Kopyalama
+const kopya = [...a];
+kopya.push(99);
+console.log("Original:", a);    // dəyişmədi
+console.log("Kopya:", kopya);  // dəyişdi
+
+// Math funksiyaları ilə
+const reqemler = [7, 2, 14, 5, 11];
+console.log("Max:", Math.max(...reqemler));
+console.log("Min:", Math.min(...reqemler));
+
+// String parçalama
+const herfler = [..."Bakı"];
+console.log("Hərflər:", herfler);</textarea>
+      <button class="run-btn" onclick="runDemo('demo5code','demo5out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo5out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<!-- SPREAD OBJECTS -->
+<section class="section" id="spread-obj">
+  <h3>🔀 Spread — Obyektlərdə</h3>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Obyektləri birləşdirmək</span>
+<span class="kw">const</span> <span class="prop">esasInfo</span> <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Rauf"</span>, <span class="prop">yas</span>: <span class="num">28</span> };
+<span class="kw">const</span> <span class="prop">isInfo</span>   <span class="op">=</span> { <span class="prop">vezife</span>: <span class="str">"Mühəndis"</span>, <span class="prop">maas</span>: <span class="num">2000</span> };
+
+<span class="kw">const</span> <span class="prop">tamInfo</span> <span class="op">=</span> { ...<span class="prop">esasInfo</span>, ...<span class="prop">isInfo</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">tamInfo</span>);
+<span class="cmt">// { ad: "Rauf", yas: 28, vezife: "Mühəndis", maas: 2000 }</span>
+
+<span class="cmt">// Obyekti kopyalamaq (dayaz nüsxə)</span>
+<span class="kw">const</span> <span class="prop">original</span> <span class="op">=</span> { <span class="prop">x</span>: <span class="num">1</span>, <span class="prop">y</span>: <span class="num">2</span> };
+<span class="kw">const</span> <span class="prop">kopya</span> <span class="op">=</span> { ...<span class="prop">original</span> };
+
+<span class="cmt">// Xüsusiyyəti yeniləmək/əvəz etmək</span>
+<span class="kw">const</span> <span class="prop">yenilenmis</span> <span class="op">=</span> { ...<span class="prop">esasInfo</span>, <span class="prop">yas</span>: <span class="num">29</span>, <span class="prop">sehir</span>: <span class="str">"Bakı"</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">yenilenmis</span>);
+<span class="cmt">// { ad: "Rauf", yas: 29, sehir: "Bakı" }
+// yas 28-dən 29-a dəyişdi</span>
+
+<span class="cmt">// ⚠️ Sıra mühümdür! Sonra yazılan qazanır</span>
+<span class="kw">const</span> <span class="prop">obj1</span> <span class="op">=</span> { <span class="prop">a</span>: <span class="num">1</span>, <span class="prop">b</span>: <span class="num">2</span> };
+<span class="kw">const</span> <span class="prop">obj2</span> <span class="op">=</span> { <span class="prop">b</span>: <span class="num">99</span>, <span class="prop">c</span>: <span class="num">3</span> };
+
+<span class="fn">console</span>.<span class="fn">log</span>({ ...<span class="prop">obj1</span>, ...<span class="prop">obj2</span> }); <span class="cmt">// {a:1, b:99, c:3}</span>
+<span class="fn">console</span>.<span class="fn">log</span>({ ...<span class="prop">obj2</span>, ...<span class="prop">obj1</span> }); <span class="cmt">// {b:2, c:3, a:1}</span></pre>
+  </div>
+</section>
+
+<!-- REST -->
+<section class="section" id="rest-fn">
+  <h3>📋 Rest Parametrləri</h3>
+  <p>Funksiyaya göndərilən qalan bütün arqumentləri bir massivə toplayır. Həm funksiya parametrlərində, həm destructuringdə istifadə olunur.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Funksiyada rest parametri</span>
+<span class="kw">function</span> <span class="fn">topla</span>(...<span class="prop">reqemler</span>) {
+  <span class="cmt">// reqemler bir massivdir</span>
+  <span class="kw">return</span> <span class="prop">reqemler</span>.<span class="fn">reduce</span>((<span class="prop">cem</span>, <span class="prop">n</span>) <span class="op">=></span> <span class="prop">cem</span> <span class="op">+</span> <span class="prop">n</span>, <span class="num">0</span>);
+}
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">topla</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>));          <span class="cmt">// 6</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">topla</span>(<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>)); <span class="cmt">// 100</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">topla</span>(<span class="num">5</span>));               <span class="cmt">// 5</span>
+
+<span class="cmt">// İlk parametr sabit, qalanlar rest</span>
+<span class="kw">function</span> <span class="fn">mesaj</span>(<span class="prop">basliq</span>, ...<span class="prop">detallar</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Başlıq:"</span>, <span class="prop">basliq</span>);
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Detallar:"</span>, <span class="prop">detallar</span>);
+}
+
+<span class="fn">mesaj</span>(<span class="str">"Xəbər"</span>, <span class="str">"Bakıda"</span>, <span class="str">"yağış"</span>, <span class="str">"yağdı"</span>);
+<span class="cmt">// Başlıq: Xəbər
+// Detallar: ["Bakıda", "yağış", "yağdı"]</span>
+
+<span class="cmt">// Destructuringdə rest</span>
+<span class="kw">const</span> [<span class="prop">birinci</span>, <span class="prop">ikinci</span>, ...<span class="prop">qalanlar</span>] <span class="op">=</span> [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>];
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">birinci</span>);  <span class="cmt">// 10</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ikinci</span>);   <span class="cmt">// 20</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">qalanlar</span>); <span class="cmt">// [30, 40, 50]</span>
+
+<span class="cmt">// Obyekt destructuringdə rest</span>
+<span class="kw">const</span> { <span class="prop">ad</span>, <span class="prop">yas</span>, ...<span class="prop">qalan</span> } <span class="op">=</span> { <span class="prop">ad</span>: <span class="str">"Sevinc"</span>, <span class="prop">yas</span>: <span class="num">24</span>, <span class="prop">sehir</span>: <span class="str">"Gəncə"</span>, <span class="prop">hobbi</span>: <span class="str">"Musiqi"</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">ad</span>);     <span class="cmt">// "Sevinc"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">yas</span>);    <span class="cmt">// 24</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">qalan</span>); <span class="cmt">// { sehir: "Gəncə", hobbi: "Musiqi" }</span></pre>
+  </div>
+
+  <!-- Demo 6 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ Spread &amp; Rest — Canlı sınaq</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo6code">// Rest — funksiyada
+function ortaHesabla(...reqemler) {
+  const cem = reqemler.reduce((a, b) => a + b, 0);
+  return cem / reqemler.length;
+}
+console.log("Orta:", ortaHesabla(10, 20, 30, 40, 50));
+
+// Rest — destructuring
+const [cap, ...siyahi] = ["Bakı", "Gəncə", "Sumqayıt", "Lənkəran"];
+console.log("Baş şəhər:", cap);
+console.log("Digər şəhərlər:", siyahi);
+
+// Spread — obyekt yeniləmə
+const melumat = { ad: "Aytən", yas: 22, bal: 88 };
+const yenilenmis = { ...melumat, bal: 95, bitirme: 2024 };
+console.log("Köhnə:", melumat);
+console.log("Yeni:", yenilenmis);</textarea>
+      <button class="run-btn" onclick="runDemo('demo6code','demo6out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo6out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<!-- SPREAD REST BUGS -->
+<section class="section" id="spread-rest-bugs">
+  <h3>⚠️ Spread &amp; Rest — Xətalar &amp; Buqlar</h3>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 1 — Rest ən sonda olmalıdır</div>
+    Rest parametri həmişə <strong>son parametr</strong> olmalıdır, yoxsa SyntaxError verir.
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ SyntaxError</div>
+      <pre><span class="kw">function</span> <span class="fn">test</span>(...<span class="prop">a</span>, <span class="prop">b</span>) {}
+<span class="cmt">// SyntaxError: Rest parameter
+// must be last formal parameter</span>
+
+<span class="kw">const</span> [...<span class="prop">a</span>, <span class="prop">b</span>] <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="cmt">// SyntaxError!</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Doğru</div>
+      <pre><span class="kw">function</span> <span class="fn">test</span>(<span class="prop">b</span>, ...<span class="prop">a</span>) {}
+<span class="cmt">// ✓ b sabit, a rest</span>
+
+<span class="kw">const</span> [<span class="prop">b</span>, ...<span class="prop">a</span>] <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="cmt">// ✓ b=1, a=[2,3]</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 2 — Dayaz kopyalama (Shallow Copy) tələsi</div>
+    Spread yalnız dayaz (shallow) nüsxə yaradır. İç-içə obyektlər hələ eyni referansı paylaşır!
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ Gizli Bug</div>
+      <pre><span class="kw">const</span> <span class="prop">a</span> <span class="op">=</span> { <span class="prop">x</span>: { <span class="prop">y</span>: <span class="num">1</span> } };
+<span class="kw">const</span> <span class="prop">b</span> <span class="op">=</span> { ...<span class="prop">a</span> };
+<span class="prop">b</span>.<span class="prop">x</span>.<span class="prop">y</span> <span class="op">=</span> <span class="num">99</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">a</span>.<span class="prop">x</span>.<span class="prop">y</span>);
+<span class="cmt">// 99 ← a da dəyişdi! BUG!</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ Dərin kopyalama</div>
+      <pre><span class="kw">const</span> <span class="prop">a</span> <span class="op">=</span> { <span class="prop">x</span>: { <span class="prop">y</span>: <span class="num">1</span> } };
+<span class="kw">const</span> <span class="prop">b</span> <span class="op">=</span> <span class="fn">JSON</span>.<span class="fn">parse</span>(
+  <span class="fn">JSON</span>.<span class="fn">stringify</span>(<span class="prop">a</span>));
+<span class="prop">b</span>.<span class="prop">x</span>.<span class="prop">y</span> <span class="op">=</span> <span class="num">99</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">a</span>.<span class="prop">x</span>.<span class="prop">y</span>); <span class="cmt">// 1 ✓</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 3 — Spread ilə çoxlu sayda arqument</div>
+    Böyük massivi spread ilə funksiyaya verdikdə bəzi brauzerlərdə stack overflow baş verə bilər.
+  </div>
+  <div class="compare">
+    <div class="compare-card bad">
+      <div class="card-head">❌ Stack overflow riski</div>
+      <pre><span class="kw">const</span> <span class="prop">boyuk</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Array</span>(<span class="num">1000000</span>);
+<span class="fn">Math</span>.<span class="fn">max</span>(...<span class="prop">boyuk</span>);
+<span class="cmt">// RangeError: Maximum call
+// stack size exceeded</span></pre>
+    </div>
+    <div class="compare-card good">
+      <div class="card-head">✅ reduce istifadə et</div>
+      <pre><span class="kw">const</span> <span class="prop">boyuk</span> <span class="op">=</span> [<span class="num">3</span>,<span class="num">1</span>,<span class="num">9</span>,<span class="num">2</span>,...];
+<span class="kw">const</span> <span class="prop">maks</span> <span class="op">=</span> <span class="prop">boyuk</span>.<span class="fn">reduce</span>(
+  (<span class="prop">m</span>,<span class="prop">v</span>) <span class="op">=></span> <span class="fn">Math</span>.<span class="fn">max</span>(<span class="prop">m</span>,<span class="prop">v</span>), -<span class="fn">Infinity</span>);
+<span class="cmt">// Təhlükəsiz ✓</span></pre>
+    </div>
+  </div>
+
+  <div class="box error">
+    <div class="box-title">🐛 Bug 4 — Obyekt spread funksiyaları itirmir</div>
+    Spread ilə obyekt kopyalandıqda prototip metodları itir. Class nümunələrini spred etmək risklidir.
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="kw">class</span> <span class="fn">Insan</span> {
+  <span class="fn">constructor</span>(<span class="prop">ad</span>) { <span class="kw">this</span>.<span class="prop">ad</span> <span class="op">=</span> <span class="prop">ad</span>; }
+  <span class="fn">salam</span>() { <span class="kw">return</span> <span class="str">`Salam, ${<span class="kw">this</span>.<span class="prop">ad</span>}`</span>; }
+}
+
+<span class="kw">const</span> <span class="prop">eli</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Insan</span>(<span class="str">"Əli"</span>);
+<span class="prop">eli</span>.<span class="fn">salam</span>(); <span class="cmt">// "Salam, Əli" ✓</span>
+
+<span class="kw">const</span> <span class="prop">kopya</span> <span class="op">=</span> { ...<span class="prop">eli</span> };
+<span class="prop">kopya</span>.<span class="fn">salam</span>(); <span class="cmt">// TypeError! salam metodu yoxdur!</span>
+<span class="cmt">// Kopya sadəcə {ad: "Əli"}-dir, metodu yoxdur</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COMBINED -->
+<section class="section" id="combined">
+  <div class="section-label">Bölmə 4</div>
+  <h2>🔗 Birlikdə İstifadə — Real Nümunələr</h2>
+
+  <h3>API Cavabından Məlumat Çıxarmaq</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// API-dan gələn məlumat</span>
+<span class="kw">const</span> <span class="prop">apiCavabi</span> <span class="op">=</span> {
+  <span class="prop">status</span>: <span class="str">"ok"</span>,
+  <span class="prop">istifadeci</span>: {
+    <span class="prop">id</span>: <span class="num">42</span>,
+    <span class="prop">ad</span>: <span class="str">"Günel"</span>,
+    <span class="prop">email</span>: <span class="str">"gunel@example.com"</span>,
+    <span class="prop">token</span>: <span class="str">"gizli-token-123"</span>
+  },
+  <span class="prop">dersler</span>: [<span class="str">"JS"</span>, <span class="str">"React"</span>, <span class="str">"Node"</span>, <span class="str">"SQL"</span>]
+};
+
+<span class="cmt">// Destructuring + Rest ilə gizli məlumatı ayır</span>
+<span class="kw">const</span> {
+  <span class="prop">istifadeci</span>: { <span class="prop">token</span>, ...<span class="prop">aciqInfo</span> },
+  <span class="prop">dersler</span>: [<span class="prop">birinci</span>, <span class="prop">ikinci</span>, ...<span class="prop">qalanlar</span>]
+} <span class="op">=</span> <span class="prop">apiCavabi</span>;
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">aciqInfo</span>);
+<span class="cmt">// { id: 42, ad: "Günel", email: "gunel@example.com" }
+// token çıxarıldı!</span>
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">birinci</span>, <span class="prop">ikinci</span>); <span class="cmt">// "JS" "React"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">qalanlar</span>);         <span class="cmt">// ["Node", "SQL"]</span></pre>
+  </div>
+
+  <h3>State Yeniləmə (React nümunəsi)</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Kopyala</button></div>
+    <pre><span class="cmt">// Köhnə state-i yeniləmək</span>
+<span class="kw">const</span> <span class="prop">koState</span> <span class="op">=</span> {
+  <span class="prop">ad</span>: <span class="str">"Tural"</span>,
+  <span class="prop">yas</span>: <span class="num">26</span>,
+  <span class="prop">sehir</span>: <span class="str">"Sumqayıt"</span>,
+  <span class="prop">hobbiler</span>: [<span class="str">"Kitab"</span>, <span class="str">"Üzgüçülük"</span>]
+};
+
+<span class="cmt">// Yeni hobbi əlavə et, yaşı artır</span>
+<span class="kw">const</span> <span class="prop">yeniState</span> <span class="op">=</span> {
+  ...<span class="prop">koState</span>,
+  <span class="prop">yas</span>: <span class="prop">koState</span>.<span class="prop">yas</span> <span class="op">+</span> <span class="num">1</span>,
+  <span class="prop">hobbiler</span>: [...<span class="prop">koState</span>.<span class="prop">hobbiler</span>, <span class="str">"Şahmat"</span>]
+};
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">yeniState</span>);
+<span class="cmt">// { ad:"Tural", yas:27, sehir:"Sumqayıt",
+//   hobbiler:["Kitab","Üzgüçülük","Şahmat"] }</span>
+
+<span class="cmt">// Köhnə state dəyişmədi!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">koState</span>.<span class="prop">yas</span>); <span class="cmt">// 26</span></pre>
+  </div>
+
+  <!-- Demo 7 -->
+  <div class="demo-box">
+    <div class="demo-head">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <span>⚡ Birlikdə İstifadə — Canlı sınaq</span>
+    </div>
+    <div class="demo-body">
+      <textarea class="demo-editor" id="demo7code">// Tələbə siyahısını idarə et
+const telebeler = [
+  { ad: "Anar",  bal: 88, kecdi: true },
+  { ad: "Günel", bal: 95, kecdi: true },
+  { ad: "Rauf",  bal: 45, kecdi: false },
+  { ad: "Leyla", bal: 72, kecdi: true },
+];
+
+// Keçənləri filter et, yalnız ad və bal al
+const kecenler = telebeler
+  .filter(({ kecdi }) => kecdi)
+  .map(({ ad, bal }) => ({ ad, bal }));
+
+console.log("Keçən tələbələr:", JSON.stringify(kecenler));
+
+// Ən yüksək bal
+const [enYuksek] = [...telebeler]
+  .sort((a, b) => b.bal - a.bal);
+
+const { ad: birinci, bal: yuksekBal } = enYuksek;
+console.log(`🏆 Ən yüksək: ${birinci} — ${yuksekBal} bal`);
+
+// Orta bal hesabla
+const ortaBal = telebeler
+  .reduce((cem, { bal }) => cem + bal, 0) / telebeler.length;
+console.log("📊 Orta bal:", ortaBal.toFixed(1));</textarea>
+      <button class="run-btn" onclick="runDemo('demo7code','demo7out')">▶ Çalışdır</button>
+      <div class="demo-output" id="demo7out">Nəticə burada görünəcək...</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- QUIZ -->
+<section class="section" id="quiz">
+  <div class="section-label">Özünüyoxlama</div>
+  <h2>🧠 Bilik Testi</h2>
+  <p>Öyrəndiklərinizdən emin olmaq üçün aşağıdakı sualları həll edin.</p>
+
+  <div id="quizContainer"></div>
+  <div id="quizResult" style="display:none; margin-top:20px;"></div>
+</section>
+
+</div><!-- /content -->
+
+<div class="footer">
+  <strong style="color:var(--accent)">JavaScript Dərsliyi</strong> — Window · Destructuring · Spread &amp; Rest &nbsp;·&nbsp;
+  ES6+ standartı əsasında hazırlanmışdır
+</div>
+
+</main>
+</div><!-- /layout -->
+
+<script>
+// ── PROGRESS BAR ──
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  const pct = (window.scrollY / total) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+});
+
+// ── MOBILE MENU ──
+const menuBtn = document.getElementById('menuBtn');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+menuBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+});
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+});
+
+// ── ACTIVE NAV ──
+const navLinks = document.querySelectorAll('nav a');
+const sections = document.querySelectorAll('.section');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(a => a.classList.remove('active'));
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// Nav click → close mobile menu
+navLinks.forEach(a => {
+  a.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+});
+
+// ── COPY BUTTON ──
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Kopyalandı';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Kopyala';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+
+// ── DEMO RUNNER ──
+function runDemo(codeId, outId) {
+  const code = document.getElementById(codeId).value;
+  const out  = document.getElementById(outId);
+  out.classList.remove('err');
+  
+  const logs = [];
+  const origLog = console.log;
+  const origErr = console.error;
+  console.log = (...args) => {
+    logs.push(args.map(a => {
+      if (a === null) return 'null';
+      if (a === undefined) return 'undefined';
+      if (typeof a === 'object') return JSON.stringify(a, null, 2);
+      return String(a);
+    }).join(' '));
+  };
+  console.error = (...args) => logs.push('❌ ' + args.join(' '));
+
+  try {
+    // eslint-disable-next-line no-new-func
+    new Function(code)();
+    out.textContent = logs.length ? logs.join('\n') : '(Heç bir çıxış yoxdur)';
+  } catch(e) {
+    out.classList.add('err');
+    out.textContent = '❌ Xəta: ' + e.message;
+  } finally {
+    console.log = origLog;
+    console.error = origErr;
+  }
+}
+
+// ── QUIZ ──
+const quizData = [
+  {
+    s: "Aşağıdakı kodun nəticəsi nə olacaq?\n\nvar x = 5;\nconsole.log(window.x);",
+    o: ["5", "undefined", "ReferenceError", "null"],
+    c: 0,
+    a: "var ilə elan edilən dəyişənlər window obyektinə əlavə olunur. let/const ilə edilsəydi, undefined qaytarardı."
+  },
+  {
+    s: "const [a, , b] = [10, 20, 30, 40];\nconsole.log(a, b);",
+    o: ["10 20", "10 30", "20 30", "10 undefined"],
+    c: 1,
+    a: "İkinci element (20) vergüllə atlanıb. a=10, üçüncü element b=30 alır."
+  },
+  {
+    s: "const obj = { x: 1, y: 2 };\nconst { x: yeniAd } = obj;\nconsole.log(yeniAd);",
+    o: ["undefined", "1", "x", "ReferenceError: x is not defined"],
+    c: 1,
+    a: "x: yeniAd — x açarının dəyərini yeniAd dəyişəninə mənimsədir. yeniAd = 1 olur. x dəyişəni yaranmır."
+  },
+  {
+    s: "function test(a, ...b) { return b; }\nconsole.log(test(1, 2, 3, 4));",
+    o: ["[1,2,3,4]", "[2,3,4]", "2", "SyntaxError"],
+    c: 1,
+    a: "a = 1 (ilk arqument), ...b = [2,3,4] (qalan arqumentlər massivə toplanır)."
+  },
+  {
+    s: "const a = { x: { y: 1 } };\nconst b = { ...a };\nb.x.y = 99;\nconsole.log(a.x.y);",
+    o: ["1", "99", "undefined", "ReferenceError"],
+    c: 1,
+    a: "Spread dayaz nüsxə yaradır. b.x və a.x eyni obyektə işarə edir, ona görə a.x.y da 99 olur."
+  },
+  {
+    s: "const { a = 5 } = { a: null };\nconsole.log(a);",
+    o: ["5", "null", "undefined", "0"],
+    c: 1,
+    a: "Standart dəyər yalnız undefined olduqda işlənir. null bir dəyərdir, ona görə a = null olur."
+  },
+  {
+    s: "localStorage.setItem('test', {a:1});\nconsole.log(typeof localStorage.getItem('test'));",
+    o: ["object", "string", "undefined", "number"],
+    c: 1,
+    a: "localStorage hər şeyi stringe çevirir. {a:1} → '[object Object]' kimi saxlanır. Həmişə JSON.stringify istifadə edin!"
+  },
+  {
+    s: "const [...a, b] = [1, 2, 3];\nconsole.log(b);",
+    o: ["3", "[1,2]", "undefined", "SyntaxError"],
+    c: 3,
+    a: "Rest (...) operatoru yalnız ən sonda istifadə edilə bilər. [...a, b] sintaksis xətasıdır."
+  }
+];
+
+function buildQuiz() {
+  const container = document.getElementById('quizContainer');
+  quizData.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = `
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    `;
+    div.innerHTML = `
+      <div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Sual ${i+1}</div>
+      <pre style="background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px;font-family:var(--mono);font-size:13px;white-space:pre-wrap;overflow-x:auto">${q.s}</pre>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="opts${i}">
+        ${q.o.map((o, j) => `
+          <button onclick="checkAnswer(${i},${j})" data-idx="${j}" style="
+            text-align:left;
+            padding:10px 14px;
+            background:var(--code-bg);
+            border:1px solid var(--border);
+            border-radius:6px;
+            color:var(--text);
+            cursor:pointer;
+            font-family:var(--mono);
+            font-size:13px;
+            transition:all .2s;
+          " onmouseover="if(!this.dataset.answered)this.style.borderColor='var(--accent2)'"
+             onmouseout="if(!this.dataset.answered)this.style.borderColor='var(--border)'">
+            <span style="color:var(--text-muted);margin-right:6px">${String.fromCharCode(65+j)})</span>${o}
+          </button>
+        `).join('')}
+      </div>
+      <div id="ans${i}" style="display:none;margin-top:12px;padding:12px 16px;border-radius:6px;font-size:14px"></div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+const answered = {};
+function checkAnswer(qi, chosen) {
+  if (answered[qi]) return;
+  answered[qi] = true;
+  const q = quizData[qi];
+  const opts = document.querySelectorAll(`#opts${qi} button`);
+  opts.forEach((btn, j) => {
+    btn.dataset.answered = 'true';
+    btn.style.cursor = 'default';
+    if (j === q.c) {
+      btn.style.background = 'rgba(6,214,160,.15)';
+      btn.style.borderColor = 'var(--green)';
+      btn.style.color = 'var(--green)';
+    } else if (j === chosen && chosen !== q.c) {
+      btn.style.background = 'rgba(255,107,107,.12)';
+      btn.style.borderColor = 'var(--red)';
+      btn.style.color = 'var(--red)';
+    } else {
+      btn.style.opacity = '.45';
+    }
+  });
+  const ans = document.getElementById(`ans${qi}`);
+  const correct = chosen === q.c;
+  ans.style.display = 'block';
+  ans.style.background = correct ? 'rgba(6,214,160,.1)' : 'rgba(255,107,107,.1)';
+  ans.style.border = `1px solid ${correct ? 'var(--green)' : 'var(--red)'}`;
+  ans.style.color = 'var(--text)';
+  ans.innerHTML = `<span style="font-weight:700;color:${correct ? 'var(--green)' : 'var(--red)'}">${correct ? '✅ Düzgün!' : '❌ Yanlış!'}</span><br><span style="color:var(--text-muted);font-size:13px">${q.a}</span>`;
+
+  // Result check
+  const total = Object.keys(answered).length;
+  if (total === quizData.length) showResult();
+}
+
+function showResult() {
+  const correct = quizData.filter((q, i) => answered[i] === true && i in answered).length;
+  // Count actual correct answers
+  let cCount = 0;
+  quizData.forEach((q, i) => {
+    const opts = document.querySelectorAll(`#opts${i} button`);
+    opts.forEach((btn, j) => {
+      if (j === q.c && btn.style.color.includes('rgb(6')) cCount++;
+    });
+  });
+
+  // Re-count from DOM feedback
+  let score = 0;
+  document.querySelectorAll('[id^="ans"]').forEach((el, i) => {
+    if (el.textContent.startsWith('✅')) score++;
+  });
+
+  const pct = Math.round((score / quizData.length) * 100);
+  const res = document.getElementById('quizResult');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">${pct >= 80 ? '🏆' : pct >= 60 ? '💪' : '📚'}</div>
+      <div style="font-size:28px;font-weight:700;color:${pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--gold)' : 'var(--red)'}">${pct}%</div>
+      <div style="color:var(--text-muted);margin-top:6px">${score} / ${quizData.length} düzgün cavab</div>
+      <div style="margin-top:16px;color:var(--text);font-size:14px">
+        ${pct >= 80 ? 'Əla! Mövzunu çox yaxşı mənimsədiniz.' : pct >= 60 ? 'Yaxşı nəticə! Bir az daha məşq edin.' : 'Dərsliyi yenidən oxuyub demoları sınayın.'}
+      </div>
+    </div>
+  `;
+  res.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+buildQuiz();
+</script>
+</body>
+</html>

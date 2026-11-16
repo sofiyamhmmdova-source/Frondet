@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>JS String Metodları & Loop Alqoritmləri</title>
+
+<!-- Azərbaycan hərflərini dəstəkləyən fontlar -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:    #0b0d14;
+    --bg2:   #12151f;
+    --bg3:   #181c2a;
+    --bg4:   #1f2438;
+    --acc:   #6366f1;
+    --acc2:  #818cf8;
+    --acc3:  #a5b4fc;
+    --teal:  #2dd4bf;
+    --teal2: #5eead4;
+    --amber: #f59e0b;
+    --amber2:#fde68a;
+    --coral: #f87171;
+    --green: #4ade80;
+    --pink:  #ec4899;
+    --text:  #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #4b5677;
+    --brd:   rgba(99,102,241,0.25);
+    --brd2:  rgba(99,102,241,0.08);
+    --mono:  'JetBrains Mono', 'Courier New', monospace;
+    --sans:  'Nunito', 'Segoe UI', Arial, sans-serif;
+    --r:     14px;
+    --r2:    10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.7;
+    min-height: 100vh;
+    /* Azərbaycan Unicode dəstəyi */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  /* ── Layout ── */
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 2.5rem 1rem 2rem;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    color: var(--acc3);
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 {
+    font-size: clamp(1.6rem, 6vw, 2.8rem);
+    font-weight: 900;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #fff 25%, var(--acc2) 60%, var(--teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.9rem;
+  }
+  .hero p {
+    font-size: 0.95rem;
+    color: var(--text2);
+    max-width: 480px;
+    margin: 0 auto 1.75rem;
+  }
+
+  /* ── Nav pills ── */
+  .nav-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+  .npill {
+    background: var(--bg3);
+    border: 1px solid var(--brd2);
+    border-radius: 100px;
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--sans);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .npill:hover, .npill.on {
+    background: rgba(99,102,241,0.15);
+    color: var(--acc3);
+    border-color: rgba(99,102,241,0.4);
+  }
+
+  /* ── Sections ── */
+  .sec { display: none; }
+  .sec.on { display: block; }
+
+  /* ── Part header ── */
+  .ph {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--brd2);
+  }
+  .pnum {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--acc), var(--teal));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 800; color: #fff; flex-shrink: 0;
+  }
+  .ph h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); font-weight: 800; color: #fff; }
+  .ph p  { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  /* ── Method card ── */
+  .mc {
+    background: var(--bg2);
+    border: 1px solid var(--brd2);
+    border-radius: var(--r);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .mc:hover { border-color: var(--brd); }
+  .mh {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    flex-wrap: nowrap;
+  }
+  .mb2 {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--amber);
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 7px;
+    padding: 3px 9px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .mb2.p { color: var(--teal); background: rgba(45,212,191,0.1); border-color: rgba(45,212,191,0.2); }
+  .mb2.a { color: var(--coral); background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.2); }
+  .mb2.g { color: var(--green); background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.2); }
+  .mb2.pk{ color: var(--pink);  background: rgba(236,72,153,0.1);  border-color: rgba(236,72,153,0.2); }
+  .mt {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .arr { color: var(--text3); font-size: 11px; transition: transform 0.2s; margin-left: auto; flex-shrink: 0; }
+  .mc.op .arr { transform: rotate(180deg); }
+  .mbody {
+    display: none;
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--brd2);
+  }
+  .mc.op .mbody { display: block; }
+  .mdesc {
+    font-size: 13.5px;
+    color: var(--text2);
+    margin: 0.875rem 0;
+    line-height: 1.7;
+  }
+  .mdesc strong { color: var(--teal2); font-weight: 700; }
+
+  /* ── Labels ── */
+  .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text3);
+    margin-bottom: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  /* ── Code block ── */
+  .cb {
+    background: #07090f;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: var(--r2);
+    padding: 0.875rem 1rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.85;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cb .ln { display: block; }
+
+  /* Syntax colors */
+  .kw  { color: #c792ea; }
+  .fn  { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .num { color: #f78c6c; }
+  .cmt { color: #4a6470; font-style: italic; }
+  .v   { color: #f07178; }
+  .op  { color: #89ddff; }
+  .mth { color: #ffcb6b; }
+  .pr  { color: #2dd4bf; }
+
+  /* ── Info box ── */
+  .ibox {
+    background: rgba(99,102,241,0.07);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-left: 3px solid var(--acc);
+    border-radius: var(--r);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.75rem;
+    font-size: 13.5px;
+    color: var(--text2);
+    line-height: 1.75;
+  }
+  .ibox strong { color: var(--acc3); }
+
+  .nbox {
+    background: rgba(245,158,11,0.06);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-left: 3px solid var(--amber);
+    border-radius: var(--r);
+    padding: 0.875rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .nbox strong { color: var(--amber2); }
+
+  /* ── Task cards ── */
+  .tc {
+    background: var(--bg2);
+    border: 1px solid var(--brd2);
+    border-radius: var(--r);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .tc:hover { border-color: var(--brd); }
+  .th2 {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tn {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff;
+  }
+  .t1 { background: linear-gradient(135deg,#6366f1,#818cf8); }
+  .t2 { background: linear-gradient(135deg,#2dd4bf,#5eead4); }
+  .t3 { background: linear-gradient(135deg,#f59e0b,#fbbf24); }
+  .t4 { background: linear-gradient(135deg,#f87171,#fb923c); }
+  .t5 { background: linear-gradient(135deg,#4ade80,#34d399); }
+  .t6 { background: linear-gradient(135deg,#818cf8,#c084fc); }
+  .ti2 { flex: 1; min-width: 0; }
+  .ti2 h3 { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+  .ti2 p  { font-size: 12px; color: var(--text2); line-height: 1.4; }
+  .tarr { color: var(--text3); font-size: 11px; margin-left: auto; transition: transform 0.2s; margin-top: 4px; flex-shrink: 0; }
+  .tc.op .tarr { transform: rotate(180deg); }
+  .tbody {
+    display: none;
+    padding: 0 1rem 1rem;
+    border-top: 1px solid var(--brd2);
+  }
+  .tc.op .tbody { display: block; }
+
+  /* ── Step box ── */
+  .se {
+    background: rgba(45,212,191,0.05);
+    border: 1px solid rgba(45,212,191,0.15);
+    border-radius: var(--r2);
+    padding: 0.875rem 1rem;
+    margin-top: 0.875rem;
+  }
+  .se h4 {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--teal2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.625rem;
+  }
+  .si { display: flex; gap: 9px; margin-bottom: 0.5rem; align-items: flex-start; }
+  .sd {
+    width: 19px; height: 19px;
+    border-radius: 50%;
+    background: rgba(45,212,191,0.18);
+    border: 1px solid rgba(45,212,191,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 800; color: var(--teal2);
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .st { font-size: 13px; color: var(--text2); line-height: 1.65; }
+  .st code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--amber);
+    background: rgba(245,158,11,0.1);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .st strong { color: var(--teal2); font-weight: 700; }
+
+  /* ── New method highlight badge ── */
+  .new-badge {
+    display: inline-block;
+    background: rgba(236,72,153,0.15);
+    border: 1px solid rgba(236,72,153,0.3);
+    color: #f9a8d4;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 2rem 0 0;
+    color: var(--text3);
+    font-size: 12px;
+    border-top: 1px solid var(--brd2);
+    margin-top: 3rem;
+  }
+
+  /* ── Mobile tweaks ── */
+  @media (max-width: 480px) {
+    .wrap { padding: 1rem 0.75rem 3rem; }
+    .hero { padding: 1.75rem 0.5rem 1.5rem; }
+    .mh { padding: 0.75rem 0.875rem; gap: 8px; }
+    .th2 { padding: 0.875rem; }
+    .mbody, .tbody { padding: 0 0.875rem 0.875rem; }
+    .cb { font-size: 11.5px; padding: 0.75rem; }
+    .mt { font-size: 13px; }
+    .badge { font-size: 10px; }
+    .ibox, .nbox { font-size: 13px; padding: 0.875rem 1rem; }
+    .se { padding: 0.75rem 0.875rem; }
+  }
+
+  @media (max-width: 360px) {
+    .cb { font-size: 10.5px; }
+    .mt { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="badge">&#128187; JavaScript Dərsliyi · 2024</div>
+    <h1>String Metodları<br>&amp; Loop Alqoritmləri</h1>
+    <p>Function yazmadan — birbaşa kod ilə hər konsepti öyrən. Azərbaycan hərfləri tam dəstəklənir.</p>
+  </div>
+
+  <div class="nav-pills">
+    <div class="npill on" onclick="show('p1',this)">Part 1 — String Metodları</div>
+    <div class="npill" onclick="show('p2',this)">Part 2 — Praktiki Tapşırıqlar</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       PART 1 — STRING METODLARI
+  ═══════════════════════════════════════════ -->
+  <div class="sec on" id="p1">
+    <div class="ph">
+      <div class="pnum">1</div>
+      <div>
+        <h2>String Nədir? Ən Vacib Metodlar</h2>
+        <p>Hər metodu klik edərək izah və kod nümunəsini gör</p>
+      </div>
+    </div>
+
+    <div class="ibox">
+      <strong>String nədir?</strong> — Proqramlaşdırmada string sadə dillə <strong>mətn parçasıdır</strong>. Hərflər, rəqəmlər, boşluqlar — bunların hamısı tırnak içinə yazıldıqda string olur. JavaScript-də stringlər <strong>immutable</strong> (dəyişilməz)-dir: metod çağıranda orijinal dəyişmir, yeni dəyər qaytarılır. <strong>Azərbaycan hərfləri</strong> (ə, ı, ö, ü, ğ, ş, ç) Unicode-da mövcuddur — JavaScript onları tam dəstəkləyir.
+    </div>
+
+    <!-- .length -->
+    <div class="mc" id="m1">
+      <div class="mh" onclick="tog('m1')">
+        <span class="mb2 p">.length</span>
+        <span class="mt">String-in uzunluğunu öyrən</span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>length</strong> — metod deyil, <strong>property</strong> (xüsusiyyət)-dir. String-in yanına yazdıqda, neçə simvoldan ibarət olduğunu rəqəmlə qaytarır. Boşluqlar da sayılır! Azərbaycan hərfləri (ə, ı, ş, ğ...) hər biri 1 simvol kimi sayılır.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">ad</span> <span class="op">=</span> <span class="str">"Aynur Həsənova"</span><span class="op">;</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">ad</span><span class="op">.</span><span class="pr">length</span><span class="op">);</span>        <span class="cmt">// → 14</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">let</span> <span class="v">sifre</span> <span class="op">=</span> <span class="str">"abc12"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">if</span> <span class="op">(</span><span class="v">sifre</span><span class="op">.</span><span class="pr">length</span> <span class="op">&lt;</span> <span class="num">8</span><span class="op">) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="str">"Şifrə çox qısadır!"</span><span class="op">);</span>  <span class="cmt">// → çap olunur</span></span>
+<span class="ln"><span class="op">}</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- str[i] -->
+    <div class="mc" id="m2">
+      <div class="mh" onclick="tog('m2')">
+        <span class="mb2 g">str[i]</span>
+        <span class="mt">İndeks ilə hərfə birbaşa çatış <span class="new-badge">YENİ</span></span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>str[i]</strong> — square bracket notation (kvadrat mötərizə). Hər hərfin bir <strong>indeksi</strong> var, <strong>0-dan</strong> başlayır. <code style="font-family:var(--mono);color:var(--amber)">str[0]</code> ilk hərf, <code style="font-family:var(--mono);color:var(--amber)">str[str.length-1]</code> son hərf. Bu notation loop içində çox istifadə olunur. <strong>charAt(i)</strong> eyni işi görür — amma <code>[i]</code> daha qısa və müasirdir.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">metn</span> <span class="op">=</span> <span class="str">"Bakı"</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">metn</span><span class="op">[</span><span class="num">0</span><span class="op">]);</span>           <span class="cmt">// → "B"   (0-cı indeks)</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">metn</span><span class="op">[</span><span class="num">1</span><span class="op">]);</span>           <span class="cmt">// → "a"   (1-ci indeks)</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">metn</span><span class="op">[</span><span class="num">2</span><span class="op">]);</span>           <span class="cmt">// → "k"   (2-ci indeks)</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">metn</span><span class="op">[</span><span class="num">3</span><span class="op">]);</span>           <span class="cmt">// → "ı"   (3-cü indeks)</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// Loop ilə hər hərfin indeksini çap et</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">soz</span> <span class="op">=</span> <span class="str">"Əlifba"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">soz</span><span class="op">.</span><span class="pr">length</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">i</span><span class="op">,</span> <span class="str">"→"</span><span class="op">,</span> <span class="v">soz</span><span class="op">[</span><span class="v">i</span><span class="op">]);</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"><span class="cmt">// 0 → Ə</span></span>
+<span class="ln"><span class="cmt">// 1 → l</span></span>
+<span class="ln"><span class="cmt">// 2 → i   ...və s.</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st">İndeks <strong>0-dan</strong> başlayır — ilk hərf həmişə <code>str[0]</code>-dır, sona <code>str[str.length-1]</code> ilə çatırıq.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>str[i]</code> və <code>str.charAt(i)</code> eyni nəticəni verir. Müasir kodda <code>[i]</code> üstün tutulur.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st">Əgər <code>i</code> mövcud deyilsə: <code>str[i]</code> <code>undefined</code>, <code>charAt(i)</code> boş string qaytarır.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st">Azərbaycan hərfləri (ə, ı, ö, ü, ğ, ş, ç) bir simvol sayılır — <code>[i]</code> onları da düzgün oxuyur.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- .indexOf() -->
+    <div class="mc" id="m3">
+      <div class="mh" onclick="tog('m3')">
+        <span class="mb2">.indexOf()</span>
+        <span class="mt">Mövqe tap → .includes() ilə mövcudluğu yoxla <span class="new-badge">YENİ</span></span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>indexOf(axtarılan)</strong> — verdiyin simvol/söz <em>harada</em> başlayır? İndeks qaytarır. Tapılmasa <code style="font-family:var(--mono);color:var(--amber)">-1</code> qaytarır. <strong>Azərbaycan hərfləri</strong> ilə də mükəmməl işləyir. İkinci arqument verib axtarışa müəyyən indeksdən başlamaq da olar: <code style="font-family:var(--mono);color:var(--amber)">indexOf("a", 3)</code>.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">email</span> <span class="op">=</span> <span class="str">"tebrikler@gmail.com"</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">email</span><span class="op">.</span><span class="mth">indexOf</span><span class="op">(</span><span class="str">"@"</span><span class="op">));</span>     <span class="cmt">// → 10</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">email</span><span class="op">.</span><span class="mth">indexOf</span><span class="op">(</span><span class="str">"xyz"</span><span class="op">));</span>   <span class="cmt">// → -1 (tapılmadı)</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// -1 yoxlaması:</span></span>
+<span class="ln"><span class="kw">if</span> <span class="op">(</span><span class="v">email</span><span class="op">.</span><span class="mth">indexOf</span><span class="op">(</span><span class="str">"@"</span><span class="op">) ===</span> <span class="op">-</span><span class="num">1</span><span class="op">) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="str">"@ işarəsi yoxdur!"</span><span class="op">);</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// Azərbaycan hərfi ilə axtarış:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">cumle</span> <span class="op">=</span> <span class="str">"Əlifba öyrənmək çox vacibdir"</span><span class="op">;</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">cumle</span><span class="op">.</span><span class="mth">indexOf</span><span class="op">(</span><span class="str">"öyrənmək"</span><span class="op">));</span>  <span class="cmt">// → 8</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// 2-ci arqument: 5-ci indeksdən axtar</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">s</span> <span class="op">=</span> <span class="str">"abcabc"</span><span class="op">;</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">s</span><span class="op">.</span><span class="mth">indexOf</span><span class="op">(</span><span class="str">"a"</span><span class="op">,</span> <span class="num">1</span><span class="op">));</span>        <span class="cmt">// → 3 (ilkindən sonrakı "a")</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// includes() — sadəcə "var ya yox?"</span></span>
+<span class="ln"><span class="kw">if</span> <span class="op">(</span><span class="v">email</span><span class="op">.</span><span class="mth">includes</span><span class="op">(</span><span class="str">"@"</span><span class="op">)) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="str">"Düzgün email ✓"</span><span class="op">);</span></span>
+<span class="ln"><span class="op">}</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>indexOf</code> indeks qaytarır — axtardığın şeyin string-in neçənci simvolundan başladığını göstərir.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st">Tapılmadıqda <code>-1</code> qaytarır. Bu xüsusi dəyəri yoxlamaq mütləq vacibdir!</div></div>
+          <div class="si"><div class="sd">3</div><div class="st">İkinci arqument (başlanğıc): <code>indexOf("a", 3)</code> — 3-cü indeksdən etibarən axtarır. Eyni simvolu dəfələrlə tapmaq üçün faydalıdır.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st"><code>includes()</code> sadəcə <code>true/false</code> qaytarır — yalnız var/yox bilmək lazımdırsa <code>includes</code> daha oxunaqlıdır.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- .slice() -->
+    <div class="mc" id="m4">
+      <div class="mh" onclick="tog('m4')">
+        <span class="mb2">.slice()</span>
+        <span class="mt">String-dən hissə kəs → .substring()</span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>slice(başlanğıc, son)</strong> — string-in istədiyin hissəsini götürür. Son index <em>daxil deyil!</em> Mənfi index verəndə sondan saymağa başlayır. <strong>substring()</strong> oxşardır, amma mənfi index qəbul etmir.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">url</span> <span class="op">=</span> <span class="str">"https://example.com"</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">url</span><span class="op">.</span><span class="mth">slice</span><span class="op">(</span><span class="num">8</span><span class="op">));</span>         <span class="cmt">// → "example.com"</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">url</span><span class="op">.</span><span class="mth">slice</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="num">5</span><span class="op">));</span>      <span class="cmt">// → "https"</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">url</span><span class="op">.</span><span class="mth">slice</span><span class="op">(-</span><span class="num">3</span><span class="op">));</span>        <span class="cmt">// → "com"</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">url</span><span class="op">.</span><span class="mth">substring</span><span class="op">(</span><span class="num">8</span><span class="op">,</span><span class="num">15</span><span class="op">));</span>  <span class="cmt">// → "example"</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- .toLowerCase() / .toUpperCase() -->
+    <div class="mc" id="m5">
+      <div class="mh" onclick="tog('m5')">
+        <span class="mb2">.toLowerCase() / .toUpperCase()</span>
+        <span class="mt">Böyük / kiçik hərfə çevir <span class="new-badge">YENİ</span></span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>toLowerCase()</strong> hamısını kiçik, <strong>toUpperCase()</strong> hamısını böyük hərfə çevirir. Orijinal dəyişmir — yeni string qaytarılır. <strong>Azərbaycan xüsusi hərfləri:</strong> ə → Ə, ı → I, ö → Ö, ü → Ü, ğ → Ğ, ş → Ş, ç → Ç JavaScript tərəfindən avtomatik düzgün çevrilir.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">axtar</span> <span class="op">=</span> <span class="str">"JAVASCRIPT"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">melumat</span> <span class="op">=</span> <span class="str">"JavaScript öyrənmək maraqlıdır"</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// Hər ikisini kiçiyə çevir, sonra müqayisə et</span></span>
+<span class="ln"><span class="kw">if</span> <span class="op">(</span><span class="v">melumat</span><span class="op">.</span><span class="mth">toLowerCase</span><span class="op">().</span><span class="mth">includes</span><span class="op">(</span><span class="v">axtar</span><span class="op">.</span><span class="mth">toLowerCase</span><span class="op">())) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="str">"Tapıldı! ✓"</span><span class="op">);</span>  <span class="cmt">// → çap olunur</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// toUpperCase — hamısını böyüt:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">sehər</span> <span class="op">=</span> <span class="str">"bakı"</span><span class="op">;</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">sehər</span><span class="op">.</span><span class="mth">toUpperCase</span><span class="op">());</span>  <span class="cmt">// → "BAKI"</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// Azərbaycan hərfləri ilə toUpperCase:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">az</span> <span class="op">=</span> <span class="str">"əlifba, şəhər, çay, öyrən"</span><span class="op">;</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">az</span><span class="op">.</span><span class="mth">toUpperCase</span><span class="op">());</span></span>
+<span class="ln"><span class="cmt">// → "ƏLİFBA, ŞƏHƏR, ÇAY, ÖYRƏN"</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// İlk hərfi böyüt (başlıq üçün):</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">kicik</span> <span class="op">=</span> <span class="str">"azərbaycan"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">baslig</span> <span class="op">=</span> <span class="v">kicik</span><span class="op">[</span><span class="num">0</span><span class="op">].</span><span class="mth">toUpperCase</span><span class="op">()</span> <span class="op">+</span> <span class="v">kicik</span><span class="op">.</span><span class="mth">slice</span><span class="op">(</span><span class="num">1</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">baslig</span><span class="op">);</span>             <span class="cmt">// → "Azərbaycan"</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>toUpperCase()</code> orijinal stringi dəyişmir — yeni string qaytarır. Həmişə yeni dəyişəndə yadda saxla.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st">Axtarış funksiyalarında mütləq lazımdır: "BAKI" da "baki" da eyni nəticəni versin deyə hər ikisini eyni case-ə çevirərik.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st">İlk hərfi böyütmək üçün trick: <code>str[0].toUpperCase() + str.slice(1)</code> — birinci hərfi böyüdüb, qalanını olduğu kimi yapışdırırıq.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st">Azərbaycan hərfləri — ə, ı, ö, ü, ğ, ş, ç — JavaScript-in Unicode dəstəyi sayəsində düzgün çevrilir.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- .trim() -->
+    <div class="mc" id="m6">
+      <div class="mh" onclick="tog('m6')">
+        <span class="mb2">.trim()</span>
+        <span class="mt">Baş-axır boşluqları sil</span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>trim()</strong> — string-in əvvəlindəki və sonundakı boşluqları, tab və newline simvollarını silir. Ortadakı boşluqlara toxunmur. Form input-larından gələn məlumatı "təmizləmək" üçün demək olar həmişə lazım olur.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">input</span> <span class="op">=</span> <span class="str">"   ali@mail.com   "</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">input</span><span class="op">.</span><span class="mth">trim</span><span class="op">());</span>         <span class="cmt">// → "ali@mail.com"</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">input</span><span class="op">.</span><span class="pr">length</span><span class="op">);</span>        <span class="cmt">// → 18 (orijinal)</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">input</span><span class="op">.</span><span class="mth">trim</span><span class="op">().</span><span class="pr">length</span><span class="op">);</span>  <span class="cmt">// → 12 (təmiz)</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- .split() -->
+    <div class="mc" id="m7">
+      <div class="mh" onclick="tog('m7')">
+        <span class="mb2 a">.split()</span>
+        <span class="mt">String-i parçalayıb array-ə çevir</span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>split(ayırıcı)</strong> — verdiyin ayırıcı simvola görə string-i parçalayır, nəticəni <strong>array</strong> (siyahı) kimi qaytarır. Boş string <code style="font-family:var(--mono);color:var(--amber)">""</code> verərsən hər hərfi ayrı element edir.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">csv</span> <span class="op">=</span> <span class="str">"Bakı,Gəncə,Sumqayıt"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">sehерler</span> <span class="op">=</span> <span class="v">csv</span><span class="op">.</span><span class="mth">split</span><span class="op">(</span><span class="str">","</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">sehерler</span><span class="op">);</span>  <span class="cmt">// → ["Bakı", "Gəncə", "Sumqayıt"]</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">let</span> <span class="v">herfler</span> <span class="op">=</span> <span class="str">"salam"</span><span class="op">.</span><span class="mth">split</span><span class="op">(</span><span class="str">""</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">herfler</span><span class="op">);</span>   <span class="cmt">// → ["s","a","l","a","m"]</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- .splice() — YENİ -->
+    <div class="mc" id="m8">
+      <div class="mh" onclick="tog('m8')">
+        <span class="mb2 pk">.splice()</span>
+        <span class="mt">Array-dən element sil / əlavə et <span class="new-badge">YENİ</span></span>
+        <span class="arr">▼</span>
+      </div>
+      <div class="mbody">
+        <p class="mdesc"><strong>splice(başlanğıc, silinəcək, ...yenilər)</strong> — Array metodudur (string yox!). Verdiyin indeksdən etibarən istədiyin qədər element silir, istəsən yeni elementlər əlavə edir. Orijinal arrayi <strong>dəyişir</strong> (mutate edir) — bu fərqlidir! split() ilə qarışdırma: split string-i parçalayır, splice isə array-i dəyişdirir.</p>
+        <div class="lbl">Kod nümunəsi</div>
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">sehərler</span> <span class="op">=</span> <span class="op">[</span><span class="str">"Bakı"</span><span class="op">,</span> <span class="str">"Gəncə"</span><span class="op">,</span> <span class="str">"Lənkəran"</span><span class="op">,</span> <span class="str">"Şuşa"</span><span class="op">];</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// 1 element sil (indeks 1-dən, 1 ədəd):</span></span>
+<span class="ln"><span class="v">sehərler</span><span class="op">.</span><span class="mth">splice</span><span class="op">(</span><span class="num">1</span><span class="op">,</span> <span class="num">1</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">sehərler</span><span class="op">);</span>  <span class="cmt">// → ["Bakı","Lənkəran","Şuşa"]</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// 0 sil, yeni element əlavə et (indeks 1-ə):</span></span>
+<span class="ln"><span class="v">sehərler</span><span class="op">.</span><span class="mth">splice</span><span class="op">(</span><span class="num">1</span><span class="op">,</span> <span class="num">0</span><span class="op">,</span> <span class="str">"Mingəçevir"</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">sehərler</span><span class="op">);</span>  <span class="cmt">// → ["Bakı","Mingəçevir","Lənkəran","Şuşa"]</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// 1 sil + 2 yeni əlavə et:</span></span>
+<span class="ln"><span class="v">sehərler</span><span class="op">.</span><span class="mth">splice</span><span class="op">(</span><span class="num">2</span><span class="op">,</span> <span class="num">1</span><span class="op">,</span> <span class="str">"Naxçıvan"</span><span class="op">,</span> <span class="str">"Quba"</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">sehərler</span><span class="op">);</span>  <span class="cmt">// → ["Bakı","Mingəçevir","Naxçıvan","Quba","Şuşa"]</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// splice sildiyi elementləri array kimi qaytarır:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">silinən</span> <span class="op">=</span> <span class="v">sehərler</span><span class="op">.</span><span class="mth">splice</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="num">2</span><span class="op">);</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">silinən</span><span class="op">);</span>   <span class="cmt">// → ["Bakı","Mingəçevir"]</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>splice(başlanğıc, silinəcəkSay)</code> — 1-ci arqument: haraddan başla, 2-ci: neçə element sil.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st">SilinəcəkSay <code>0</code> olarsa heç nə silinmir — yalnız yeni element əlavə edilir. Bu insert (yerə salmaq) əməliyyatıdır.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st"><strong>Mühüm:</strong> splice orijinal arrayi dəyişdirir! <code>slice()</code> isə orijinalı saxlayıb yeni array qaytarır. Bu fərqi unutma.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st">Sildiyi elementlər <strong>return dəyəri</strong> kimi qaytarılır — lazım gəlsə dəyişəndə yadda saxlaya bilərsən.</div></div>
+          <div class="si"><div class="sd">5</div><div class="st"><code>split</code> vs <code>splice</code>: adları oxşardır amma tamam fərqlidir! <code>split</code> → string-i parçalayır, <code>splice</code> → array-i dəyişdirir.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /p1 -->
+
+  <!-- ═══════════════════════════════════════════
+       PART 2 — PRATİKİ TAPŞIRIQLAR
+  ═══════════════════════════════════════════ -->
+  <div class="sec" id="p2">
+    <div class="ph">
+      <div class="pnum">2</div>
+      <div>
+        <h2>Praktiki Tapşırıqlar</h2>
+        <p>6 alqoritm — function yox, birbaşa kod + addım-addım izah</p>
+      </div>
+    </div>
+
+    <div class="nbox">
+      <strong>Qayda:</strong> Bütün həllərdə <code style="font-family:var(--mono)">function</code> açar sözü işlədilmir. Kod birbaşa icra olunur. <code style="font-family:var(--mono)">reverse()</code>, <code style="font-family:var(--mono)">filter()</code>, <code style="font-family:var(--mono)">reduce()</code> kimi hazır array metodları da yoxdur — hər şey təmiz <code style="font-family:var(--mono)">for</code> loop ilə qurulub.
+    </div>
+
+    <!-- Task 1 -->
+    <div class="tc" id="t1">
+      <div class="th2" onclick="togt('t1')">
+        <div class="tn t1">1</div>
+        <div class="ti2"><h3>Hərflərin Konsola Çıxarılması</h3><p>String-in hər hərfini loop ilə ayrı-ayrı çap et</p></div>
+        <span class="tarr">▼</span>
+      </div>
+      <div class="tbody">
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">str</span> <span class="op">=</span> <span class="str">"Salam"</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">str</span><span class="op">.</span><span class="pr">length</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">str</span><span class="op">[</span><span class="v">i</span><span class="op">]);</span>  <span class="cmt">// str[i] → i-ci hərfi götürür</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"><span class="cmt">// → S</span></span>
+<span class="ln"><span class="cmt">// → a</span></span>
+<span class="ln"><span class="cmt">// → l</span></span>
+<span class="ln"><span class="cmt">// → a</span></span>
+<span class="ln"><span class="cmt">// → m</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// Azərbaycan hərfləri ilə:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">az</span> <span class="op">=</span> <span class="str">"Əlifba"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">az</span><span class="op">.</span><span class="pr">length</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">az</span><span class="op">[</span><span class="v">i</span><span class="op">]);</span>   <span class="cmt">// Ə, l, i, f, b, a</span></span>
+<span class="ln"><span class="op">}</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>i = 0</code> — loop <code>str[0]</code> yəni <code>"S"</code> hərfini oxuyur, konsola çap edir.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>i++</code> — i birər artır: 0 → 1 → 2 → 3 → 4. Hər dəfə növbəti hərfə keçir.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st">Şərt: <code>i &lt; str.length</code> yəni <code>i &lt; 5</code>. i = 5 olduqda şərt yalan olur, loop dayanır.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st"><code>str[i]</code> — kvadrat mötərizə notation-dır. Hər iterasiyada <code>i</code>-ci mövqedəki hərfi qaytarır.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 2 -->
+    <div class="tc" id="t2">
+      <div class="th2" onclick="togt('t2')">
+        <div class="tn t2">2</div>
+        <div class="ti2"><h3>String-i Tərsinə Çevirmək (Reverse)</h3><p>Hazır metod yox — alqoritm ilə</p></div>
+        <span class="tarr">▼</span>
+      </div>
+      <div class="tbody">
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">str</span> <span class="op">=</span> <span class="str">"Bakı"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">netice</span> <span class="op">=</span> <span class="str">""</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="v">str</span><span class="op">.</span><span class="pr">length</span> <span class="op">-</span> <span class="num">1</span><span class="op">;</span> <span class="v">i</span> <span class="op">&gt;=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span><span class="op">--) {</span></span>
+<span class="ln">  <span class="v">netice</span> <span class="op">+=</span> <span class="v">str</span><span class="op">[</span><span class="v">i</span><span class="op">];</span>   <span class="cmt">// str[i] sondan əvvələ gedir</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">netice</span><span class="op">);</span>  <span class="cmt">// → "ıkaB"</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>netice = ""</code> — boş "səbət". Hərfləri buraya yığacağıq.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>i = str.length - 1</code> — loop-u <strong>sondan</strong> başladırıq. "Bakı" üçün bu <code>3</code>-dür (son index).</div></div>
+          <div class="si"><div class="sd">3</div><div class="st"><code>i--</code> — bu dəfə i azalır: 3 → 2 → 1 → 0. String-in sonundan əvvəlinə gedirik.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st"><code>netice += str[i]</code> — hər addımda tapılan hərfi sona yapışdırır. "ı"+"k"+"a"+"B" = "ıkaB".</div></div>
+          <div class="si"><div class="sd">5</div><div class="st">Şərt: <code>i >= 0</code>. i mənfi olduqda dayanır — ilk hərfdən keçdikdən sonra.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 3 -->
+    <div class="tc" id="t3">
+      <div class="th2" onclick="togt('t3')">
+        <div class="tn t3">3</div>
+        <div class="ti2"><h3>Saitlərin Sayılması</h3><p>a, e, i, o, u, ə, ı — neçə dənədir?</p></div>
+        <span class="tarr">▼</span>
+      </div>
+      <div class="tbody">
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">str</span> <span class="op">=</span> <span class="str">"Azərbaycan"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">saytac</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">saitler</span> <span class="op">=</span> <span class="str">"aeiouəıöü"</span><span class="op">;</span>  <span class="cmt">// Azərbaycan saitləri</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">kicik</span> <span class="op">=</span> <span class="v">str</span><span class="op">.</span><span class="mth">toLowerCase</span><span class="op">();</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">kicik</span><span class="op">.</span><span class="pr">length</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="kw">if</span> <span class="op">(</span><span class="v">saitler</span><span class="op">.</span><span class="mth">includes</span><span class="op">(</span><span class="v">kicik</span><span class="op">[</span><span class="v">i</span><span class="op">])) {</span></span>
+<span class="ln">    <span class="v">saytac</span><span class="op">++;</span></span>
+<span class="ln">  <span class="op">}</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">saytac</span><span class="op">);</span>  <span class="cmt">// → 5</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>saytac = 0</code> — sait tapdıqca artıracağıq. Bu <strong>counter (sayğac)</strong> pattern-i — çox tez-tez lazım olur.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>toLowerCase()</code> — "A" ilə "a" eyni sayılsın deyə hamısını kiçiyə çeviririk.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st">Loop hər addımda <code>kicik[i]</code> ilə bir hərf götürür. <code>saitler.includes(kicik[i])</code> — o hərf sait siyahısındadırmı yoxlayır.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st">Şərt doğrudursa <code>saytac++</code> — sayğac birər artır.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 4 -->
+    <div class="tc" id="t4">
+      <div class="th2" onclick="togt('t4')">
+        <div class="tn t4">4</div>
+        <div class="ti2"><h3>Alqoritm Bonusu — Faktorial</h3><p>5! = 5 × 4 × 3 × 2 × 1 = 120</p></div>
+        <span class="tarr">▼</span>
+      </div>
+      <div class="tbody">
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">n</span> <span class="op">=</span> <span class="num">5</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">netice</span> <span class="op">=</span> <span class="num">1</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">2</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;=</span> <span class="v">n</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="v">netice</span> <span class="op">*=</span> <span class="v">i</span><span class="op">;</span>  <span class="cmt">// netice = netice * i</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">netice</span><span class="op">);</span>   <span class="cmt">// → 120</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// n = 10 üçün:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">n2</span> <span class="op">=</span> <span class="num">10</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">netice2</span> <span class="op">=</span> <span class="num">1</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">2</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;=</span> <span class="v">n2</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="v">netice2</span> <span class="op">*=</span> <span class="v">i</span><span class="op">;</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">netice2</span><span class="op">);</span>  <span class="cmt">// → 3628800</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>netice = 1</code> — nə üçün 0 deyil? İstənilən ədədi sıfıra vursaq sıfır çıxar. 1 neytral elementdir.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>i = 2</code>-dən başlayırıq, çünki 1-ə vurmaq nəticəni dəyişmir.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st">n=5 üçün: <code>1×2=2</code>, <code>2×3=6</code>, <code>6×4=24</code>, <code>24×5=120</code>. Hər addımda <code>netice</code> yenilənir.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st"><code>i &lt;= n</code> — şərt <code>n</code>-i özü də daxil edir. Bu nöqtəni unutmaq çox ümumi xətadır!</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 5 -->
+    <div class="tc" id="t5">
+      <div class="th2" onclick="togt('t5')">
+        <div class="tn t5">5</div>
+        <div class="ti2"><h3>Palindrom Yoxlanışı</h3><p>"radar", "ana" — həm düz həm ters eyni oxunur?</p></div>
+        <span class="tarr">▼</span>
+      </div>
+      <div class="tbody">
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">str</span> <span class="op">=</span> <span class="str">"radar"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">kicik</span> <span class="op">=</span> <span class="v">str</span><span class="op">.</span><span class="mth">toLowerCase</span><span class="op">();</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">son</span> <span class="op">=</span> <span class="v">kicik</span><span class="op">.</span><span class="pr">length</span> <span class="op">-</span> <span class="num">1</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">palindromMu</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">kicik</span><span class="op">.</span><span class="pr">length</span> <span class="op">/</span> <span class="num">2</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="kw">if</span> <span class="op">(</span><span class="v">kicik</span><span class="op">[</span><span class="v">i</span><span class="op">]</span> <span class="op">!==</span> <span class="v">kicik</span><span class="op">[</span><span class="v">son</span> <span class="op">-</span> <span class="v">i</span><span class="op">]) {</span></span>
+<span class="ln">    <span class="v">palindromMu</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span class="ln">    <span class="kw">break</span><span class="op">;</span>  <span class="cmt">// Fərq tapıldı, loopdan çıx</span></span>
+<span class="ln">  <span class="op">}</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">palindromMu</span><span class="op">);</span>  <span class="cmt">// → true</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// "Əlifba" üçün yoxla:</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">str2</span> <span class="op">=</span> <span class="str">"Əlifba"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">kicik2</span> <span class="op">=</span> <span class="v">str2</span><span class="op">.</span><span class="mth">toLowerCase</span><span class="op">();</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">son2</span> <span class="op">=</span> <span class="v">kicik2</span><span class="op">.</span><span class="pr">length</span> <span class="op">-</span> <span class="num">1</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">palindromMu2</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">kicik2</span><span class="op">.</span><span class="pr">length</span> <span class="op">/</span> <span class="num">2</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="kw">if</span> <span class="op">(</span><span class="v">kicik2</span><span class="op">[</span><span class="v">i</span><span class="op">]</span> <span class="op">!==</span> <span class="v">kicik2</span><span class="op">[</span><span class="v">son2</span> <span class="op">-</span> <span class="v">i</span><span class="op">]) {</span></span>
+<span class="ln">    <span class="v">palindromMu2</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span class="ln">    <span class="kw">break</span><span class="op">;</span></span>
+<span class="ln">  <span class="op">}</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">palindromMu2</span><span class="op">);</span>  <span class="cmt">// → false</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><code>palindromMu = true</code> — əvvəlcədən "palindromdur" deyirik. Xəta tapdıqda <code>false</code>-a çeviririk.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>son = length - 1</code> — son indeksi yadda saxlayırıq. <code>son - i</code> formulası hər addımda müvafiq arxadakı hərfin indeksini verir.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st"><code>kicik[i]</code> və <code>kicik[son - i]</code> — <code>[i]</code> notation ilə həm əvvəldən, həm sondan hərfləri müqayisə edirik.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st"><code>i &lt; length / 2</code> — yalnız ortaya qədər gedirik. "radar" üçün 2 müqayisə kifayətdir.</div></div>
+          <div class="si"><div class="sd">5</div><div class="st">Uyğunsuzluq tapılanda <code>break</code> ilə loopdan çıxırıq — sona qədər gəzməyə ehtiyac yoxdur.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 6 -->
+    <div class="tc" id="t6">
+      <div class="th2" onclick="togt('t6')">
+        <div class="tn t6">6</div>
+        <div class="ti2"><h3>Ən Çox Təkrarlanan Hərf</h3><p>Hansı hərf neçə dəfə var? Ən çoxu tap.</p></div>
+        <span class="tarr">▼</span>
+      </div>
+      <div class="tbody">
+        <div class="cb">
+<span class="ln"><span class="kw">let</span> <span class="v">str</span> <span class="op">=</span> <span class="str">"aabbccca"</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">say</span> <span class="op">=</span> <span class="op">{};</span>  <span class="cmt">// Boş obyekt: {herf: neceDefeVar}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// 1. Mərhələ: hər hərfi say</span></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">i</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span> <span class="v">i</span> <span class="op">&lt;</span> <span class="v">str</span><span class="op">.</span><span class="pr">length</span><span class="op">;</span> <span class="v">i</span><span class="op">++) {</span></span>
+<span class="ln">  <span class="kw">let</span> <span class="v">h</span> <span class="op">=</span> <span class="v">str</span><span class="op">[</span><span class="v">i</span><span class="op">];</span>  <span class="cmt">// str[i] cari hərfi götürür</span></span>
+<span class="ln">  <span class="kw">if</span> <span class="op">(</span><span class="v">say</span><span class="op">[</span><span class="v">h</span><span class="op">]</span> <span class="op">===</span> <span class="kw">undefined</span><span class="op">) {</span></span>
+<span class="ln">    <span class="v">say</span><span class="op">[</span><span class="v">h</span><span class="op">]</span> <span class="op">=</span> <span class="num">1</span><span class="op">;</span>    <span class="cmt">// İlk dəfə görürük</span></span>
+<span class="ln">  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span class="ln">    <span class="v">say</span><span class="op">[</span><span class="v">h</span><span class="op">]++;</span>      <span class="cmt">// Artıq vardı, sayını artır</span></span>
+<span class="ln">  <span class="op">}</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"><span class="cmt">// say indi: {a: 3, b: 2, c: 3}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="cmt">// 2. Mərhələ: ən böyük sayı tap</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">enCoxHerf</span> <span class="op">=</span> <span class="str">""</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">let</span> <span class="v">enCoxSay</span> <span class="op">=</span> <span class="num">0</span><span class="op">;</span></span>
+<span class="ln"><span class="kw">for</span> <span class="op">(</span><span class="kw">let</span> <span class="v">herf</span> <span class="kw">in</span> <span class="v">say</span><span class="op">) {</span></span>
+<span class="ln">  <span class="kw">if</span> <span class="op">(</span><span class="v">say</span><span class="op">[</span><span class="v">herf</span><span class="op">]</span> <span class="op">&gt;</span> <span class="v">enCoxSay</span><span class="op">) {</span></span>
+<span class="ln">    <span class="v">enCoxSay</span> <span class="op">=</span> <span class="v">say</span><span class="op">[</span><span class="v">herf</span><span class="op">];</span></span>
+<span class="ln">    <span class="v">enCoxHerf</span> <span class="op">=</span> <span class="v">herf</span><span class="op">;</span></span>
+<span class="ln">  <span class="op">}</span></span>
+<span class="ln"><span class="op">}</span></span>
+<span class="ln"></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">enCoxHerf</span><span class="op">);</span>  <span class="cmt">// → "a"</span></span>
+<span class="ln"><span class="fn">console</span><span class="op">.</span><span class="mth">log</span><span class="op">(</span><span class="v">enCoxSay</span><span class="op">);</span>   <span class="cmt">// → 3</span></span>
+        </div>
+        <div class="se">
+          <h4>Addım-addım izah</h4>
+          <div class="si"><div class="sd">1</div><div class="st"><strong>İki mərhələli strategiya:</strong> əvvəl say, sonra ən böyüyü tap. Bu "frequency counter" pattern-i müsahibələrdə tez çıxır.</div></div>
+          <div class="si"><div class="sd">2</div><div class="st"><code>say = {}</code> boş obyekt. Loop bitdikdə: <code>{a:3, b:2, c:3}</code> kimi görünəcək.</div></div>
+          <div class="si"><div class="sd">3</div><div class="st"><code>str[i]</code> ilə cari hərfi götürürük. <code>say[h] === undefined</code> — o hərfi ilk dəfə görürüksə <code>1</code> veririk, əvvəlcədən vardısa <code>say[h]++</code> ilə artırırıq.</div></div>
+          <div class="si"><div class="sd">4</div><div class="st">İkinci loop: <code>for...in</code> ilə obyektin hər açarını (hərfini) gəzirik. Hər yoxlamada <code>enCoxSay</code>-dən böyük olarsa onu lider elan edirik.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /p2 -->
+
+  <div class="footer">JavaScript Dərsliyi &middot; String Metodları &amp; Loop Alqoritmləri &middot; 2024</div>
+</div>
+
+<script>
+function show(id, pill) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.npill').forEach(p => p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  pill.classList.add('on');
+}
+function tog(id)  { document.getElementById(id).classList.toggle('op'); }
+function togt(id) { document.getElementById(id).classList.toggle('op'); }
+</script>
+</body>
+</html>

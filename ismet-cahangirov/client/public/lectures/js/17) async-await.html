@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dərs 26 — Async / Await | JavaScript</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0f16;
+    --bg-elevated:#12151f;
+    --surface:#181c2a;
+    --surface-2:#1f2436;
+    --border:#2a2f45;
+    --border-soft:#232840;
+    --text:#e9eaf2;
+    --text-dim:#9298b5;
+    --text-faint:#666c8a;
+    --accent:#8b7dfb;
+    --accent-soft:rgba(139,125,251,.13);
+    --accent-2:#f5a623;
+    --accent-2-soft:rgba(245,166,35,.13);
+    --success:#4ade80;
+    --success-soft:rgba(74,222,128,.12);
+    --danger:#f8717a;
+    --danger-soft:rgba(248,113,122,.12);
+    --radius:14px;
+    --radius-sm:9px;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --display:'Space Grotesk','Inter',sans-serif;
+    --maxw:860px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(139,125,251,.10), transparent 60%),
+      radial-gradient(ellipse 700px 400px at 90% 15%, rgba(245,166,35,.05), transparent 60%);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent);color:#0d0f16;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  :focus-visible{outline:2px solid var(--accent-2);outline-offset:3px;border-radius:4px;}
+
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 20px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(13,15,22,.82);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .topbar-inner{
+    max-width:var(--maxw);margin:0 auto;padding:12px 20px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .badge-num{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--accent-2);color:#1a1200;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);font-weight:700;font-size:14px;flex-shrink:0;
+  }
+  .topbar-title{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.2px;}
+  .topbar-sub{color:var(--text-faint);font-size:12.5px;display:none;}
+  @media(min-width:560px){.topbar-sub{display:inline;}}
+  .progress-track{height:2px;background:var(--border-soft);}
+  .progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .1s linear;}
+
+  /* ---------- Quick nav ---------- */
+  .quicknav{
+    display:flex;gap:8px;overflow-x:auto;padding:14px 20px 4px;
+    max-width:var(--maxw);margin:0 auto;
+    scrollbar-width:none;
+  }
+  .quicknav::-webkit-scrollbar{display:none;}
+  .quicknav a{
+    flex-shrink:0;
+    font-family:var(--mono);font-size:12.5px;color:var(--text-dim);
+    background:var(--surface);border:1px solid var(--border);
+    padding:7px 13px;border-radius:100px;white-space:nowrap;
+    transition:.15s;
+  }
+  .quicknav a:hover{color:var(--text);border-color:var(--accent);text-decoration:none;background:var(--surface-2);}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:38px 0 30px;}
+  .hero-eyebrow{
+    font-family:var(--mono);color:var(--accent-2);font-size:13px;
+    display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  }
+  .hero-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px var(--accent-2-soft);}
+  h1.hero-title{
+    font-family:var(--display);font-weight:700;
+    font-size:clamp(2.3rem,7vw,3.6rem);
+    line-height:1.02;margin:0 0 16px;letter-spacing:-.01em;
+    background:linear-gradient(180deg,#fff,#c7c9e0 140%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero-sub{font-size:17px;color:var(--text-dim);max-width:56ch;margin:0 0 22px;}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:13.5px;color:var(--text-faint);margin-bottom:34px;}
+  .hero-meta span{display:flex;align-items:center;gap:6px;}
+
+  /* ---------- Sync/Async race visual ---------- */
+  .race{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:22px 20px;
+  }
+  .race-row{margin-bottom:20px;}
+  .race-row:last-child{margin-bottom:0;}
+  .race-label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:12.5px;color:var(--text-dim);margin-bottom:9px;
+  }
+  .race-label b{color:var(--text);font-weight:600;}
+  .race-label .tag{font-size:11px;padding:2px 8px;border-radius:100px;}
+  .tag-slow{background:var(--danger-soft);color:var(--danger);}
+  .tag-fast{background:var(--success-soft);color:var(--success);}
+  .track{display:flex;gap:7px;}
+  .block{flex:1;height:34px;border-radius:7px;background:var(--surface-2);position:relative;overflow:hidden;border:1px solid var(--border-soft);}
+  .block .fill{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);border-radius:6px;}
+  .sync .fill{background:linear-gradient(90deg,#f8717a,#f5a623);}
+  .async .fill{background:linear-gradient(90deg,var(--accent),#5eead4);}
+  @media (prefers-reduced-motion: no-preference){
+    .sync .block:nth-child(1) .fill{animation:seq1 3.2s infinite;}
+    .sync .block:nth-child(2) .fill{animation:seq2 3.2s infinite;}
+    .sync .block:nth-child(3) .fill{animation:seq3 3.2s infinite;}
+    .async .block:nth-child(1) .fill{animation:par 3.2s infinite;}
+    .async .block:nth-child(2) .fill{animation:par 3.2s infinite .1s;}
+    .async .block:nth-child(3) .fill{animation:par 3.2s infinite .2s;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .sync .fill, .async .fill{transform:scaleX(1);}
+  }
+  @keyframes seq1{0%{transform:scaleX(0)}8%{transform:scaleX(1)}30%{transform:scaleX(1)}34%{transform:scaleX(0)}100%{transform:scaleX(0)}}
+  @keyframes seq2{0%,34%{transform:scaleX(0)}42%{transform:scaleX(1)}63%{transform:scaleX(1)}67%{transform:scaleX(0)}100%{transform:scaleX(0)}}
+  @keyframes seq3{0%,67%{transform:scaleX(0)}75%{transform:scaleX(1)}96%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+  @keyframes par{0%{transform:scaleX(0)}10%{transform:scaleX(.3)}32%{transform:scaleX(1)}92%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+  .race-caption{font-size:12px;color:var(--text-faint);margin-top:8px;}
+
+  /* ---------- Sections ---------- */
+  section{padding:52px 0;border-top:1px solid var(--border-soft);scroll-margin-top:108px;}
+  section:first-of-type{border-top:none;}
+  .section-label{
+    font-family:var(--mono);font-size:13px;color:var(--accent);
+    margin-bottom:10px;
+  }
+  .section-label .n{color:var(--text-faint);}
+  h2.section-title{
+    font-family:var(--display);font-weight:600;
+    font-size:clamp(1.5rem,4vw,2rem);
+    margin:0 0 16px;letter-spacing:-.005em;
+  }
+  h3.sub-title{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:30px 0 12px;color:var(--text);}
+  .lead{font-size:16px;color:var(--text-dim);margin-bottom:20px;}
+  p{margin:0 0 16px;}
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-radius:var(--radius-sm);padding:16px 18px;margin:20px 0;
+    border:1px solid var(--border);background:var(--surface);
+    font-size:14.5px;
+  }
+  .callout-title{font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:14px;}
+  .callout.warn{border-color:rgba(245,166,35,.35);background:var(--accent-2-soft);}
+  .callout.warn .callout-title{color:var(--accent-2);}
+  .callout.danger{border-color:rgba(248,113,122,.35);background:var(--danger-soft);}
+  .callout.danger .callout-title{color:var(--danger);}
+  .callout.info{border-color:rgba(139,125,251,.35);background:var(--accent-soft);}
+  .callout.info .callout-title{color:var(--accent);}
+  .callout.success{border-color:rgba(74,222,128,.35);background:var(--success-soft);}
+  .callout.success .callout-title{color:var(--success);}
+  .callout p:last-child{margin-bottom:0;}
+  .callout code{white-space:normal;}
+
+  /* ---------- Analogy box ---------- */
+  .analogy{
+    display:flex;gap:16px;background:var(--surface);border:1px dashed var(--border);
+    border-radius:var(--radius);padding:20px;margin:22px 0;align-items:flex-start;
+  }
+  .analogy-emoji{font-size:28px;line-height:1;}
+  .analogy h4{margin:0 0 8px;font-family:var(--display);font-size:15px;}
+  .analogy p{margin:0;font-size:14.5px;color:var(--text-dim);}
+
+  /* ---------- Code blocks ---------- */
+  .code-card{
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;margin:18px 0;
+  }
+  .code-card-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 14px;background:var(--surface);border-bottom:1px solid var(--border);
+  }
+  .code-dots{display:flex;gap:6px;}
+  .code-dots span{width:9px;height:9px;border-radius:50%;background:var(--border);}
+  .code-dots span:nth-child(1){background:#f8717a;}
+  .code-dots span:nth-child(2){background:#f5c343;}
+  .code-dots span:nth-child(3){background:#4ade80;}
+  .code-filename{font-family:var(--mono);font-size:12px;color:var(--text-faint);}
+  .copy-btn{
+    font-family:var(--mono);font-size:11.5px;color:var(--text-dim);
+    background:transparent;border:1px solid var(--border);border-radius:6px;
+    padding:4px 9px;cursor:pointer;transition:.15s;
+  }
+  .copy-btn:hover{color:var(--text);border-color:var(--accent);}
+  pre{margin:0;padding:16px 18px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  code{font-family:var(--mono);font-size:13.2px;line-height:1.6;color:#dfe1ee;}
+  .tok-kw{color:#c792ea;}
+  .tok-str{color:#a8e6a1;}
+  .tok-com{color:#666c8a;font-style:italic;}
+  .tok-num{color:#f5c343;}
+  .tok-fn{color:#82aaff;}
+  .code-caption{font-family:var(--mono);font-size:12px;color:var(--text-faint);margin:-8px 0 20px;padding-left:2px;}
+
+  /* ---------- Key facts ---------- */
+  .key-facts{list-style:none;margin:20px 0;padding:0;display:grid;gap:10px;}
+  .key-facts li{
+    display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:12px 14px;font-size:14.5px;color:var(--text-dim);
+  }
+  .key-facts .kf-num{
+    font-family:var(--mono);color:var(--accent);font-weight:600;flex-shrink:0;
+  }
+  .key-facts b{color:var(--text);}
+
+  /* ---------- Compare grid (bugs) ---------- */
+  .bug-card{margin:26px 0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--bg-elevated);}
+  .bug-head{padding:14px 18px;border-bottom:1px solid var(--border);}
+  .bug-head .bnum{font-family:var(--mono);color:var(--accent-2);font-size:12.5px;}
+  .bug-head h4{margin:4px 0 0;font-family:var(--display);font-size:16px;font-weight:600;}
+  .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);}
+  @media(max-width:680px){.compare-grid{grid-template-columns:1fr;}}
+  .compare-col{background:var(--bg-elevated);padding:14px 16px 16px;}
+  .compare-tag{
+    display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;
+    padding:3px 9px;border-radius:100px;margin-bottom:10px;font-weight:600;
+  }
+  .compare-tag.bad{background:var(--danger-soft);color:var(--danger);}
+  .compare-tag.good{background:var(--success-soft);color:var(--success);}
+  .compare-col pre{padding:0;background:transparent;}
+  .bug-explain{padding:14px 18px;font-size:14px;color:var(--text-dim);background:var(--surface);border-top:1px solid var(--border);}
+  .bug-explain b{color:var(--text);}
+
+  /* ---------- Error table ---------- */
+  .err-table-wrap{overflow-x:auto;margin:20px 0;border:1px solid var(--border);border-radius:var(--radius);}
+  table.err-table{width:100%;border-collapse:collapse;min-width:560px;font-size:13.5px;}
+  .err-table th{
+    text-align:left;font-family:var(--mono);font-size:11.5px;color:var(--text-faint);
+    text-transform:uppercase;letter-spacing:.04em;padding:12px 16px;background:var(--surface);
+    border-bottom:1px solid var(--border);
+  }
+  .err-table td{padding:13px 16px;border-bottom:1px solid var(--border-soft);vertical-align:top;color:var(--text-dim);}
+  .err-table tr:last-child td{border-bottom:none;}
+  .err-table code{background:var(--surface-2);padding:2px 6px;border-radius:5px;font-size:12px;color:var(--danger);white-space:pre-wrap;}
+
+  /* ---------- Event loop visualizer (signature element) ---------- */
+  .eventloop{
+    border:1px solid rgba(139,125,251,.4);border-radius:18px;
+    background:linear-gradient(180deg,rgba(139,125,251,.06),transparent 40%),var(--bg-elevated);
+    padding:22px;margin:26px 0;
+    box-shadow:0 0 0 1px rgba(139,125,251,.06), 0 20px 60px -30px rgba(139,125,251,.5);
+  }
+  .eventloop-tag{
+    font-family:var(--mono);font-size:11.5px;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;
+  }
+  .eventloop h4.el-title{font-family:var(--display);font-size:18px;margin:0 0 16px;}
+  .el-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+  @media(max-width:680px){.el-grid{grid-template-columns:1fr;}}
+  .el-lane{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;min-height:64px;}
+  .el-lane h5{margin:0 0 9px;font-family:var(--mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:7px;}
+  .el-lane h5 .dot{width:7px;height:7px;border-radius:50%;}
+  .lane-stack h5 .dot{background:#82aaff;}
+  .lane-micro h5 .dot{background:var(--accent);}
+  .lane-macro h5 .dot{background:var(--accent-2);}
+  .el-stack-val{font-family:var(--mono);font-size:13px;color:var(--text);min-height:18px;}
+  .el-items{display:flex;flex-wrap:wrap;gap:6px;min-height:18px;}
+  .el-chip{
+    font-family:var(--mono);font-size:11px;background:var(--surface-2);border:1px solid var(--border);
+    padding:4px 8px;border-radius:6px;color:var(--text-dim);
+  }
+  .lane-micro .el-chip{border-color:rgba(139,125,251,.4);color:#c9c2ff;}
+  .lane-macro .el-chip{border-color:rgba(245,166,35,.4);color:#ffd28a;}
+  .el-console{background:#08090e;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;}
+  .el-console h5{margin:0 0 8px;font-family:var(--mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.04em;}
+  .el-output{font-family:var(--mono);font-size:13px;min-height:22px;display:flex;flex-wrap:wrap;gap:8px;}
+  .el-output span{color:#4ade80;}
+  .el-output span::after{content:',';color:var(--text-faint);}
+  .el-output span:last-child::after{content:'';}
+  .el-explain{font-size:14px;color:var(--text-dim);min-height:44px;margin-bottom:16px;padding:10px 14px;background:var(--surface);border-radius:var(--radius-sm);border-left:3px solid var(--accent);}
+  .el-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .btn{
+    font-family:var(--sans);font-weight:600;font-size:13.5px;cursor:pointer;
+    border-radius:9px;padding:9px 16px;border:1px solid transparent;transition:.15s;
+  }
+  .btn-primary{background:var(--accent);color:#0d0f16;}
+  .btn-primary:hover{background:#a599ff;}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;background:var(--accent);}
+  .btn-secondary{background:transparent;border-color:var(--border);color:var(--text-dim);}
+  .btn-secondary:hover{border-color:var(--text-dim);color:var(--text);}
+  .el-step-label{font-family:var(--mono);font-size:12px;color:var(--text-faint);}
+
+  /* ---------- Nuance cards ---------- */
+  .nuance-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0;}
+  @media(max-width:680px){.nuance-grid{grid-template-columns:1fr;}}
+  .nuance-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;}
+  .nuance-card h5{margin:0 0 8px;font-family:var(--display);font-size:14.5px;}
+  .nuance-card p{margin:0;font-size:13.5px;color:var(--text-dim);}
+  .nuance-card code{font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+
+  /* ---------- Checklist ---------- */
+  .checklist{list-style:none;margin:20px 0;padding:0;display:grid;gap:9px;}
+  .checklist li{
+    display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:var(--text-dim);
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;
+  }
+  .checklist li svg{flex-shrink:0;margin-top:2px;}
+  .checklist b{color:var(--text);}
+
+  /* ---------- Quiz ---------- */
+  .quiz-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin:12px 0;overflow:hidden;}
+  .quiz-item summary{
+    cursor:pointer;padding:14px 16px;font-family:var(--mono);font-size:13px;color:var(--text-dim);
+    list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  }
+  .quiz-item summary::-webkit-details-marker{display:none;}
+  .quiz-item summary .qmark{color:var(--accent-2);font-family:var(--sans);font-weight:700;flex-shrink:0;}
+  .quiz-item[open] summary{border-bottom:1px solid var(--border);}
+  .quiz-body{padding:16px;}
+  .quiz-answer{margin-top:14px;padding:12px 14px;background:var(--success-soft);border-left:3px solid var(--success);border-radius:8px;font-size:13.5px;color:var(--text-dim);}
+  .quiz-answer b{color:var(--text);}
+
+  /* ---------- Cheatsheet ---------- */
+  .cheatsheet pre{max-height:520px;}
+
+  /* ---------- Footer ---------- */
+  footer{padding:40px 0 60px;border-top:1px solid var(--border-soft);}
+  .footer-nav{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:24px;}
+  .footer-nav a{
+    font-size:13.5px;color:var(--text-dim);background:var(--surface);border:1px solid var(--border);
+    padding:10px 16px;border-radius:10px;flex:1;min-width:150px;
+  }
+  .footer-nav a:hover{border-color:var(--accent);text-decoration:none;color:var(--text);}
+  .footer-nav a.next{text-align:right;}
+  .footer-note{font-size:12.5px;color:var(--text-faint);text-align:center;}
+
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--surface-2);border-radius:10px;border:2px solid var(--bg);}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="badge-num">26</div>
+    <div>
+      <div class="topbar-title">Async / Await</div>
+      <div class="topbar-sub">JavaScript Kursu · Dərs 26</div>
+    </div>
+  </div>
+  <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+</div>
+
+<nav class="quicknav">
+  <a href="#giris">Giriş</a>
+  <a href="#anatomiya">Sintaksis</a>
+  <a href="#try-catch">Try/Catch</a>
+  <a href="#numuneler">Nümunələr</a>
+  <a href="#sehvler">Səhvlər</a>
+  <a href="#nuanslar">Nüanslar</a>
+  <a href="#tovsiyeler">Tövsiyələr</a>
+  <a href="#test">Test</a>
+  <a href="#cheatsheet">Xülasə</a>
+</nav>
+
+<div class="container">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-eyebrow">$ dərs --no=26 --mövzu=async-await</div>
+    <h1 class="hero-title">Async / Await</h1>
+    <p class="hero-sub">JavaScript-də asinxron əməliyyatları sinxron kod kimi oxunaqlı yazmağın yolu — <code>async function</code>, <code>await</code> açar sözü və <code>try/catch</code> ilə xəta idarəetməsi bir yerdə.</p>
+    <div class="hero-meta">
+      <span>🕒 ~20 dəqiqə oxuma</span>
+      <span>📊 Səviyyə: Orta</span>
+      <span>📎 Tələb olunur: Promise əsasları, funksiyalar</span>
+    </div>
+
+    <div class="race">
+      <div class="race-row sync">
+        <div class="race-label"><b>Sinxron</b> — hər sorğu növbəsini gözləyir <span class="tag tag-slow">≈3x vaxt</span></div>
+        <div class="track">
+          <div class="block"><div class="fill"></div></div>
+          <div class="block"><div class="fill"></div></div>
+          <div class="block"><div class="fill"></div></div>
+        </div>
+        <div class="race-caption">Sorğu 1 bitmədən Sorğu 2 başlamır, o bitmədən Sorğu 3 başlamır.</div>
+      </div>
+      <div class="race-row async">
+        <div class="race-label"><b>Async/Await + Promise.all</b> — sorğular paralel gedir <span class="tag tag-fast">≈1x vaxt</span></div>
+        <div class="track">
+          <div class="block"><div class="fill"></div></div>
+          <div class="block"><div class="fill"></div></div>
+          <div class="block"><div class="fill"></div></div>
+        </div>
+        <div class="race-caption">Bir-birindən asılı olmayan sorğular eyni anda göndərilir.</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 01 GİRİŞ -->
+  <section id="giris">
+    <div class="section-label"><span class="n">// 01</span> — Giriş</div>
+    <h2 class="section-title">Niyə Async/Await?</h2>
+    <p class="lead">JavaScript <b>tək-axınlı (single-threaded)</b> dildir — eyni anda yalnız bir iş görə bilər. Amma şəbəkə sorğusu, fayl oxumaq və ya taymer kimi əməliyyatlar vaxt aparır. Əgər JavaScript bunları gözləmək üçün dayansaydı, bütün səhifə "donardı". Bunun həlli <b>asinxronluqdur</b> — nəticəni gözləyərkən proqramın qalan hissəsi işləməyə davam edir.</p>
+    <p>Bu problemi həll etmək üçün JavaScript tarixində üç mərhələ olub:</p>
+
+    <h3 class="sub-title">1) Callback-lər (ilk üsul)</h3>
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">callback-hell.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">girisAl(function (istifadeci) {
+  postlariGetir(istifadeci.id, function (postlar) {
+    serhleriGetir(postlar[0].id, function (serhler) {
+      console.log(serhler); // 3 səviyyəli "piramida"
+    });
+  });
+});</code></pre>
+    </div>
+    <div class="code-caption">"Callback Hell" — hər addım əvvəlkinin içinə yerləşir, kod sağa doğru sürünür və oxumaq çətinləşir.</div>
+
+    <h3 class="sub-title">2) Promise-lər (daha aydın)</h3>
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">promise-chain.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">girisAl()
+  .then((istifadeci) => postlariGetir(istifadeci.id))
+  .then((postlar) => serhleriGetir(postlar[0].id))
+  .then((serhler) => console.log(serhler))
+  .catch((xeta) => console.error(xeta));</code></pre>
+    </div>
+    <div class="code-caption">Piramida düzəlir, amma uzun zəncirlərdə hələ də izləmək çətindir.</div>
+
+    <h3 class="sub-title">3) Async/Await (bugünkü mövzu)</h3>
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">async-await.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">async function melumatlariGoster() {
+  try {
+    const istifadeci = await girisAl();
+    const postlar = await postlariGetir(istifadeci.id);
+    const serhler = await serhleriGetir(postlar[0].id);
+    console.log(serhler);
+  } catch (xeta) {
+    console.error(xeta);
+  }
+}</code></pre>
+    </div>
+    <div class="code-caption">Eyni məntiq, amma yuxarıdan-aşağı, sinxron kod kimi oxunur.</div>
+
+    <div class="callout info">
+      <div class="callout-title">💡 Vacib məqam</div>
+      <p>Async/await <b>Promise-i əvəz etmir</b> — onun üzərində qurulmuş "şəkərli sintaksisdir" (syntactic sugar). Kapotun altında hər şey yenə Promise-dir, sadəcə yazılış forması dəyişir.</p>
+    </div>
+
+    <div class="analogy">
+      <div class="analogy-emoji">🍽️</div>
+      <div>
+        <h4>Analoji: Restoranda sifariş</h4>
+        <p><b>Sinxron:</b> ofisiantı çağırıb sifariş verirsən və mətbəxin qapısında dayanıb yeməyin bişməsini gözləyirsən — bu müddətdə başqa heç nə edə bilmirsən.<br><br>
+        <b>Async/Await:</b> sifarişi verirsən, masana qayıdıb dostlarınla söhbət edirsən; yemək hazır olanda ofisiant onu masana gətirir. <code>await</code> elə "sifariş nişanını gözləmək" kimidir — funksiyanın <i>o hissəsi</i> dayanır, amma bütün restoran (proqram) işləməyə davam edir.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 SİNTAKSİS -->
+  <section id="anatomiya">
+    <div class="section-label"><span class="n">// 02</span> — Necə İşləyir</div>
+    <h2 class="section-title">Sintaksisin Anatomiyası</h2>
+    <p class="lead">İki açar söz kifayətdir: <code>async</code> funksiyanı işarələyir, <code>await</code> isə onun daxilində Promise-in nəticəsini gözləyir.</p>
+
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">anatomiya.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">async function mesajGetir() {
+  const cavab = await fetch('https://api.numune.az/mesaj');
+  const data = await cavab.json();
+  return data;
+}
+
+// Arrow funksiya forması:
+const mesajGetir2 = async () => {
+  const cavab = await fetch('https://api.numune.az/mesaj');
+  return cavab.json();
+};
+
+// Class metodu forması:
+class ApiXidmeti {
+  async mesajGetir() {
+    const cavab = await fetch('/mesaj');
+    return cavab.json();
+  }
+}</code></pre>
+    </div>
+
+    <ul class="key-facts">
+      <li><span class="kf-num">01</span><span><b>async</b> funksiyası həmişə Promise qaytarır — hətta içində <code>return 5</code> yazsan belə, çağıran tərəf <code>Promise&lt;5&gt;</code> alacaq.</span></li>
+      <li><span class="kf-num">02</span><span><b>await</b> yalnız <code>async</code> funksiyanın daxilində işləyir. İstisna: ES modullarda (<code>type="module"</code>) faylın ən yuxarı səviyyəsində "top-level await" istifadə oluna bilər.</span></li>
+      <li><span class="kf-num">03</span><span><b>await</b> yalnız cari funksiyanı dayandırır, bütün proqramı yox — Event Loop paralel olaraq başqa kodu icra etməyə davam edir.</span></li>
+      <li><span class="kf-num">04</span><span><b>await</b>-dən sonra gələn sətirlər yalnız o Promise "resolve" (və ya "reject") olduqdan sonra işə düşür.</span></li>
+    </ul>
+  </section>
+
+  <!-- 03 TRY/CATCH -->
+  <section id="try-catch">
+    <div class="section-label"><span class="n">// 03</span> — Xəta İdarəetməsi</div>
+    <h2 class="section-title">Try / Catch ilə Birlikdə</h2>
+    <p class="lead">Promise zəncirində xətanı <code>.catch()</code> tutur. Async/await-də isə klassik <code>try/catch/finally</code> blokundan istifadə olunur — sinxron koddakı kimi tanış və rahat.</p>
+
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">istifadeci-getir.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">async function istifadeciGetir(id) {
+  try {
+    const cavab = await fetch(`/api/istifadeci/${id}`);
+
+    if (!cavab.ok) {
+      throw new Error(`Server xetasi: ${cavab.status}`);
+    }
+
+    const data = await cavab.json();
+    return data;
+
+  } catch (xeta) {
+    console.error('Istifadeci getirile bilmedi:', xeta.message);
+    throw xeta; // yuxari qat bilsin deye yenidən at!
+
+  } finally {
+    console.log('Sorgu tamamlandi (ugurlu ve ya ugursuz farq etmir)');
+  }
+}</code></pre>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-title">⚠️ Ən çox rastlanan tələ</div>
+      <p><code>fetch()</code> yalnız <b>şəbəkə xətasında</b> (internet yoxdur, DNS tapılmadı və s.) "reject" olur. <code>404 Not Found</code> və ya <code>500 Server Error</code> kimi HTTP status kodları xəta SAYILMIR — sorğu "uğurla" tamamlanmış sayılır! Ona görə həmişə <code>cavab.ok</code> (və ya <code>cavab.status</code>) əl ilə yoxlanmalı və lazım gələrsə özün <code>throw</code> etməlisən.</p>
+    </div>
+
+    <div class="callout success">
+      <div class="callout-title">✅ finally həmişə işləyir</div>
+      <p><code>finally</code> bloku nəticədən asılı olmayaraq — istər uğurlu, istər xəta ilə bitsin — mütləq icra olunur. Bu, "loading" göstəricisini söndürmək və ya resurs təmizləmək üçün ideal yerdir.</p>
+    </div>
+  </section>
+
+  <!-- 04 NÜMUNƏLƏR -->
+  <section id="numuneler">
+    <div class="section-label"><span class="n">// 04</span> — Real Nümunələr</div>
+    <h2 class="section-title">Ardıcıl və Paralel Sorğular</h2>
+    <p class="lead">Bu, async/await öyrənərkən ən çox qarışdırılan hissədir: <b>hər await avtomatik olaraq öncəkini gözləyir</b> — bu, çox vaxt lazım deyil və performansı öldürür.</p>
+
+    <h3 class="sub-title">Ardıcıl (Sequential) — yalnız asılılıq olanda</h3>
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">ardicil.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">// postlar getirmek ucun once istifadeciAId lazimdir -> ardicil olmalidir
+const istifadeci = await istifadeciGetir(1);
+const postlar = await postlariGetir(istifadeci.id);</code></pre>
+    </div>
+
+    <h3 class="sub-title">Paralel (Promise.all) — asılı olmayanda</h3>
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">paralel.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">// YAVAS: hər sorğu 1san cəksə, cəmi ~3 saniyə
+const istifadeci = await istifadeciGetir();
+const parametrler = await parametrleriGetir();
+const bildirisler = await bildirisleriGetir();
+
+// SUREETLI: sorğular eyni anda gedir, cəmi ~1 saniyə
+const [istifadeci2, parametrler2, bildirisler2] = await Promise.all([
+  istifadeciGetir(),
+  parametrleriGetir(),
+  bildirisleriGetir(),
+]);</code></pre>
+    </div>
+
+    <h3 class="sub-title">Dövrələrdə (loop) await</h3>
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">for-of.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">// for...of ile await GOZLEYIR - hər elementi bir-bir, ardıcıl işləyir
+for (const id of idSiyahisi) {
+  const netice = await elementiProsesEt(id);
+  console.log(netice);
+}</code></pre>
+    </div>
+    <div class="code-caption">Diqqət: <code>.forEach()</code> ilə <code>await</code> gözlənildiyi kimi işləmir — bunu növbəti bölmədə görəcəyik.</div>
+  </section>
+
+  <!-- 05 SƏHVLƏR -->
+  <section id="sehvler">
+    <div class="section-label"><span class="n">// 05</span> — Ən Çox Edilən Səhvlər</div>
+    <h2 class="section-title">Tez-tez Rastlanan Bug-lar</h2>
+    <p class="lead">Aşağıdakı 7 səhv, async/await öyrənən demək olar hər kəsin başına gəlir. Hər birinin ❌ səhv və ✅ düzgün versiyasına baxaq.</p>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 01</div><h4>forEach() içində await işləmir</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Səhv</span>
+          <pre><code class="js">items.forEach(async (item) => {
+  await prosesEt(item);
+});
+console.log('Hamisi bitdi'); // YALAN!</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Düzgün</span>
+          <pre><code class="js">for (const item of items) {
+  await prosesEt(item);
+}
+console.log('Hamisi bitdi'); // Indi dogru</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> <code>forEach</code> callback-in qaytardığı Promise-ə heç vaxt baxmır və gözləmir. Bütün callback-lər dərhal "atılır", <code>console.log</code> onlardan əvvəl işə düşür. Paralel işləmək istəyirsənsə <code>Promise.all(items.map(...))</code> istifadə et.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 02</div><h4>await-i unutmaq</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Səhv</span>
+          <pre><code class="js">async function melumatGetir() {
+  const data = fetch('/api/data');
+  console.log(data);
+  // Promise { &lt;pending&gt; } çıxacaq
+}</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Düzgün</span>
+          <pre><code class="js">async function melumatGetir() {
+  const data = await fetch('/api/data');
+  console.log(data); // Response obyekti
+}</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> <code>await</code> olmadan dəyişən Promise-in özünü saxlayır, "içindəki" nəticəni yox. Redaktorda avtomatik xəbərdarlıq üçün ESLint-in <code>require-await</code> qaydasını aktiv et.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 03</div><h4>.map(async) massiv əvəzinə Promise massivi qaytarır</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Səhv</span>
+          <pre><code class="js">const neticeler = items.map(
+  async (item) => await prosesEt(item)
+);
+console.log(neticeler);
+// [Promise, Promise, Promise]</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Düzgün</span>
+          <pre><code class="js">const neticeler = await Promise.all(
+  items.map((item) => prosesEt(item))
+);
+console.log(neticeler); // [deyer1, deyer2, ...]</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> <code>async</code> funksiya həmişə Promise qaytarır, <code>map</code> isə bunu avtomatik "açmır". Nəticələri istəyirsənsə mütləq <code>Promise.all</code> ilə "bağla".</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 04</div><h4>Lazımsız ardıcıl await-lər (performans itkisi)</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Yavaş</span>
+          <pre><code class="js">const user = await getUser();
+const posts = await getPosts();
+// getUser bitmesini gozlemeye ehtiyac yoxdur!</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Sürətli</span>
+          <pre><code class="js">const [user, posts] = await Promise.all([
+  getUser(),
+  getPosts(),
+]);</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> Əgər iki sorğu bir-birindən asılı deyilsə, onları ardıcıl <code>await</code> etmək saf vaxt itkisidir. Asılılığı olmayan bütün sorğuları həmişə paralelləşdir.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 05</div><h4>Boş catch bloku — xətanı "udmaq"</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Səhv</span>
+          <pre><code class="js">try {
+  await riskliEmeliyyat();
+} catch (e) {
+  // hec ne - xeta itdi!
+}</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Düzgün</span>
+          <pre><code class="js">try {
+  await riskliEmeliyyat();
+} catch (e) {
+  console.error('Emeliyyat ugursuz:', e);
+  // lazimdirsa: bildiris gonder, yenidən at və s.
+}</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> Boş <code>catch</code> xətanı "səssizcə udur" — proqram normal işləyirmiş kimi davam edir, amma daxildə problem var və heç kim bundan xəbərsiz qalır. Ən azı <code>console.error</code> ilə logla.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 06</div><h4>Nəticəni gözləmədən istifadə etmək ("fire and forget")</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Səhv</span>
+          <pre><code class="js">function render() {
+  let data;
+  getData().then((d) => (data = d));
+  console.log(data); // undefined - helə gelmeyib
+}</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Düzgün</span>
+          <pre><code class="js">async function render() {
+  const data = await getData();
+  console.log(data); // deyer artiq hazirdir
+}</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> <code>.then()</code> callback-i gələcəkdə, asinxron şəkildə işə düşür. <code>console.log(data)</code> isə dərhal, callback işə düşməzdən əvvəl icra olunur.</div>
+    </div>
+
+    <div class="bug-card">
+      <div class="bug-head"><div class="bnum">BUG 07</div><h4>async funksiyanı try/catch olmadan çağırmaq</h4></div>
+      <div class="compare-grid">
+        <div class="compare-col">
+          <span class="compare-tag bad">❌ Səhv</span>
+          <pre><code class="js">async function melumatiYukle() {
+  const data = await tehlukeliSorgu();
+  isle(data);
+}
+melumatiYukle(); // catch yoxdur!</code></pre>
+        </div>
+        <div class="compare-col">
+          <span class="compare-tag good">✅ Düzgün</span>
+          <pre><code class="js">async function melumatiYukle() {
+  try {
+    const data = await tehlukeliSorgu();
+    isle(data);
+  } catch (e) {
+    console.error(e);
+  }
+}
+melumatiYukle();</code></pre>
+        </div>
+      </div>
+      <div class="bug-explain"><b>Səbəb:</b> Əgər funksiya reject olunsa və heç kim tutmasa, "Unhandled Promise Rejection" xətası yaranır — brauzerdə console-a düşür, Node.js-də isə tətbiqi çökdürə bilər.</div>
+    </div>
+
+    <h3 class="sub-title">Runtime Xəta Mesajları — nə deməkdir?</h3>
+    <div class="err-table-wrap">
+      <table class="err-table">
+        <thead>
+          <tr><th>Xəta mesajı</th><th>Səbəb</th><th>Necə düzəldilir</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>await is only valid in async functions</code></td>
+            <td>await, async olmayan funksiyada istifadə edilib</td>
+            <td>Funksiyanın əvvəlinə <code>async</code> əlavə et</td>
+          </tr>
+          <tr>
+            <td><code>Uncaught (in promise) TypeError</code></td>
+            <td>Promise reject olub, amma heç yerdə tutulmayıb</td>
+            <td><code>try/catch</code> və ya <code>.catch()</code> əlavə et</td>
+          </tr>
+          <tr>
+            <td><code>res.json is not a function</code></td>
+            <td><code>await</code> unudulub, dəyər hələ Promise-dir</td>
+            <td><code>fetch(...)</code>-dan əvvəl <code>await</code> qoy</td>
+          </tr>
+          <tr>
+            <td><code>UnhandledPromiseRejectionWarning</code></td>
+            <td>Node.js-də çağırılan async funksiyanın nəticəsi idarə olunmayıb</td>
+            <td>Çağırışı <code>await</code> et və ya <code>.catch()</code> zənciri əlavə et</td>
+          </tr>
+          <tr>
+            <td>Nəticə <code>[Promise, Promise]</code> kimi görünür</td>
+            <td><code>.map(async …)</code> istifadə olunub, açılmayıb</td>
+            <td><code>Promise.all(array.map(...))</code> istifadə et</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 06 NÜANSLAR -->
+  <section id="nuanslar">
+    <div class="section-label"><span class="n">// 06</span> — Dərin Detallar</div>
+    <h2 class="section-title">Nüanslar: Event Loop necə işləyir?</h2>
+    <p class="lead">Bu, async/await-in ən çətin, amma ən vacib hissəsidir: kodun icra <b>ardıcıllığı</b>. Aşağıdakı nümunəni addım-addım izləyək.</p>
+
+    <div class="code-card">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">tapmaca.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js" id="puzzleCode">console.log('1');
+
+setTimeout(() => console.log('2'), 0);
+
+Promise.resolve().then(() => console.log('3'));
+
+(async () => {
+  console.log('4');
+  await null;
+  console.log('5');
+})();
+
+console.log('6');</code></pre>
+    </div>
+    <div class="code-caption">Sual: bu kod hansı ardıcıllıqla console-a nə çap edəcək? Aşağıdakı simulyatorda addım-addım gör 👇</div>
+
+    <div class="eventloop">
+      <div class="eventloop-tag">İnteraktiv simulyator</div>
+      <h4 class="el-title">Event Loop — addım-addım</h4>
+
+      <div class="el-grid">
+        <div class="el-lane lane-stack">
+          <h5><span class="dot"></span>Call Stack (indi icra olunan)</h5>
+          <div class="el-stack-val" id="elStack">—</div>
+        </div>
+        <div class="el-lane lane-micro">
+          <h5><span class="dot"></span>Microtask Queue</h5>
+          <div class="el-items" id="elMicro"></div>
+        </div>
+        <div class="el-lane lane-macro" style="grid-column:1/-1">
+          <h5><span class="dot"></span>Macrotask Queue (setTimeout və s.)</h5>
+          <div class="el-items" id="elMacro"></div>
+        </div>
+      </div>
+
+      <div class="el-console">
+        <h5>Console Çıxışı</h5>
+        <div class="el-output" id="elOutput"></div>
+      </div>
+
+      <div class="el-explain" id="elExplain">Başlamaq üçün "Növbəti addım" düyməsini basın. Kod sinxron şəkildə yuxarıdan aşağı icra olunmağa başlayacaq.</div>
+
+      <div class="el-controls">
+        <button class="btn btn-primary" id="elStepBtn">Növbəti addım ▶</button>
+        <button class="btn btn-secondary" id="elResetBtn">Sıfırla ↺</button>
+        <span class="el-step-label" id="elStepLabel">Addım 0 / 10</span>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-title">🔑 Qızıl qayda</div>
+      <p>Hər dövrədə əvvəlcə bütün <b>sinxron kod</b> icra olunur → sonra <b>Microtask Queue tam boşaldılır</b> (Promise-lər, await davamı) → yalnız bundan sonra <b>bir Macrotask</b> (setTimeout, setInterval) götürülür. Buna görə yuxarıdakı nümunənin nəticəsi <code>1, 4, 6, 3, 5, 2</code> olur — <code>setTimeout(…, 0)</code> olsa belə ən sonda işə düşür!</p>
+    </div>
+
+    <h3 class="sub-title">Digər vacib nüanslar</h3>
+    <div class="nuance-grid">
+      <div class="nuance-card">
+        <h5>Promise.all — "hamısı və ya heçnə"</h5>
+        <p>Massivdəki Promise-lərdən biri belə reject olsa, <code>Promise.all</code> dərhal reject olur, digərlərinin nəticəsini gözləmir. Hamısının nəticəsini (uğurlu/uğursuz fərq etmədən) görmək istəyirsənsə <code>Promise.allSettled</code> istifadə et.</p>
+      </div>
+      <div class="nuance-card">
+        <h5>Promise.race və Promise.any</h5>
+        <p><code>Promise.race</code> ilk bitən Promise-i (uğurlu və ya xəta) qaytarır — məsələn "timeout" məntiqi üçün əladır. <code>Promise.any</code> isə ilk <b>uğurlu</b> nəticəni gözləyir, hamısı rədd olunmasa xəta vermir.</p>
+      </div>
+      <div class="nuance-card">
+        <h5>await adi dəyər üzərində</h5>
+        <p><code>await 5</code> yazmaq da mümkündür — Promise olmayan dəyər avtomatik "resolve edilmiş Promise" kimi işlənir və dərhal (bir microtask sonra) davam edir. Xəta vermir, sadəcə lazımsızdır.</p>
+      </div>
+      <div class="nuance-card">
+        <h5>Top-level await</h5>
+        <p>ES modullarında (<code>&lt;script type="module"&gt;</code>) <code>await</code>-i funksiyanın xaricində, faylın ən üst səviyyəsində birbaşa istifadə etmək mümkündür — məsələn konfiqurasiya yükləmək üçün.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 TÖVSİYƏLƏR -->
+  <section id="tovsiyeler">
+    <div class="section-label"><span class="n">// 07</span> — Best Practices</div>
+    <h2 class="section-title">Tövsiyələr</h2>
+    <ul class="checklist">
+      <li>✅ <span>Şəbəkə sorğusu edən hər async funksiyada <b>həmişə try/catch</b> istifadə et.</span></li>
+      <li>✅ <span>Bir-birindən asılı olmayan sorğuları <b>Promise.all</b> ilə paralelləşdir.</span></li>
+      <li>✅ <span>Dövrədə <code>await</code> lazımdırsa <b>for...of</b> istifadə et, <code>forEach</code> yox.</span></li>
+      <li>✅ <span>Boş <code>catch</code> bloku saxlama — xətanı ən azı <b>logla</b>, ideal halda istifadəçiyə də bildir.</span></li>
+      <li>✅ <span><code>fetch</code> istifadə edərkən <b>response.ok</b> yoxla — HTTP xətaları avtomatik reject olmur.</span></li>
+      <li>✅ <span>ESLint-də <code>no-floating-promises</code> və <code>require-await</code> qaydalarını aktivləşdir — səhvləri kod yazan kimi tapar.</span></li>
+      <li>✅ <span>Uzun sürən əməliyyatlarda istifadəçiyə <b>loading vəziyyəti</b> göstər (UI/UX üçün vacibdir).</span></li>
+      <li>✅ <span>Uzun sorğular üçün <b>AbortController</b> ilə timeout məntiqi əlavə et.</span></li>
+    </ul>
+  </section>
+
+  <!-- 08 TEST -->
+  <section id="test">
+    <div class="section-label"><span class="n">// 08</span> — Özünü Yoxla</div>
+    <h2 class="section-title">Sürətli Test</h2>
+    <p class="lead">Hər kod parçasında bir bug var. Tapa bilərsənmi? Cavabı görmək üçün üstünə klik et.</p>
+
+    <details class="quiz-item">
+      <summary><span><span class="qmark">S1.</span> Bu funksiyada nə səhvdir?</span><span>▾</span></summary>
+      <div class="quiz-body">
+        <pre><code class="js">async function get() {
+  const res = fetch('/data');
+  return res.json();
+}</code></pre>
+        <div class="quiz-answer"><b>Cavab:</b> <code>fetch('/data')</code>-dan əvvəl <code>await</code> yoxdur. <code>res</code> əslində Response yox, Promise-dir, ona görə <code>res.json()</code> xəta verəcək. Düzəliş: <code>const res = await fetch('/data');</code></div>
+      </div>
+    </details>
+
+    <details class="quiz-item">
+      <summary><span><span class="qmark">S2.</span> Bu kodun çıxışı nə olacaq?</span><span>▾</span></summary>
+      <div class="quiz-body">
+        <pre><code class="js">[1, 2, 3].forEach(async (n) => {
+  await gecikdir(100);
+  console.log(n);
+});
+console.log('bitdi');</code></pre>
+        <div class="quiz-answer"><b>Cavab:</b> <code>'bitdi'</code> ƏVVƏLCƏ çap olunacaq, sonra 1, 2, 3 (təxminən eyni vaxtda). Səbəb: <code>forEach</code> callback-lərin Promise-ini gözləmir, dərhal keçib gedir.</div>
+      </div>
+    </details>
+
+    <details class="quiz-item">
+      <summary><span><span class="qmark">S3.</span> Bu funksiya niyə "yalan" nəticə verə bilər?</span><span>▾</span></summary>
+      <div class="quiz-body">
+        <pre><code class="js">async function save(data) {
+  try {
+    await db.save(data);
+  } catch (e) {
+  }
+  return true;
+}</code></pre>
+        <div class="quiz-answer"><b>Cavab:</b> <code>catch</code> bloku boşdur — <code>db.save</code> uğursuz olsa belə, funksiya heç bir xəta atmadan <code>true</code> qaytarır. Çağıran tərəf yazının uğursuz olduğunu heç vaxt bilməyəcək. Düzəliş: xətanı logla və/və ya yenidən at, ya da <code>false</code> qaytar.</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- 09 CHEATSHEET -->
+  <section id="cheatsheet">
+    <div class="section-label"><span class="n">// 09</span> — Tez İstinad</div>
+    <h2 class="section-title">Cheat Sheet</h2>
+    <div class="code-card cheatsheet">
+      <div class="code-card-head">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <div class="code-filename">cheatsheet.js</div>
+        <button class="copy-btn" data-copy>Kopyala</button>
+      </div>
+      <pre><code class="js">// --- Elan etmək ---
+async function f() {}
+const g = async () => {};
+class C { async metod() {} }
+
+// --- Xəta idarəetməsi ---
+try {
+  const data = await sorgu();
+} catch (xeta) {
+  console.error(xeta);
+} finally {
+  temizle();
+}
+
+// --- Ardıcıl (asılılıq varsa) ---
+const a = await birinci();
+const b = await ikinci(a);
+
+// --- Paralel (asılılıq yoxdursa) ---
+const [a2, b2] = await Promise.all([birinci(), ikinci()]);
+
+// --- Hamısını gözlə, xəta olsa belə davam et ---
+const neticeler = await Promise.allSettled([birinci(), ikinci()]);
+
+// --- İlk bitəni götür ---
+const ilk = await Promise.race([sorgu(), timeout(3000)]);
+
+// --- Dövrədə ardıcıl gözləmə ---
+for (const item of siyahi) {
+  await prosesEt(item);
+}
+
+// --- Dövrədə paralel gözləmə ---
+await Promise.all(siyahi.map((item) => prosesEt(item)));</code></pre>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-nav">
+      <a href="#" class="prev">← Əvvəlki dərs: Promise-lər</a>
+      <a href="#" class="next">Növbəti dərs: Generators →</a>
+    </div>
+    <p class="footer-note">Dərs 26 · Async / Await — bu material tədris məqsədi daşıyır.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  // ---------- Progress bar ----------
+  const bar = document.getElementById('progressBar');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const max = h.scrollHeight - h.clientHeight;
+    const pct = max > 0 ? (scrolled / max) * 100 : 0;
+    bar.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', updateProgress, {passive:true});
+  updateProgress();
+
+  // ---------- Syntax highlighter (lightweight) ----------
+  function esc(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  const KEYWORDS = 'async|await|function|const|let|var|try|catch|finally|throw|return|if|else|for|of|in|new|class|import|export|default|from|typeof|null|undefined|true|false|this|static|extends|yield|do|while|switch|case|break|continue';
+  const TOKEN_RE = new RegExp(
+    '(//.*$)' +                                   // 1 comment
+    '|(`(?:[^`\\\\]|\\\\.)*`|\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*")' + // 2 string
+    '|\\b(' + KEYWORDS + ')\\b' +                  // 3 keyword
+    '|\\b(\\d+(?:\\.\\d+)?)\\b' +                  // 4 number
+    '|\\b([A-Za-z_$][\\w$]*)(?=\\()',              // 5 function call name
+    'gm'
+  );
+  function highlight(code){
+    return code.replace(TOKEN_RE, function(m, comment, str, kw, num, fn){
+      if (comment) return '<span class="tok-com">' + comment + '</span>';
+      if (str) return '<span class="tok-str">' + str + '</span>';
+      if (kw) return '<span class="tok-kw">' + kw + '</span>';
+      if (num) return '<span class="tok-num">' + num + '</span>';
+      if (fn) return '<span class="tok-fn">' + fn + '</span>';
+      return m;
+    });
+  }
+  document.querySelectorAll('code.js').forEach(function(el){
+    const raw = el.textContent;
+    el.innerHTML = highlight(esc(raw));
+  });
+
+  // ---------- Copy buttons ----------
+  document.querySelectorAll('[data-copy]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const card = btn.closest('.code-card');
+      const codeEl = card ? card.querySelector('code') : null;
+      if (!codeEl) return;
+      const text = codeEl.textContent;
+      const done = function(){
+        const original = btn.textContent;
+        btn.textContent = 'Kopyalandı ✓';
+        setTimeout(function(){ btn.textContent = original; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(done);
+      } else {
+        done();
+      }
+    });
+  });
+
+  // ---------- Event loop visualizer ----------
+  const states = [
+    { stack:'—', micro:[], macro:[], out:[], explain:'Başlamaq üçün "Növbəti addım" düyməsini basın. Kod sinxron şəkildə yuxarıdan aşağı icra olunmağa başlayacaq.' },
+    { stack:"console.log('1')", micro:[], macro:[], out:['1'], explain:"1-ci sətir dərhal icra olundu: console.log('1')." },
+    { stack:'setTimeout(...)', micro:[], macro:["() => console.log('2')"], out:['1'], explain:'setTimeout çağırıldı. 0ms olsa belə, callback dərhal işə düşmür — Macrotask Queue-ya yerləşdirilir.' },
+    { stack:'Promise.resolve().then(...)', micro:["() => console.log('3')"], macro:["() => console.log('2')"], out:['1'], explain:"Promise artıq 'resolved' olduğu üçün .then() callback-i Microtask Queue-ya əlavə olunur." },
+    { stack:"async IIFE → console.log('4')", micro:["() => console.log('3')"], macro:["() => console.log('2')"], out:['1','4'], explain:'async funksiya çağırılan kimi icra olunmağa başlayır. İlk await-ə QƏDƏR hər şey adi sinxron kod kimi işləyir.' },
+    { stack:"await null → funksiya dayandı", micro:["() => console.log('3')","davam: console.log('5')"], macro:["() => console.log('2')"], out:['1','4'], explain:"'await null' anında funksiya dayanır. Qalan hissə (console.log('5')) Microtask Queue-nun SONUNA əlavə olunur." },
+    { stack:"console.log('6')", micro:["() => console.log('3')","davam: console.log('5')"], macro:["() => console.log('2')"], out:['1','4','6'], explain:"Son sinxron sətir icra olundu. Call Stack boşaldı — 'Sinxron Faza' bitdi." },
+    { stack:"() => console.log('3')", micro:["davam: console.log('5')"], macro:["() => console.log('2')"], out:['1','4','6','3'], explain:'Call Stack boş olduğu üçün Event Loop işə düşür. QAYDA: əvvəlcə Microtask Queue tam boşaldılır.' },
+    { stack:"davam: console.log('5')", micro:[], macro:["() => console.log('2')"], out:['1','4','6','3','5'], explain:'Microtask Queue-dakı ikinci element (async funksiyanın davamı) icra olundu.' },
+    { stack:"() => console.log('2')", micro:[], macro:[], out:['1','4','6','3','5','2'], explain:'Microtask Queue tamamilə boşdur — İNDİ Macrotask Queue-dan setTimeout callback-i götürülür və icra olunur.' },
+    { stack:'— (boş) ✓ Tamamlandı', micro:[], macro:[], out:['1','4','6','3','5','2'], explain:'Nəticə: 1, 4, 6, 3, 5, 2. Yadda saxla → Sinxron kod → Bütün Microtask-lar → Bir Macrotask → təkrar Microtask-lar...' },
+  ];
+  let idx = 0;
+  const elStack = document.getElementById('elStack');
+  const elMicro = document.getElementById('elMicro');
+  const elMacro = document.getElementById('elMacro');
+  const elOutput = document.getElementById('elOutput');
+  const elExplain = document.getElementById('elExplain');
+  const elStepBtn = document.getElementById('elStepBtn');
+  const elResetBtn = document.getElementById('elResetBtn');
+  const elStepLabel = document.getElementById('elStepLabel');
+
+  function chip(text){ return '<span class="el-chip">' + text + '</span>'; }
+
+  function render(){
+    const s = states[idx];
+    elStack.textContent = s.stack;
+    elMicro.innerHTML = s.micro.length ? s.micro.map(chip).join('') : '<span class="el-chip" style="opacity:.4">boş</span>';
+    elMacro.innerHTML = s.macro.length ? s.macro.map(chip).join('') : '<span class="el-chip" style="opacity:.4">boş</span>';
+    elOutput.innerHTML = s.out.length ? s.out.map(function(o){ return '<span>' + o + '</span>'; }).join('') : '<span style="color:var(--text-faint)">(hələ heç nə)</span>';
+    elExplain.textContent = s.explain;
+    elStepLabel.textContent = 'Addım ' + idx + ' / ' + (states.length - 1);
+    elStepBtn.disabled = idx === states.length - 1;
+    elStepBtn.textContent = idx === states.length - 1 ? 'Tamamlandı ✓' : 'Növbəti addım ▶';
+  }
+
+  elStepBtn.addEventListener('click', function(){
+    if (idx < states.length - 1) { idx++; render(); }
+  });
+  elResetBtn.addEventListener('click', function(){
+    idx = 0; render();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

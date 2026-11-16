@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 7 — React Router ilə Naviqasiya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10141B;
+    --bg-soft: #151A22;
+    --panel: #1B212B;
+    --panel-2: #202836;
+    --border: #2A3140;
+    --text: #EDEFF4;
+    --text-muted: #9AA3B5;
+    --text-dim: #6B7385;
+
+    --green-line: #3FAE68;
+    --green-text: #6BD79A;
+    --green-fill: #1E6E45;
+    --green-soft: rgba(63,174,104,.13);
+
+    --amber-line: #E8A33D;
+    --amber-text: #F0B95C;
+    --amber-fill: #7A5015;
+    --amber-soft: rgba(232,163,61,.13);
+
+    --danger-line: #E2574C;
+    --danger-text: #F0837A;
+    --danger-fill: #6E241E;
+    --danger-soft: rgba(226,87,76,.13);
+
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    --radius: 14px;
+    --maxw: 980px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--green-fill); color:#fff; }
+
+  a{ color:var(--green-text); }
+  h1,h2,h3,h4{ font-family:var(--display); font-weight:700; letter-spacing:.2px; margin:0 0 .4em; color:var(--text); }
+  p{ margin:0 0 1em; color:var(--text-muted); }
+  img{max-width:100%; display:block;}
+
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+
+  /* ---------- progress bar ---------- */
+  .route-progress{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg, var(--green-line), var(--amber-line));
+    z-index:200; transition:width .1s linear;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    padding:72px 0 40px;
+    background:
+      repeating-linear-gradient(90deg, var(--green-line) 0 26px, transparent 26px 46px) center 14px / 100% 4px no-repeat,
+      radial-gradient(ellipse at top left, var(--green-soft), transparent 55%),
+      var(--bg-soft);
+    border-bottom:1px solid var(--border);
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; inset:auto 0 0 0; height:1px;
+    background:linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .hero-inner{ position:relative; z-index:1; }
+  .hero-top{ display:flex; align-items:center; gap:18px; margin-bottom:22px; flex-wrap:wrap; }
+  .shield{
+    flex:0 0 auto;
+    width:76px; height:76px;
+    background:linear-gradient(160deg, var(--green-fill), #164a2e);
+    border:2px solid var(--green-line);
+    border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:34px; font-weight:800; color:#fff;
+    box-shadow:0 10px 30px -10px rgba(63,174,104,.5);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--green-text); margin-bottom:6px;
+  }
+  .hero h1{ font-size:clamp(30px, 5vw, 46px); line-height:1.05; margin:0; }
+  .hero p.lead{ font-size:17px; max-width:640px; margin-top:14px; }
+  .badges{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+  .badge{
+    font-family:var(--mono); font-size:12.5px; padding:6px 12px;
+    border:1px solid var(--border); border-radius:999px; color:var(--text-muted);
+    background:var(--panel);
+  }
+  .badge b{ color:var(--text); font-weight:600; }
+
+  /* ---------- route nav ---------- */
+  .route-nav{
+    position:sticky; top:0; z-index:150;
+    background:rgba(16,20,27,.9); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .route-nav .wrap{
+    display:flex; align-items:center; gap:4px;
+    overflow-x:auto; padding:12px 24px;
+    scrollbar-width:none;
+  }
+  .route-nav .wrap::-webkit-scrollbar{ display:none; }
+  .route-nav a{
+    position:relative;
+    flex:0 0 auto;
+    font-family:var(--mono); font-size:13px; text-decoration:none;
+    color:var(--text-dim); white-space:nowrap;
+    padding:8px 14px 8px 24px;
+    border-radius:999px;
+    transition:color .2s, background .2s;
+  }
+  .route-nav a::before{
+    content:""; position:absolute; left:10px; top:50%; translate:0 -50%;
+    width:6px; height:6px; border-radius:50%;
+    background:var(--text-dim); transition:background .2s, box-shadow .2s;
+  }
+  .route-nav a:not(:last-child)::after{
+    content:""; position:absolute; right:-4px; top:50%; translate:0 -50%;
+    width:8px; height:1px; background:var(--border);
+  }
+  .route-nav a:hover{ color:var(--text); }
+  .route-nav a.active{ color:var(--green-text); background:var(--green-soft); }
+  .route-nav a.active::before{ background:var(--green-line); box-shadow:0 0 0 3px var(--green-soft); }
+
+  /* ---------- sections ---------- */
+  main{ padding-bottom:40px; }
+  section{ padding:56px 0; scroll-margin-top:66px; border-bottom:1px solid var(--border); }
+  section:last-of-type{ border-bottom:none; }
+  .section-head{ margin-bottom:30px; }
+  .section-head .tag{
+    font-family:var(--mono); font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--amber-text); display:block; margin-bottom:8px;
+  }
+  .section-head h2{ font-size:clamp(24px,3.4vw,32px); }
+  .section-head p{ max-width:680px; font-size:15.5px; }
+
+  /* ---------- compare table ---------- */
+  .compare{
+    display:grid; grid-template-columns:1fr 1fr; gap:1px;
+    background:var(--border); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; margin-top:10px;
+  }
+  .compare > div{ background:var(--panel); padding:16px 18px; }
+  .compare .head{ background:var(--panel-2); font-family:var(--display); font-weight:700; font-size:17px; }
+  .compare .head.server{ color:var(--danger-text); }
+  .compare .head.client{ color:var(--green-text); }
+  .compare .row-label{ grid-column:1 / -1; background:transparent; padding:14px 18px 4px; font-family:var(--mono); font-size:11.5px; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); }
+  .compare .cell{ font-size:14.5px; color:var(--text-muted); }
+
+  /* ---------- stop cards ---------- */
+  .stop{
+    display:grid; grid-template-columns:56px 1fr; gap:20px;
+    padding:26px 0; border-top:1px dashed var(--border);
+  }
+  .stop:first-of-type{ border-top:none; padding-top:0; }
+  .stop-num{
+    width:44px; height:44px; border-radius:10px;
+    background:var(--panel); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:17px; color:var(--green-text);
+    position:relative;
+  }
+  .stop-num::after{
+    content:""; position:absolute; left:50%; top:100%; translate:-50% 0;
+    width:1px; height:26px; background:var(--border);
+  }
+  .stop:last-child .stop-num::after{ display:none; }
+  .stop h3{ font-size:21px; margin-bottom:8px; }
+  .stop .stop-body p{ font-size:15px; }
+  .stop .stop-body ul{ margin:0 0 1em; padding-left:20px; color:var(--text-muted); font-size:15px; }
+  .stop .stop-body li{ margin-bottom:6px; }
+
+  /* ---------- code blocks ---------- */
+  .code-block{
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; margin:16px 0; font-size:13.5px;
+  }
+  .code-head{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 14px; background:var(--panel-2); border-bottom:1px solid var(--border);
+  }
+  .dots{ display:flex; gap:5px; }
+  .dots i{ width:9px; height:9px; border-radius:50%; display:block; }
+  .dots i:nth-child(1){ background:var(--danger-line); }
+  .dots i:nth-child(2){ background:var(--amber-line); }
+  .dots i:nth-child(3){ background:var(--green-line); }
+  .code-filename{ font-family:var(--mono); font-size:12px; color:var(--text-dim); margin-right:auto; }
+  .copy-btn{
+    font-family:var(--mono); font-size:11.5px; color:var(--text-muted);
+    background:transparent; border:1px solid var(--border); border-radius:6px;
+    padding:4px 9px; cursor:pointer; transition:.2s;
+  }
+  .copy-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+  .code-block pre{ margin:0; padding:16px 18px; overflow-x:auto; }
+  .code-block code{ font-family:var(--mono); color:#D7DCE5; white-space:pre; }
+  .tok-kw{ color:#C792EA; }
+  .tok-str{ color:var(--green-text); }
+  .tok-comment{ color:var(--text-dim); font-style:italic; }
+  .tok-tag{ color:var(--amber-text); }
+
+  .tree{
+    font-family:var(--mono); font-size:13.5px; color:var(--text-muted);
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:12px;
+    padding:18px 20px; margin:16px 0; overflow-x:auto; white-space:pre;
+  }
+
+  /* ---------- practice sub-blocks ---------- */
+  .practice-block{ margin-bottom:36px; }
+  .practice-block:last-child{ margin-bottom:0; }
+  .practice-block h3{ font-size:19px; display:flex; align-items:center; gap:10px; }
+  .practice-block h3 .file-pill{
+    font-family:var(--mono); font-size:12px; font-weight:400; color:var(--amber-text);
+    background:var(--amber-soft); padding:3px 9px; border-radius:6px; border:1px solid var(--amber-line);
+  }
+
+  /* ---------- task card ---------- */
+  .task-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:28px 30px; position:relative; overflow:hidden;
+  }
+  .task-card::before{
+    content:"";
+    position:absolute; top:-40px; right:-40px; width:160px; height:160px;
+    background:radial-gradient(circle, var(--amber-soft), transparent 70%);
+  }
+  .task-card h3{ font-size:22px; color:var(--amber-text); position:relative; }
+  .task-list{ list-style:none; padding:0; margin:18px 0 0; display:grid; gap:10px; position:relative; }
+  .task-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:15px; color:var(--text-muted);
+  }
+  .task-list li::before{
+    content:"✓"; flex:0 0 auto; width:20px; height:20px; border-radius:6px;
+    background:var(--green-soft); color:var(--green-text); font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; margin-top:2px;
+  }
+  .task-list li.bonus::before{
+    content:"★"; background:var(--amber-soft); color:var(--amber-text);
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq-item{
+    border:1px solid var(--border); border-radius:12px; background:var(--panel);
+    margin-bottom:12px; overflow:hidden;
+  }
+  .faq-item summary{
+    cursor:pointer; list-style:none; padding:16px 20px;
+    font-family:var(--display); font-weight:600; font-size:17px; color:var(--text);
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+  }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{
+    content:"+"; font-family:var(--mono); font-size:20px; color:var(--green-text);
+    transition:transform .2s; flex:0 0 auto;
+  }
+  .faq-item[open] summary::after{ transform:rotate(45deg); }
+  .faq-item .faq-body{ padding:0 20px 20px; }
+  .faq-item .faq-body p{ font-size:15px; }
+
+  /* ---------- bug cards ---------- */
+  .bug-card{
+    border:1px solid var(--border); border-left:3px solid var(--danger-line);
+    background:var(--panel); border-radius:0 12px 12px 0; padding:20px 22px; margin-bottom:16px;
+  }
+  .bug-card h4{ font-size:17px; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .bug-card h4 .num{ font-family:var(--mono); font-size:12px; color:var(--text-dim); }
+  .bug-line{ display:flex; gap:10px; align-items:flex-start; font-size:14.5px; margin-bottom:8px; color:var(--text-muted); }
+  .bug-line .tag{
+    flex:0 0 auto; font-family:var(--mono); font-size:11px; font-weight:700; padding:2px 8px;
+    border-radius:5px; margin-top:2px;
+  }
+  .bug-line.bad .tag{ background:var(--danger-soft); color:var(--danger-text); }
+  .bug-line.fix .tag{ background:var(--green-soft); color:var(--green-text); }
+
+  /* ---------- best practice grid ---------- */
+  .best-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; }
+  .best-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px;
+  }
+  .best-card h4{ font-size:16px; color:var(--green-text); margin-bottom:6px; display:flex; gap:8px; align-items:center; }
+  .best-card h4 .ic{
+    width:22px; height:22px; border-radius:6px; background:var(--green-soft); color:var(--green-text);
+    display:flex; align-items:center; justify-content:center; font-size:12px; flex:0 0 auto;
+  }
+  .best-card p{ font-size:14px; margin:0; }
+
+  /* ---------- summary ---------- */
+  .summary-box{
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius);
+    padding:26px 30px;
+  }
+  .summary-box ul{ padding-left:20px; color:var(--text-muted); font-size:15px; }
+  .summary-box li{ margin-bottom:6px; }
+
+  footer{
+    text-align:center; padding:34px 24px; color:var(--text-dim); font-size:13px;
+    font-family:var(--mono);
+  }
+
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:2px solid var(--green-line); outline-offset:2px; border-radius:4px;
+  }
+
+  @media (max-width: 720px){
+    .compare{ grid-template-columns:1fr; }
+    .compare .row-label{ padding-top:10px; }
+    .stop{ grid-template-columns:40px 1fr; gap:14px; }
+    .stop-num{ width:36px; height:36px; font-size:14px; }
+    .best-grid{ grid-template-columns:1fr; }
+    .hero{ padding:56px 0 32px; }
+    .shield{ width:62px; height:62px; font-size:26px; }
+    section{ padding:40px 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="route-progress" id="progress"></div>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-top">
+      <div class="shield">07</div>
+      <div>
+        <span class="eyebrow">Dərs 7 · Route Xəritəsi</span>
+        <h1>React Router ilə Naviqasiya</h1>
+      </div>
+    </div>
+    <p class="lead">Tək-səhifəli tətbiqdə (SPA) səhifə yenidən yüklənmədən necə "gəzmək" olar? Bu dərsdə <code>react-router-dom</code> kitabxanası ilə çoxsəhifəli React tətbiqi qurmağı, dinamik və nested route-ları, həmçinin ən çox rast gəlinən xətaları öyrənəcəyik.</p>
+    <div class="badges">
+      <span class="badge">⏱ <b>≈2 saat</b></span>
+      <span class="badge">📘 <b>Nəzəri + Praktiki</b></span>
+      <span class="badge">🎯 <b>Səviyyə:</b> Orta</span>
+      <span class="badge">📦 <b>react-router-dom</b></span>
+    </div>
+  </div>
+</header>
+
+<nav class="route-nav" id="routeNav">
+  <div class="wrap">
+    <a href="#intro" data-nav>Giriş</a>
+    <a href="#theory" data-nav>Nəzəriyyə</a>
+    <a href="#practice" data-nav>Praktika</a>
+    <a href="#task" data-nav>Tapşırıq</a>
+    <a href="#faq" data-nav>Suallar</a>
+    <a href="#bugs" data-nav>Xətalar</a>
+    <a href="#best" data-nav>Tövsiyələr</a>
+    <a href="#summary" data-nav>Xülasə</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="section-head">
+      <span class="tag">00 · Başlanğıc</span>
+      <h2>Niyə "routing" lazımdır?</h2>
+      <p>Adi çoxsəhifəli sayta baxanda hər keçiddə brauzer serverə yeni sorğu göndərir və bütün səhifəni yenidən yükləyir. React kimi SPA tətbiqlərdə isə bunu istəmirik — bir dəfə yüklənən tətbiq daxilində "səhifələr" arasında ani keçid edilir. Bu işi <strong>React Router</strong> görür.</p>
+    </div>
+
+    <div class="compare">
+      <div class="head server">🖥 Server Routing (ənənəvi)</div>
+      <div class="head client">⚡ Client Routing (React Router)</div>
+
+      <div class="row-label">Səhifə keçidi zamanı</div>
+      <div class="cell">Bütün HTML yenidən serverdən yüklənir, brauzer "yanıb-sönür"</div>
+      <div class="cell">Yalnız lazım olan komponent dəyişir, səhifə yenilənmir</div>
+
+      <div class="row-label">Sürət</div>
+      <div class="cell">Hər keçiddə şəbəkə gecikməsi var</div>
+      <div class="cell">Demək olar ani, JS artıq brauzerdə yüklüdür</div>
+
+      <div class="row-label">Tətbiq vəziyyəti (state)</div>
+      <div class="cell">Hər keçiddə itir</div>
+      <div class="cell">Saxlanılır (məs. səbətdəki məhsullar)</div>
+
+      <div class="row-label">Mexanizm</div>
+      <div class="cell">Brauzerin default naviqasiyası + serverdən yeni HTML</div>
+      <div class="cell">Brauzerin <em>History API</em>-si (pushState) + JS ilə render</div>
+    </div>
+  </section>
+
+  <!-- THEORY -->
+  <section id="theory">
+    <div class="section-head">
+      <span class="tag">01 · Nəzəri Hissə</span>
+      <h2>Route Xəritəsindəki Dayanacaqlar</h2>
+      <p>Aşağıdakı 6 dayanacaq React Router-i sıfırdan öyrənmək üçün məntiqi ardıcıllıqdır — hər biri özündən əvvəlkinin üzərində qurulur.</p>
+    </div>
+
+    <div class="stop">
+      <div class="stop-num">1</div>
+      <div class="stop-body">
+        <h3>SPA-da Routing Necə İşləyir</h3>
+        <p>Brauzerin <strong>History API</strong>-si (<code>pushState</code>, <code>replaceState</code>) sayəsində URL ünvan çubuğunda dəyişiklik etmək mümkündür — serverə heç bir sorğu getmədən. React Router bu API-ni "dinləyir": URL dəyişəndə hansı komponentin həmin ünvana uyğun gəldiyini tapır və yalnız onu ekranda göstərir. Server isə ilk yükləmədə tək bir <code>index.html</code> qaytarır, qalan hər şeyi brauzerdəki JavaScript idarə edir.</p>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-num">2</div>
+      <div class="stop-body">
+        <h3>react-router-dom Quraşdırılması</h3>
+        <p>Kitabxana npm vasitəsilə əlavə olunur. Vite, Create React App və s. bütün müasir React qurğuları ilə birbaşa işləyir:</p>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">terminal</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">npm install react-router-dom</code></pre>
+        </div>
+        <p>Quraşdırdıqdan sonra <code>package.json</code> faylında <code>react-router-dom</code> asılılıq kimi görünməlidir.</p>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-num">3</div>
+      <div class="stop-body">
+        <h3>Əsas Komponentlər: BrowserRouter, Routes, Route</h3>
+        <ul>
+          <li><strong>&lt;BrowserRouter&gt;</strong> — History API-ni tətbiqə bağlayan "əhatə edici" komponent. Adətən bütün tətbiqi <em>bir dəfə</em>, ən yuxarı səviyyədə əhatə edir.</li>
+          <li><strong>&lt;Routes&gt;</strong> — daxilindəki <code>&lt;Route&gt;</code>-lardan cari URL-ə uyğun gələn <em>ilkini</em> tapıb göstərən konteyner.</li>
+          <li><strong>&lt;Route&gt;</strong> — bir <code>path</code>-ı bir komponentə (<code>element</code>) bağlayır.</li>
+        </ul>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">App.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import About from './pages/About';
+
+function App() {
+  return (
+    &lt;BrowserRouter&gt;
+      &lt;Routes&gt;
+        &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+        &lt;Route path="/about" element={&lt;About /&gt;} /&gt;
+      &lt;/Routes&gt;
+    &lt;/BrowserRouter&gt;
+  );
+}
+
+export default App;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-num">4</div>
+      <div class="stop-body">
+        <h3>Link vs adi &lt;a&gt; teqi</h3>
+        <p>Bu, ən vacib fərqlərdən biridir. <code>&lt;a href&gt;</code> brauzerin <em>default</em> naviqasiyasını işə salır — səhifə tam yenidən yüklənir və React tətbiqinin vəziyyəti sıfırlanır. <code>&lt;Link&gt;</code> isə klik hadisəsini tutur (<code>preventDefault</code>), History API vasitəsilə URL-i dəyişir və yalnız uyğun komponenti yenidən göstərir.</p>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">Navbar.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">// ❌ Səhifəni tam yükləyir, SPA məntiqini pozur
+&lt;a href="/about"&gt;Haqqımızda&lt;/a&gt;
+
+// ✅ Yalnız komponenti dəyişir, sürətli, state qorunur
+&lt;Link to="/about"&gt;Haqqımızda&lt;/Link&gt;
+
+// Aktiv linki fərqli stillə göstərmək üçün NavLink
+&lt;NavLink
+  to="/about"
+  className={({ isActive }) =&gt; isActive ? 'nav-link active' : 'nav-link'}
+&gt;
+  Haqqımızda
+&lt;/NavLink&gt;</code></pre>
+        </div>
+        <p><strong>Qayda:</strong> tətbiq daxilindəki keçidlər üçün həmişə <code>Link</code>/<code>NavLink</code>, xarici saytlara keçid üçün adi <code>&lt;a href&gt;</code> istifadə et.</p>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-num">5</div>
+      <div class="stop-body">
+        <h3>useNavigate və useParams Hook-ları</h3>
+        <ul>
+          <li><strong>useParams()</strong> — URL-in dinamik hissəsindəki dəyəri oxumaq üçün (məs. <code>/product/:id</code> → <code>id</code>).</li>
+          <li><strong>useNavigate()</strong> — kod daxilində (məs. düymə basıldıqda, formadan sonra) proqramla yönləndirmə üçün.</li>
+        </ul>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">ProductDetail.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">import { useNavigate, useParams } from 'react-router-dom';
+
+function ProductDetail() {
+  const { id } = useParams();       // URL-dən :id-ni oxuyur ("3" kimi string)
+  const navigate = useNavigate();   // proqramla naviqasiya üçün
+
+  function handleBuy() {
+    navigate('/checkout/success');  // sifarişdən sonra yönləndirmə
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;button onClick={() =&gt; navigate(-1)}&gt;← Geri&lt;/button&gt;
+      &lt;h2&gt;Məhsul ID: {id}&lt;/h2&gt;
+      &lt;button onClick={handleBuy}&gt;Al&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop">
+      <div class="stop-num">6</div>
+      <div class="stop-body">
+        <h3>Nested və Dynamic Route-lar</h3>
+        <p><strong>Dynamic route</strong> — URL-in bir hissəsi dəyişən parametrdir: <code>/product/:id</code>. <strong>Nested route</strong> isə bir route-un daxilində başqa route-ların yerləşməsidir; valideyn komponent özündə <code>&lt;Outlet /&gt;</code> saxlamalıdır ki, uşaq route orada göstərilsin.</p>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">App.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">&lt;Routes&gt;
+  &lt;Route path="/products" element={&lt;ProductsLayout /&gt;}&gt;
+    &lt;Route index element={&lt;ProductList /&gt;} /&gt;
+    &lt;Route path=":id" element={&lt;ProductDetail /&gt;} /&gt;
+  &lt;/Route&gt;
+  &lt;Route path="*" element={&lt;NotFound /&gt;} /&gt;
+&lt;/Routes&gt;</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">ProductsLayout.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">import { Outlet } from 'react-router-dom';
+
+function ProductsLayout() {
+  return (
+    &lt;div&gt;
+      &lt;h1&gt;Məhsullar&lt;/h1&gt;
+      {/* uşaq route-lar məhz bu yerdə göstəriləcək */}
+      &lt;Outlet /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRACTICE -->
+  <section id="practice">
+    <div class="section-head">
+      <span class="tag">02 · Praktiki Hissə</span>
+      <h2>Çoxsəhifəli Tətbiq Strukturu</h2>
+      <p>İndi öyrəndiklərimizi real layihə strukturuna çevirək: <strong>Home, About, Contact</strong> və dinamik <strong>Product Detail</strong> səhifələri, üstəgəl 404 səhifəsi.</p>
+    </div>
+
+    <div class="practice-block">
+      <h3>Qovluq strukturu <span class="file-pill">src/</span></h3>
+      <div class="tree">src/
+ ├─ components/
+ │   └─ Navbar.jsx
+ ├─ pages/
+ │   ├─ Home.jsx
+ │   ├─ About.jsx
+ │   ├─ Contact.jsx
+ │   ├─ ProductDetail.jsx
+ │   └─ NotFound.jsx
+ ├─ data/
+ │   └─ products.js
+ ├─ App.jsx
+ └─ main.jsx</div>
+    </div>
+
+    <div class="practice-block">
+      <h3>Bütün route-ların birləşdiyi fayl <span class="file-pill">App.jsx</span></h3>
+      <div class="code-block">
+        <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">App.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><code class="code">import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import ProductDetail from './pages/ProductDetail';
+import NotFound from './pages/NotFound';
+
+function App() {
+  return (
+    &lt;BrowserRouter&gt;
+      &lt;Navbar /&gt;
+      &lt;Routes&gt;
+        &lt;Route path="/" element={&lt;Home /&gt;} /&gt;
+        &lt;Route path="/about" element={&lt;About /&gt;} /&gt;
+        &lt;Route path="/contact" element={&lt;Contact /&gt;} /&gt;
+        &lt;Route path="/product/:id" element={&lt;ProductDetail /&gt;} /&gt;
+        {/* Diqqət: "*" HƏMİŞƏ ən sonda olmalıdır */}
+        &lt;Route path="*" element={&lt;NotFound /&gt;} /&gt;
+      &lt;/Routes&gt;
+    &lt;/BrowserRouter&gt;
+  );
+}
+
+export default App;</code></pre>
+      </div>
+    </div>
+
+    <div class="practice-block">
+      <h3>Aktiv linkli naviqasiya <span class="file-pill">components/Navbar.jsx</span></h3>
+      <div class="code-block">
+        <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">Navbar.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><code class="code">import { NavLink } from 'react-router-dom';
+
+function Navbar() {
+  const linkStyle = ({ isActive }) =&gt;
+    isActive ? 'nav-link nav-link--active' : 'nav-link';
+
+  return (
+    &lt;nav className="navbar"&gt;
+      {/* "end" olmasa "/" hər zaman aktiv görünər */}
+      &lt;NavLink to="/" className={linkStyle} end&gt;Ana səhifə&lt;/NavLink&gt;
+      &lt;NavLink to="/about" className={linkStyle}&gt;Haqqımızda&lt;/NavLink&gt;
+      &lt;NavLink to="/contact" className={linkStyle}&gt;Əlaqə&lt;/NavLink&gt;
+    &lt;/nav&gt;
+  );
+}
+
+export default Navbar;</code></pre>
+      </div>
+    </div>
+
+    <div class="practice-block">
+      <h3>Kataloq — məhsul kartları <span class="file-pill">pages/Home.jsx</span></h3>
+      <div class="code-block">
+        <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">Home.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><code class="code">import { Link } from 'react-router-dom';
+import products from '../data/products';
+
+function Home() {
+  return (
+    &lt;div className="catalog"&gt;
+      {products.map((p) =&gt; (
+        &lt;Link key={p.id} to={`/product/${p.id}`} className="product-card"&gt;
+          &lt;img src={p.image} alt={p.name} /&gt;
+          &lt;h3&gt;{p.name}&lt;/h3&gt;
+          &lt;p&gt;{p.price} AZN&lt;/p&gt;
+        &lt;/Link&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+
+export default Home;</code></pre>
+      </div>
+    </div>
+
+    <div class="practice-block">
+      <h3>Dinamik məhsul detalları <span class="file-pill">pages/ProductDetail.jsx</span></h3>
+      <div class="code-block">
+        <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">ProductDetail.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><code class="code">import { useParams, useNavigate } from 'react-router-dom';
+import products from '../data/products';
+
+function ProductDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  // useParams həmişə string qaytarır — Number-ə çeviririk
+  const product = products.find((p) =&gt; p.id === Number(id));
+
+  if (!product) {
+    return (
+      &lt;div&gt;
+        &lt;p&gt;Belə məhsul tapılmadı.&lt;/p&gt;
+        &lt;button onClick={() =&gt; navigate('/')}&gt;Kataloqa qayıt&lt;/button&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  return (
+    &lt;div className="product-detail"&gt;
+      &lt;button onClick={() =&gt; navigate(-1)}&gt;← Geri&lt;/button&gt;
+      &lt;img src={product.image} alt={product.name} /&gt;
+      &lt;h2&gt;{product.name}&lt;/h2&gt;
+      &lt;p&gt;{product.price} AZN&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default ProductDetail;</code></pre>
+      </div>
+    </div>
+
+    <div class="practice-block">
+      <h3>404 səhifəsi <span class="file-pill">pages/NotFound.jsx</span></h3>
+      <div class="code-block">
+        <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">NotFound.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+        <pre><code class="code">import { Link } from 'react-router-dom';
+
+function NotFound() {
+  return (
+    &lt;div className="not-found"&gt;
+      &lt;h1&gt;404&lt;/h1&gt;
+      &lt;p&gt;Axtardığınız səhifə tapılmadı.&lt;/p&gt;
+      &lt;Link to="/"&gt;Ana səhifəyə qayıt&lt;/Link&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default NotFound;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- TASK -->
+  <section id="task">
+    <div class="section-head">
+      <span class="tag">03 · Tapşırıq</span>
+      <h2>Məhsul Kataloqu + Detal Səhifəsi</h2>
+    </div>
+    <div class="task-card">
+      <h3>🎯 Missiya</h3>
+      <p style="position:relative">Yuxarıda öyrəndiyin struktura əsaslanaraq öz məhsul kataloqunu qur. Tələblər:</p>
+      <ul class="task-list">
+        <li>Ana səhifədə ən azı <strong>6 məhsul</strong> kart şəklində göstərilsin (şəkil + ad + qiymət).</li>
+        <li>Hər kartın üzərinə klikləyəndə <code>Link</code> vasitəsilə <code>/product/:id</code> səhifəsinə keçid olsun.</li>
+        <li>Detal səhifəsində <code>useParams</code> ilə <code>id</code> oxunsun və uyğun məhsul tapılıb göstərilsin.</li>
+        <li><code>Navbar</code>-da <code>NavLink</code> ilə Home / About / Contact keçidləri olsun, aktiv link fərqli rənglə seçilsin.</li>
+        <li>Mövcud olmayan ünvan üçün 404 səhifəsi işləsin.</li>
+        <li class="bonus">Bonus: "Geri qayıt" düyməsi <code>useNavigate(-1)</code> ilə.</li>
+        <li class="bonus">Bonus: <code>useSearchParams</code> ilə kateqoriyaya görə filtr (<code>?category=elektronika</code>).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="section-head">
+      <span class="tag">04 · Tez-tez Verilən Suallar</span>
+      <h2>Ən çox soruşulan 3 sual</h2>
+    </div>
+
+    <details class="faq-item" open>
+      <summary>Brauzer refresh edəndə niyə bəzən xəta çıxır?</summary>
+      <div class="faq-body">
+        <p>Local development zamanı (Vite/CRA dev server) bu adətən problem yaratmır, çünki dev server avtomatik olaraq bütün ünvanlar üçün <code>index.html</code> qaytarır. Amma <strong>production</strong>-da adi statik server (Nginx, Apache və s.) <code>/product/5</code> kimi ünvan üçün fiziki fayl axtarır — belə fayl yoxdur, nəticədə server 404 verir.</p>
+        <p><strong>Həll:</strong> server-i elə konfiqurasiya et ki, tanımadığı bütün ünvanlar üçün <code>index.html</code>-i qaytarsın (SPA fallback), qalanını React Router öz üzərinə götürsün:</p>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">nginx.conf / _redirects</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code"># Nginx nümunəsi
+location / {
+  try_files $uri /index.html;
+}
+
+# Netlify — public/_redirects faylı
+/*  /index.html  200</code></pre>
+        </div>
+        <p>Vercel bunu avtomatik edir, Apache-da isə <code>.htaccess</code> faylında oxşar "rewrite" qaydası yazılır.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>Link ilə adi &lt;a&gt; teqinin fərqi nədir?</summary>
+      <div class="faq-body">
+        <p><code>&lt;a href&gt;</code> brauzerin default naviqasiyasını işə salaraq bütün səhifəni yenidən yükləyir və tətbiqin state-ini sıfırlayır. <code>&lt;Link to&gt;</code> isə klik hadisəsini tutub History API ilə URL-i dəyişir, yalnız uyğun komponent yenidən render olunur, state qorunur. Sadə qayda: <strong>daxili keçidlər üçün Link, xarici saytlar üçün &lt;a&gt;</strong>.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary>useParams ilə useSearchParams nə vaxt işlədilir?</summary>
+      <div class="faq-body">
+        <p><strong>useParams</strong> — URL-in <em>path</em> hissəsindəki, route strukturunun məcburi bir parçası olan dəyərlər üçündür (<code>/product/:id</code> — dəyər olmadan bu səhifənin mənası yoxdur). <strong>useSearchParams</strong> isə query string-dəki (<code>?sort=asc&amp;category=telefon</code>) <em>opsional</em> parametrlər üçündür — filtr, sıralama, səhifələmə kimi, dəyər olmasa da səhifə normal işləyir.</p>
+        <div class="code-block">
+          <div class="code-head"><span class="dots"><i></i><i></i><i></i></span><span class="code-filename">ProductList.jsx</span><button class="copy-btn" data-copy>Kopyala</button></div>
+          <pre><code class="code">import { useSearchParams } from 'react-router-dom';
+
+function ProductList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const category = searchParams.get('category'); // ?category=elektronika
+
+  function filterBy(cat) {
+    setSearchParams({ category: cat });
+  }
+
+  return (
+    &lt;button onClick={() =&gt; filterBy('elektronika')}&gt;
+      Elektronika
+    &lt;/button&gt;
+  );
+}</code></pre>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- BUGS -->
+  <section id="bugs">
+    <div class="section-head">
+      <span class="tag">05 · Ola Biləcək Xətalar</span>
+      <h2>Ən çox rast gəlinən buglar</h2>
+      <p>React Router öyrənərkən demək olar hər kəsin qarşılaşdığı 8 tipik problem və onların həlli.</p>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">01</span> "useNavigate() may be used only in the context of a &lt;Router&gt;" xətası</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span><code>BrowserRouter</code> tətbiqə əlavə edilməyib, ona görə <code>Link</code>, <code>useNavigate</code>, <code>useParams</code> kimi elementlər "Router konteksti" tapmır.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span><code>BrowserRouter</code>-i ən yuxarı səviyyədə (məs. <code>main.jsx</code>-də) əlavə et və bütün tətbiqi onun daxilinə al.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">02</span> &lt;a href&gt; istifadə etdikdə səhifənin "yanıb-sönməsi"</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span>Adi <code>&lt;a&gt;</code> teqi brauzerin default naviqasiyasını işə salır — tam səhifə yenidən yüklənir, state itir.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span>Tətbiq daxilindəki bütün keçidlər üçün <code>&lt;Link&gt;</code> və ya <code>&lt;NavLink&gt;</code> istifadə et.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">03</span> Parametr dəyişəndə komponentin "yenilənməməsi"</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span><code>/product/1</code>-dən <code>/product/2</code>-yə keçəndə React eyni komponenti yenidən istifadə edir (unmount etmir), ona görə boş asılılıq siyahılı <code>useEffect</code> yalnız bir dəfə işləyir.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span><code>useEffect</code>-in asılılıq massivinə parametri əlavə et: <code>useEffect(() =&gt; { ... }, [id])</code>.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">04</span> 404 route bütün digər route-ları "udur"</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span><code>path="*"</code> olan <code>Route</code> siyahının başında və ya ortasında yerləşdirilib — <code>Routes</code> ilk uyğun gələni seçir, "*" isə hər ünvana uyğun gəlir.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span><code>path="*"</code> olan <code>Route</code>-u <code>&lt;Routes&gt;</code> daxilində həmişə <strong>ən sonda</strong> yerləşdir.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">05</span> Nested route-da uşaq komponent heç görünmür</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span>Valideyn (layout) komponentində <code>&lt;Outlet /&gt;</code> unudulub.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span>Layout komponentinin JSX-inə uşaq route-ların göstəriləcəyi yerdə <code>&lt;Outlet /&gt;</code> əlavə et.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">06</span> Nested route-da path düzgün uyğunlaşmır</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span>Uşaq route-un path-ı "/" ilə başlayıb (<code>path="/:id"</code>) — bu, mütləq (absolute) path kimi qəbul olunur və valideynlə birləşmir.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span>Nested route-larda uşaq path-larını "/" olmadan nisbi (relative) yaz: <code>path=":id"</code>.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">07</span> useParams-dan gələn id ilə massivdəki id üst-üstə düşmür</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span><code>useParams()</code> həmişə <strong>string</strong> qaytarır (<code>"3"</code>), massivdəki <code>id</code> isə adətən <strong>number</strong>-dır (<code>3</code>). <code>===</code> müqayisəsi fərqli tipləri bərabər saymır.</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span><code>Number(id)</code> ilə çevir: <code>products.find(p =&gt; p.id === Number(id))</code>.</span></div>
+    </div>
+
+    <div class="bug-card">
+      <h4><span class="num">08</span> Production-da bütün daxili keçidlərdə 404</h4>
+      <div class="bug-line bad"><span class="tag">SƏBƏB</span><span>Hosting/server SPA fallback üçün konfiqurasiya olunmayıb (bax: yuxarıdakı FAQ bölümü).</span></div>
+      <div class="bug-line fix"><span class="tag">HƏLL</span><span>Deploy etməzdən əvvəl serverin bütün naməlum ünvanlar üçün <code>index.html</code> qaytardığından əmin ol.</span></div>
+    </div>
+  </section>
+
+  <!-- BEST PRACTICES -->
+  <section id="best">
+    <div class="section-head">
+      <span class="tag">06 · Tövsiyələr</span>
+      <h2>Nələri etsək daha yaxşı olar?</h2>
+    </div>
+    <div class="best-grid">
+      <div class="best-card">
+        <h4><span class="ic">1</span>Route-ları mərkəzləşdir</h4>
+        <p>Böyük layihələrdə bütün route-ları <code>App.jsx</code>-də qarışdırmaqdansa, ayrıca <code>routes.jsx</code> faylında massiv kimi təsvir et.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">2</span>Lazy loading istifadə et</h4>
+        <p><code>React.lazy</code> + <code>Suspense</code> ilə hər səhifəni ayrıca bundle et — ilkin yüklənmə sürətlənir.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">3</span>Ortaq Layout qur</h4>
+        <p>Navbar/Footer kimi ortaq elementlər üçün <code>Outlet</code> əsaslı Layout komponentindən istifadə et, hər səhifədə təkrarlama.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">4</span>Aktiv linki NavLink ilə göstər</h4>
+        <p><code>Link</code> yerinə <code>NavLink</code> istifadə et ki, <code>isActive</code> ilə cari səhifəni vizual fərqləndirə biləsən.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">5</span>"Tapılmadı" halını idarə et</h4>
+        <p>Dinamik səhifədə uyğun məlumat tapılmadıqda boş ekran göstərmə — aydın mesaj və geri qayıtma yolu təklif et.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">6</span>Redirect-lərə diqqət et</h4>
+        <p>Formadan sonra <code>navigate(..., { replace: true })</code> istifadə et ki, "Geri" düyməsi istifadəçini yenidən formaya qaytarmasın.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">7</span>Server konfiqurasiyasını yoxla</h4>
+        <p>Deploy etməzdən əvvəl hostinqin SPA fallback (bütün ünvanlar üçün <code>index.html</code>) qaydasını mütləq təsdiqlə.</p>
+      </div>
+      <div class="best-card">
+        <h4><span class="ic">8</span>TypeScript ilə tipləşdir</h4>
+        <p>TypeScript istifadə edirsənsə, <code>useParams&lt;{ id: string }&gt;()</code> kimi tipləşdirmə səhvləri erkən aşkarlayır.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section id="summary">
+    <div class="section-head">
+      <span class="tag">07 · Yekun</span>
+      <h2>Bu dərsdə nə öyrəndik?</h2>
+    </div>
+    <div class="summary-box">
+      <ul>
+        <li>SPA-da client-side routing server routing-dən nə ilə fərqlənir və History API necə işləyir.</li>
+        <li><code>BrowserRouter</code>, <code>Routes</code>, <code>Route</code> ilə əsas naviqasiya strukturunu qurmağı.</li>
+        <li><code>Link</code>/<code>NavLink</code> ilə <code>&lt;a&gt;</code> teqinin fərqini və nə üçün SPA-da <code>Link</code> istifadə olunduğunu.</li>
+        <li><code>useNavigate</code> ilə proqramla, <code>useParams</code> ilə URL-dən dinamik dəyər oxumağı.</li>
+        <li>Nested və dynamic route-ları <code>Outlet</code> ilə birlikdə qurmağı, 404 səhifəsini düzgün yerləşdirməyi.</li>
+        <li>Ən çox rast gəlinən 8 xətanı və onların qarşısını necə almağı.</li>
+      </ul>
+      <p style="margin-top:14px; margin-bottom:0;">Növbəti addım: yuxarıdakı tapşırığı tamamla, məhsul kataloqunu qur və hər məhsul üçün ayrıca detal səhifəsini işlət. Bonus tapşırıqları da unutma! 🚀</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>Dərs 7 — React Router ilə Naviqasiya · Route xəritəsi sonda deyil, davamlı öyrənmədədir</footer>
+
+<script>
+  // ---- syntax highlight (yüngül, regex-əsaslı) ----
+  function hl(code){
+    const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return esc.replace(
+      /(\/\/[^\n]*)|(`(?:\\.|[^`\\])*`|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b(?:import|from|export|default|const|let|var|function|return|if|else|new|class|extends|async|await|of|in|null|undefined|true|false)\b)|(&lt;\/?[A-Za-z][\w.]*)/g,
+      function(m, comment, str, kw, tag){
+        if (comment) return '<span class="tok-comment">'+comment+'</span>';
+        if (str) return '<span class="tok-str">'+str+'</span>';
+        if (kw) return '<span class="tok-kw">'+kw+'</span>';
+        if (tag) return '<span class="tok-tag">'+tag+'</span>';
+        return m;
+      }
+    );
+  }
+  document.querySelectorAll('code.code').forEach(function(el){
+    el.innerHTML = hl(el.textContent);
+  });
+
+  // ---- copy buttons ----
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const codeEl = btn.closest('.code-block').querySelector('code');
+      const text = codeEl.textContent;
+      navigator.clipboard.writeText(text).then(function(){
+        const old = btn.textContent;
+        btn.textContent = 'Kopyalandı!';
+        setTimeout(function(){ btn.textContent = old; }, 1500);
+      });
+    });
+  });
+
+  // ---- scroll progress bar ----
+  const progress = document.getElementById('progress');
+  function updateProgress(){
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const height = h.scrollHeight - h.clientHeight;
+    const pct = height > 0 ? (scrolled / height) * 100 : 0;
+    progress.style.width = pct + '%';
+  }
+  document.addEventListener('scroll', updateProgress, { passive:true });
+  updateProgress();
+
+  // ---- scroll spy for route-nav ----
+  const navLinks = Array.from(document.querySelectorAll('.route-nav a[data-nav]'));
+  const sections = navLinks.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+
+  const observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      const idx = sections.indexOf(entry.target);
+      if (idx === -1) return;
+      if (entry.isIntersecting){
+        navLinks.forEach(function(l){ l.classList.remove('active'); });
+        navLinks[idx].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+  sections.forEach(function(s){ if (s) observer.observe(s); });
+</script>
+
+</body>
+</html>

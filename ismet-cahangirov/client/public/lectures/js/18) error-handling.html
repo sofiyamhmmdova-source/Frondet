@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 27 — Error Handling: Xətaların İdarə Edilməsi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171d;
+    --bg-alt:#1a1e26;
+    --panel:#1e222c;
+    --panel-2:#232833;
+    --border:#2b303c;
+    --code-bg:#0f1319;
+    --text:#e7e9ee;
+    --text-dim:#98a0b3;
+    --text-faint:#5c637a;
+    --lesson:#f2a341;
+    --c-try:#5bb3ee;
+    --c-try-bg:rgba(91,179,238,.1);
+    --c-catch:#f2695c;
+    --c-catch-bg:rgba(242,105,92,.1);
+    --c-finally:#4ed394;
+    --c-finally-bg:rgba(78,211,148,.1);
+    --c-throw:#f0c04a;
+    --c-throw-bg:rgba(240,192,74,.1);
+    --radius:14px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  section{scroll-margin-top:96px;}
+  a{color:inherit;}
+  h1,h2,h3{font-family:var(--font-display); margin:0; letter-spacing:-.01em;}
+  code, pre, .mono{font-family:var(--font-mono);}
+  p{margin:0 0 14px 0; color:var(--text-dim);}
+  p:last-child{margin-bottom:0;}
+  strong{color:var(--text); font-weight:600;}
+
+  /* ---------- Browser chrome ---------- */
+  .browser-chrome{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; gap:14px;
+    height:44px; padding:0 16px;
+    background:var(--bg-alt);
+    border-bottom:1px solid var(--border);
+  }
+  .chrome-dots{display:flex; gap:6px; flex-shrink:0;}
+  .chrome-dots span{width:10px; height:10px; border-radius:50%; display:block;}
+  .chrome-dots span:nth-child(1){background:#f2695c;}
+  .chrome-dots span:nth-child(2){background:#f0c04a;}
+  .chrome-dots span:nth-child(3){background:#4ed394;}
+  .chrome-bar{
+    flex:1; max-width:520px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:5px 12px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--text-faint);
+    overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  }
+  .chrome-tab{
+    margin-left:auto;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--text-dim);
+    background:var(--panel-2);
+    padding:4px 10px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    flex-shrink:0;
+  }
+
+  /* ---------- Layout ---------- */
+  .layout{
+    display:grid;
+    grid-template-columns:250px 1fr;
+    gap:36px;
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 24px 100px;
+    align-items:start;
+  }
+  .sidebar{
+    position:sticky; top:64px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .toc-title{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    color:var(--text-faint);
+    text-transform:uppercase;
+    margin-bottom:10px;
+    padding-left:12px;
+  }
+  .sidebar a{
+    display:flex; align-items:center; gap:8px;
+    padding:8px 12px;
+    font-size:13.5px;
+    color:var(--text-dim);
+    text-decoration:none;
+    border-left:2px solid transparent;
+    border-radius:0 8px 8px 0;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .sidebar a:hover{background:var(--panel); color:var(--text);}
+  .sidebar a.active{
+    color:var(--text);
+    background:var(--panel);
+    border-left-color:var(--lesson);
+  }
+  .sidebar a .dot{width:6px; height:6px; border-radius:50%; background:var(--text-faint); flex-shrink:0;}
+  .sidebar a.active .dot{background:var(--lesson);}
+
+  main{min-width:0;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:8px 0 40px;}
+  .lesson-card{
+    display:flex; align-items:flex-start; gap:14px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:28px;
+  }
+  .lesson-badge{
+    flex-shrink:0;
+    width:34px; height:34px; border-radius:50%;
+    background:var(--lesson);
+    color:#20140a;
+    font-family:var(--font-display); font-weight:700; font-size:15px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lesson-card-title{font-weight:600; font-size:15px; color:var(--text); margin-bottom:3px; display:flex; align-items:center; gap:8px;}
+  .lesson-card-title .bullet{width:6px; height:6px; border-radius:50%; background:var(--lesson); display:inline-block;}
+  .lesson-card-sub{font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint);}
+
+  .eyebrow{
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.09em;
+    color:var(--text-faint); text-transform:uppercase; margin-bottom:10px;
+    display:block;
+  }
+  .hero h1{font-size:clamp(28px,4.4vw,44px); line-height:1.12; margin-bottom:18px;}
+  .hero .lead{font-size:16.5px; max-width:66ch; color:var(--text-dim);}
+
+  .quicknav{display:flex; flex-wrap:wrap; gap:8px; margin-top:26px;}
+  .quicknav a{
+    font-family:var(--font-mono); font-size:12px;
+    padding:7px 12px; border-radius:20px;
+    border:1px solid var(--border); background:var(--panel);
+    color:var(--text-dim); text-decoration:none;
+  }
+  .quicknav a:hover{border-color:var(--lesson); color:var(--text);}
+
+  /* ---------- Section headers ---------- */
+  .sec{padding:56px 0; border-top:1px solid var(--border);}
+  .sec:first-of-type{border-top:none;}
+  .sec-head{margin-bottom:22px;}
+  .sec-head h2{font-size:clamp(22px,3vw,30px); margin-top:8px;}
+  .sec-eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.08em;
+    color:var(--text-faint); text-transform:uppercase;
+  }
+  .sec-lead{font-size:15.5px; max-width:70ch; margin-top:12px;}
+
+  /* ---------- Prose blocks ---------- */
+  .block{margin:22px 0;}
+  .block h3{font-size:17px; color:var(--text); margin-bottom:8px;}
+  ul.plain{margin:0; padding-left:20px; color:var(--text-dim);}
+  ul.plain li{margin-bottom:8px;}
+  ul.plain li::marker{color:var(--text-faint);}
+
+  /* ---------- Code window ---------- */
+  .code-window{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin:18px 0;
+  }
+  .code-window-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:9px 14px;
+    background:var(--panel-2);
+    border-bottom:1px solid var(--border);
+  }
+  .code-window-bar .dot{width:9px; height:9px; border-radius:50%;}
+  .code-window-bar .dot.r{background:#f2695c;} .code-window-bar .dot.y{background:#f0c04a;} .code-window-bar .dot.g{background:#4ed394;}
+  .code-filename{
+    margin-left:6px; font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint);
+  }
+  .code-window pre{
+    margin:0; padding:16px; overflow-x:auto;
+    font-family:var(--font-mono); font-size:13px; line-height:1.65;
+  }
+  .code-window code{white-space:pre;}
+  .tok-kw{color:#c9a3f5;} .tok-str{color:#8fdba0;} .tok-com{color:var(--text-faint); font-style:italic;} .tok-num{color:var(--c-throw);} .tok-cls{color:var(--c-try);}
+
+  /* ---------- Console window ---------- */
+  .console-window{
+    background:#0c0e12; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin:18px 0;
+  }
+  .console-bar{
+    display:flex; align-items:center; gap:7px;
+    padding:9px 14px; background:var(--panel-2); border-bottom:1px solid var(--border);
+    font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint);
+  }
+  .console-dot{width:7px; height:7px; border-radius:50%; background:var(--c-finally);}
+  .console-body{padding:14px 16px; font-family:var(--font-mono); font-size:12.8px; min-height:20px;}
+  .console-line{padding:3px 0; color:var(--text-dim); border-bottom:1px dashed transparent;}
+  .console-line.err{color:var(--c-catch);}
+  .console-line.warn{color:var(--c-throw);}
+  .console-placeholder{color:var(--text-faint); font-style:italic;}
+  .console-strike{color:var(--text-faint); text-decoration:line-through;}
+
+  /* ---------- Simulator (signature element) ---------- */
+  .sim-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px; margin:22px 0;
+  }
+  .sim-flow{display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;}
+  .flow-step{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.05em;
+    padding:8px 14px; border-radius:8px; border:1px solid var(--border);
+    color:var(--text-faint); display:flex; align-items:center; gap:7px;
+    transition:all .25s;
+  }
+  .flow-step .flow-num{
+    width:16px; height:16px; border-radius:50%; background:var(--panel-2);
+    display:flex; align-items:center; justify-content:center; font-size:10px;
+  }
+  .flow-step[data-key="try"].active{border-color:var(--c-try); color:var(--c-try); background:var(--c-try-bg);}
+  .flow-step[data-key="catch"].active{border-color:var(--c-catch); color:var(--c-catch); background:var(--c-catch-bg);}
+  .flow-step[data-key="finally"].active{border-color:var(--c-finally); color:var(--c-finally); background:var(--c-finally-bg);}
+  .flow-step.done{opacity:.55;}
+  .flow-connector{width:20px; height:1px; background:var(--border);}
+  .sim-body{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px;}
+  .run-btn{
+    margin-top:6px;
+    font-family:var(--font-mono); font-size:13px; font-weight:600;
+    background:var(--lesson); color:#20140a; border:none;
+    padding:10px 18px; border-radius:8px; cursor:pointer;
+  }
+  .run-btn:hover{filter:brightness(1.08);}
+  .run-btn:disabled{opacity:.6; cursor:default;}
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    display:flex; gap:14px;
+    background:var(--c-throw-bg); border:1px solid rgba(240,192,74,.3);
+    border-radius:12px; padding:16px 18px; margin:20px 0;
+  }
+  .callout-icon{font-size:18px; flex-shrink:0; margin-top:1px;}
+  .callout strong{display:block; margin-bottom:4px; color:var(--text);}
+  .callout p{color:var(--text-dim); font-size:14.5px;}
+
+  /* ---------- Bug cards ---------- */
+  .bug-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:22px; margin:20px 0;
+  }
+  .bug-card-head{display:flex; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap;}
+  .bug-id{
+    font-family:var(--font-mono); font-size:11.5px; font-weight:600;
+    background:var(--c-catch-bg); color:var(--c-catch);
+    padding:4px 9px; border-radius:6px; border:1px solid rgba(242,105,92,.3);
+  }
+  .bug-card-head h3{font-size:17px; color:var(--text);}
+  .bug-desc{margin-bottom:14px; font-size:14.5px;}
+  .compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .compare{border-radius:10px; overflow:hidden; border:1px solid var(--border);}
+  .compare-label{
+    display:block; font-family:var(--font-mono); font-size:11px; font-weight:600;
+    padding:7px 12px; letter-spacing:.03em;
+  }
+  .compare.bad .compare-label{background:var(--c-catch-bg); color:var(--c-catch);}
+  .compare.good .compare-label{background:var(--c-finally-bg); color:var(--c-finally);}
+  .compare pre{margin:0; padding:12px 14px; background:var(--code-bg); overflow-x:auto; font-family:var(--font-mono); font-size:12.2px; line-height:1.6;}
+
+  /* ---------- Checklist ---------- */
+  .checklist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px;}
+  .checklist li{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 16px;
+  }
+  .check{
+    flex-shrink:0; width:22px; height:22px; border-radius:50%;
+    background:var(--c-finally-bg); color:var(--c-finally);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;
+    margin-top:1px;
+  }
+  .checklist strong{display:block; color:var(--text); font-size:14.5px; margin-bottom:3px;}
+  .checklist span.desc{font-size:13.8px; color:var(--text-dim);}
+
+  /* ---------- Error type table ---------- */
+  .type-list{display:flex; flex-direction:column; gap:10px; margin:20px 0;}
+  .type-row{
+    display:grid; grid-template-columns:150px 1fr; gap:16px;
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    padding:12px 16px; align-items:start;
+  }
+  .type-name{font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--c-throw);}
+  .type-desc{font-size:13.8px; color:var(--text-dim);}
+
+  /* ---------- Quiz ---------- */
+  .quiz-item{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    margin-bottom:10px; overflow:hidden;
+  }
+  .quiz-item summary{
+    cursor:pointer; padding:14px 16px; font-weight:600; font-size:14.5px; color:var(--text);
+    list-style:none; display:flex; gap:10px; align-items:center;
+  }
+  .quiz-item summary::-webkit-details-marker{display:none;}
+  .quiz-item summary::before{content:"?"; font-family:var(--font-mono); color:var(--lesson); font-weight:700;}
+  .quiz-item[open] summary::before{content:"−"; color:var(--c-finally);}
+  .quiz-answer{padding:0 16px 16px 40px; font-size:14px; color:var(--text-dim);}
+
+  footer{
+    max-width:1180px; margin:0 auto; padding:0 24px 60px;
+    color:var(--text-faint); font-size:13px; border-top:1px solid var(--border); padding-top:24px;
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr; padding:0 0 80px;}
+    .sidebar{
+      position:sticky; top:44px; z-index:40;
+      flex-direction:row; overflow-x:auto; gap:8px;
+      background:var(--bg-alt); border-bottom:1px solid var(--border);
+      padding:10px 16px; margin-bottom:8px;
+    }
+    .toc-title{display:none;}
+    .sidebar a{flex-shrink:0; white-space:nowrap; border-left:none; border-bottom:2px solid transparent; border-radius:8px;}
+    .sidebar a.active{border-bottom-color:var(--lesson);}
+    main{padding:0 20px;}
+    .sim-body{grid-template-columns:1fr;}
+    .compare-grid{grid-template-columns:1fr;}
+    .type-row{grid-template-columns:1fr; gap:4px;}
+    footer{padding-left:20px; padding-right:20px;}
+  }
+  @media (max-width:520px){
+    .hero h1{font-size:26px;}
+    .code-window pre, .compare pre{font-size:11.5px;}
+    .lesson-card{padding:14px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="browser-chrome">
+  <div class="chrome-dots"><span></span><span></span><span></span></div>
+  <div class="chrome-bar">az-dersler.dev/dərs-27/error-handling</div>
+  <div class="chrome-tab">▶ Console</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="toc-title">Məzmun</div>
+    <a href="#giris"><span class="dot"></span>Giriş</a>
+    <a href="#try-catch-finally"><span class="dot"></span>Try / Catch / Finally</a>
+    <a href="#throw"><span class="dot"></span>Throw operatoru</a>
+    <a href="#error-novleri"><span class="dot"></span>Error növləri</a>
+    <a href="#sehvler"><span class="dot"></span>Ən çox edilən səhvlər</a>
+    <a href="#best-practices"><span class="dot"></span>Yaxşı təcrübələr</a>
+    <a href="#nuanslar"><span class="dot"></span>Nüanslar</a>
+    <a href="#test"><span class="dot"></span>Özünü yoxla</a>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="lesson-card">
+        <div class="lesson-badge">27</div>
+        <div>
+          <div class="lesson-card-title"><span class="bullet"></span>Error Handling</div>
+          <div class="lesson-card-sub">try / catch / finally, throw, xüsusi Error növləri</div>
+        </div>
+      </div>
+
+      <span class="eyebrow">Dərs 27 · JavaScript</span>
+      <h1>Error Handling — Xətaların İdarə Edilməsi</h1>
+      <p class="lead">Proqram işləyərkən hər şey planlaşdırıldığı kimi getmir: şəbəkə kəsilir, istifadəçi səhv məlumat daxil edir, fayl tapılmır, server cavab vermir. Bu dərsdə həmin anlarda proqramın tamamilə "partlamaması", səhvi tutub ağıllı reaksiya verməsi üçün lazım olan bütün alətləri öyrənəcəyik: <strong>try / catch / finally</strong>, <strong>throw</strong>, hazır <strong>Error obyektləri</strong> və öz xüsusi error tiplərini necə qurmaq.</p>
+      <div class="quicknav">
+        <a href="#giris">Niyə vacibdir</a>
+        <a href="#try-catch-finally">Try/Catch/Finally</a>
+        <a href="#throw">Throw</a>
+        <a href="#error-novleri">Error növləri</a>
+        <a href="#sehvler">Bug-lar</a>
+        <a href="#best-practices">Tövsiyələr</a>
+        <a href="#nuanslar">Nüanslar</a>
+      </div>
+    </div>
+
+    <!-- ========== GİRİŞ ========== -->
+    <section class="sec" id="giris">
+      <div class="sec-head">
+        <span class="sec-eyebrow">01 · Giriş</span>
+        <h2>Niyə Error Handling vacibdir?</h2>
+        <p class="sec-lead">Sadə bir müqayisə: elektrik sistemində sığorta (fuse) olmasa, kiçik bir qısaqapanma bütün evi yandıra bilər. Error handling da proqram üçün elə bir "sığorta"dır — gözlənilməz bir xəta baş verəndə bütün proqramın çökməsinin qarşısını alır.</p>
+      </div>
+
+      <div class="block">
+        <p>JavaScript-də əgər bir xəta <strong>tutulmasa</strong> (uncaught), brauzerdə həmin skriptin qalan hissəsi dayanır, Node.js-də isə bütün proses çökür. Aşağıdakı nümunəyə bax:</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">crash-nümunə.js</span></div>
+        <pre><code data-code="ex-crash"></code></pre>
+      </div>
+
+      <div class="console-window">
+        <div class="console-bar"><span class="console-dot"></span>Console</div>
+        <div class="console-body">
+          <div class="console-line">Proqram başladı</div>
+          <div class="console-line err">Uncaught TypeError: Cannot read properties of null (reading 'name')</div>
+          <div class="console-line console-strike">Bu sətir heç vaxt icra olunmayacaq</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <p>Gördüyün kimi, xəta baş verən andan sonra kodun qalan hissəsi — hətta xətayla heç bir əlaqəsi olmayan sətirlər belə — işə düşmür. Error handling məhz bunun qarşısını alır: xətanı "tutub" proqrama <em>"bu problem oldu, indi nə edək?"</em> sualına cavab vermək imkanı yaradır.</p>
+      </div>
+    </section>
+
+    <!-- ========== TRY / CATCH / FINALLY ========== -->
+    <section class="sec" id="try-catch-finally">
+      <div class="sec-head">
+        <span class="sec-eyebrow">02 · Əsas mexanizm</span>
+        <h2>Try / Catch / Finally</h2>
+        <p class="sec-lead">Bu üç blok error handling-in özəyidir. Hər biri fərqli bir sualın cavabıdır: <strong>try</strong> — "nəyi sınayırıq?", <strong>catch</strong> — "xəta olsa nə edirik?", <strong>finally</strong> — "nə olur-olsun, nəyi mütləq etməliyik?"</p>
+      </div>
+
+      <div class="block">
+        <h3>Necə işləyir</h3>
+        <ul class="plain">
+          <li><strong>try {}</strong> blokuna xəta ehtimalı olan kod yazılır. JavaScript bu kodu sətir-sətir icra edir.</li>
+          <li>Əgər try bloku daxilində <strong>heç bir xəta baş verməsə</strong>, catch bloku tamamilə atlanır və proqram normal davam edir.</li>
+          <li>Əgər hər hansı sətirdə xəta baş versə, JavaScript try blokunun <strong>qalan hissəsini dərhal tərk edir</strong> (o sətirdən sonrakı heç nə icra olunmur) və birbaşa catch blokuna keçir.</li>
+          <li><strong>catch (error) {}</strong> bloku bir Error obyekti qəbul edir. Bu obyektin <code>.name</code> (xətanın tipi), <code>.message</code> (izahat) və <code>.stack</code> (hansı sətirdə baş verdiyini göstərən "iz") kimi xassələri var.</li>
+          <li><strong>finally {}</strong> bloku isə — xəta olsun ya olmasın, hətta try və ya catch daxilində <code>return</code> olsa belə — <strong>həmişə icra olunur</strong>. Buna görə də bağlantını bağlamaq, loading göstəricisini gizlətmək kimi "təmizlik" işləri üçün ideal yerdir.</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>Sınaq: axını canlı izlə</h3>
+        <p>Aşağıdakı kodu "İşə sal" düyməsi ilə simulyasiya et və hər addımın (TRY → CATCH → FINALLY) necə ardıcıl işə düşdüyünü izlə.</p>
+      </div>
+
+      <div class="sim-card">
+        <div class="sim-flow" id="simFlow">
+          <div class="flow-step" data-key="try"><span class="flow-num">1</span>TRY</div>
+          <div class="flow-connector"></div>
+          <div class="flow-step" data-key="catch"><span class="flow-num">2</span>CATCH</div>
+          <div class="flow-connector"></div>
+          <div class="flow-step" data-key="finally"><span class="flow-num">3</span>FINALLY</div>
+        </div>
+        <div class="sim-body">
+          <div class="code-window">
+            <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">try-catch-finally.js</span></div>
+            <pre><code data-code="ex-trycatch"></code></pre>
+          </div>
+          <div class="console-window">
+            <div class="console-bar"><span class="console-dot"></span>Console</div>
+            <div class="console-body" id="simConsole">
+              <div class="console-placeholder">Nəticəni görmək üçün "İşə sal" düyməsinə bas →</div>
+            </div>
+          </div>
+        </div>
+        <button class="run-btn" id="simRunBtn">▶ Kodu işə sal</button>
+      </div>
+
+      <div class="block">
+        <h3>Error obyektinin xassələri</h3>
+        <p>catch blokuna daxil olan error obyektindən üç əsas xassəni oxuya bilərsən:</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">error-obyekti.js</span></div>
+        <pre><code data-code="ex-errorprops"></code></pre>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">💡</div>
+        <div><strong>Vacib qeyd</strong><p>Əgər catch bloku daxilində error obyektinin özünə ehtiyacın yoxdursa, mötərizəni tamamilə buraxa bilərsən: <code>catch { ... }</code>. Bu, "optional catch binding" adlanır və müasir JavaScript-də dəstəklənir.</p></div>
+      </div>
+    </section>
+
+    <!-- ========== THROW ========== -->
+    <section class="sec" id="throw">
+      <div class="sec-head">
+        <span class="sec-eyebrow">03 · Manual xəta yaratmaq</span>
+        <h2>Throw operatoru</h2>
+        <p class="sec-lead"><code>throw</code> sənə öz xətanı özün "atmaq" imkanı verir. Bir funksiya daxilində şərt gözlədiyin kimi baş vermirsə, <code>throw</code> ilə icranı dərhal dayandırıb, xətanı ən yaxın <code>catch</code> blokuna (və ya heç biri yoxdursa, çağırış zəncirinin — call stack-in — yuxarısına) ötürə bilərsən.</p>
+      </div>
+
+      <div class="block">
+        <p>Nəzəri cəhətdən <code>throw</code> ilə istənilən dəyəri (string, rəqəm, obyekt) atmaq mümkündür, amma <strong>yalnız Error obyektlərini (və ya ondan törəyən sinifləri) atmaq</strong> ən doğru yanaşmadır — çünki Error obyekti yaradıldığı anda avtomatik olaraq <code>.stack</code> izini özündə saxlayır və bütün alətlər (brauzer, monitorinq sistemləri) məhz bu formatı gözləyir.</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">throw-nümunə.js</span></div>
+        <pre><code data-code="ex-throw"></code></pre>
+      </div>
+
+      <div class="console-window">
+        <div class="console-bar"><span class="console-dot"></span>Console</div>
+        <div class="console-body">
+          <div class="console-line err">Xəta: Sıfıra bölmək olmaz!</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Yenidən atmaq (rethrow)</h3>
+        <p>Bəzən catch blokunda tutduğun xətanı sən özün həll edə bilmirsən — sadəcə onu qeyd edib (log) yuxarı ötürmək daha doğrudur. Bu, "rethrow" adlanır:</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">rethrow.js</span></div>
+        <pre><code data-code="ex-rethrow"></code></pre>
+      </div>
+    </section>
+
+    <!-- ========== ERROR NÖVLƏRİ ========== -->
+    <section class="sec" id="error-novleri">
+      <div class="sec-head">
+        <span class="sec-eyebrow">04 · Error obyekti</span>
+        <h2>Error obyekti və xüsusi Error növləri</h2>
+        <p class="sec-lead">JavaScript-in özündə hazır bir neçə error tipi var — hər biri müəyyən bir problem üçün avtomatik yaranır. Bunlardan əlavə, öz layihən üçün <strong>xüsusi (custom) error sinifləri</strong> də qura bilərsən.</p>
+      </div>
+
+      <div class="block">
+        <h3>Daxili (built-in) error növləri</h3>
+      </div>
+      <div class="type-list">
+        <div class="type-row"><div class="type-name">Error</div><div class="type-desc">Ümumi, "bazovıy" xəta tipi. Bütün digər error tipləri bundan törəyir.</div></div>
+        <div class="type-row"><div class="type-name">TypeError</div><div class="type-desc">Bir dəyər üzərində, onun tipinə uyğun olmayan əməliyyat edildikdə yaranır. Məsələn, <code>null</code> üzərindən xassə oxumaq.</div></div>
+        <div class="type-row"><div class="type-name">RangeError</div><div class="type-desc">Bir dəyər icazə verilən diapazondan kənara çıxdıqda yaranır. Məsələn, massivə mənfi uzunluq təyin etmək.</div></div>
+        <div class="type-row"><div class="type-name">ReferenceError</div><div class="type-desc">Mövcud olmayan (elan edilməmiş) dəyişənə müraciət edildikdə yaranır.</div></div>
+        <div class="type-row"><div class="type-name">SyntaxError</div><div class="type-desc">Kodun sintaksisi səhvdir. Adətən <code>JSON.parse()</code> kimi runtime-da kod/mətn "oxuyan" funksiyalarda rast gəlinir.</div></div>
+        <div class="type-row"><div class="type-name">URIError</div><div class="type-desc"><code>encodeURI()</code> / <code>decodeURI()</code> düzgün olmayan formatla çağırıldıqda yaranır.</div></div>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">builtin-error-noleri.js</span></div>
+        <pre><code data-code="ex-builtin"></code></pre>
+      </div>
+
+      <div class="block">
+        <h3>Xüsusi (custom) Error sinifləri</h3>
+        <p>Real layihələrdə tez-tez öz error tiplərini yaratmaq lazım gəlir — məsələn, "validasiya xətası" ilə "şəbəkə xətası"nı bir-birindən ayırmaq üçün. Bunun üçün <code>Error</code> sinifini genişləndirmək (extend) kifayətdir:</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">custom-error.js</span></div>
+        <pre><code data-code="ex-customerror"></code></pre>
+      </div>
+
+      <div class="block">
+        <p>Bunun faydası: <code>instanceof</code> ilə error-un konkret hansı tipdən olduğunu yoxlaya, hər tipi fərqli cür emal edə bilərsən — kod daha oxunaqlı və idarə olunan olur.</p>
+        <h3>Error.cause — xətaların zəncirlənməsi</h3>
+        <p>Bəzən bir xətanı tutub, daha yüksək səviyyəli, daha başa düşülən bir xəta ilə "sarımaq" lazım gəlir — amma orijinal səbəbi itirmədən. Bunun üçün ES2022-də əlavə olunmuş <code>cause</code> xassəsi istifadə olunur:</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">error-cause.js</span></div>
+        <pre><code data-code="ex-errorcause"></code></pre>
+      </div>
+
+      <div class="block">
+        <h3>Asinxron kodda custom error-lar</h3>
+        <p>API sorğularında custom error-lar xüsusilə faydalıdır — status kodu kimi əlavə məlumat da daşıya bilirlər:</p>
+      </div>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">async-error.js</span></div>
+        <pre><code data-code="ex-asyncerror"></code></pre>
+      </div>
+    </section>
+
+    <!-- ========== SƏHVLƏR ========== -->
+    <section class="sec" id="sehvler">
+      <div class="sec-head">
+        <span class="sec-eyebrow">05 · Bug report</span>
+        <h2>Ən çox edilən səhvlər</h2>
+        <p class="sec-lead">Error handling yazmaq asandır, amma <em>doğru</em> yazmaq təcrübə tələb edir. Aşağıda yeni başlayanların (və bəzən təcrübəlilərin də) tez-tez düşdüyü səhvlər — "səhv" və "düzgün" kod müqayisəsi ilə.</p>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-01</span><h3>Boş catch bloku (xətanı udmaq)</h3></div>
+        <p class="bug-desc">Xətanı tutub heç nə etməmək ən təhlükəli vərdişlərdən biridir — proqram "işləyir" kimi görünür, amma arxada nə baş verdiyi tamamilə bilinməz qalır. Bu, gələcəkdə tapılması çox çətin olan gizli bug-lara aparır.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug1-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug1-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-02</span><h3>Həddindən artıq geniş try bloku</h3></div>
+        <p class="bug-desc">Bütün funksiyanı bir try blokuna doldurmaq, xətanın konkret olaraq hansı sətirdən gəldiyini müəyyən etməyi çətinləşdirir. try blokunu yalnız həqiqətən xəta ehtimalı olan hissə ilə məhdudlaşdır.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug2-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug2-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-03</span><h3>String (yaxud digər primitiv) atmaq</h3></div>
+        <p class="bug-desc"><code>throw "mətn"</code> texniki olaraq işləyir, amma stack izi olmur, <code>.message</code> / <code>.name</code> kimi standart xassələr yoxdur. Bu, debugging-i və monitorinq alətlərini çətinləşdirir.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug3-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug3-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-04</span><h3>Asinxron kodda try/catch-i unutmaq</h3></div>
+        <p class="bug-desc"><code>await</code> ilə çağırılan bir sorğu uğursuz olsa, try/catch olmadan bu, "unhandled promise rejection" kimi sükutla (yaxud kontrolsuz şəkildə) proqramı dayandıra bilər.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug4-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug4-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-05</span><h3>try/catch callback daxilindəki xətanı tutmur</h3></div>
+        <p class="bug-desc">try/catch yalnız <strong>öz sinxron icra bloku</strong> daxilində baş verən xətaları tutur. <code>setTimeout</code>, hadisə (event) callback-ləri kimi gələcəkdə icra olunan kodlar xarici try-ın "əhatə dairəsindən" kənardadır.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug5-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug5-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-06</span><h3>Bütün error tiplərini eyni cür tutmaq</h3></div>
+        <p class="bug-desc">Validasiya xətası ilə şəbəkə xətasına eyni reaksiyanı vermək istifadəçiyə yanlış mesaj göstərməyə səbəb ola bilər. <code>instanceof</code> ilə error tipini ayırd et.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug6-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug6-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-07</span><h3>Xam (raw) error mesajını istifadəçiyə göstərmək</h3></div>
+        <p class="bug-desc">Son istifadəçi <code>error.stack</code> yaxud texniki mesajlar görməməlidir — bu həm anlaşılmazdır, həm də daxili sistem haqqında lazımsız məlumat "sızdıra" bilər (təhlükəsizlik riski). İstifadəçiyə sadə mesaj göstər, texniki detalı arxa planda logla.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug7-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug7-good"></code></pre></div>
+        </div>
+      </div>
+
+      <div class="bug-card">
+        <div class="bug-card-head"><span class="bug-id">BUG-08</span><h3>try/catch-i normal şərt yoxlaması əvəzinə istifadə etmək</h3></div>
+        <p class="bug-desc">try/catch istisna (exception) hallar üçündür, adi məntiqi yoxlamalar üçün yox. Sadə bir şərtlə (<code>if</code>) həll oluna bilən vəziyyəti try/catch-ə salmaq kodu həm yavaşladır, həm oxunaqlılığı azaldır.</p>
+        <div class="compare-grid">
+          <div class="compare bad"><span class="compare-label">✕ Səhv</span><pre><code data-code="bug8-bad"></code></pre></div>
+          <div class="compare good"><span class="compare-label">✓ Düzgün</span><pre><code data-code="bug8-good"></code></pre></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== BEST PRACTICES ========== -->
+    <section class="sec" id="best-practices">
+      <div class="sec-head">
+        <span class="sec-eyebrow">06 · Tövsiyələr</span>
+        <h2>Yaxşı təcrübələr</h2>
+        <p class="sec-lead">Yuxarıdakı səhvlərin əksinə olaraq, real layihələrdə error handling yazarkən riayət olunası əsas prinsiplər:</p>
+      </div>
+
+      <ul class="checklist">
+        <li><span class="check">✓</span><div><strong>Yalnız idarə edə biləcəyin xətanı tut</strong><span class="desc">Bilmədiyin, düzəldə bilmədiyin xətanı udma — ya düzgün emal et, ya da yuxarı ötür (rethrow).</span></div></li>
+        <li><span class="check">✓</span><div><strong>Heç vaxt catch-i tamamilə boş buraxma</strong><span class="desc">Minimum olaraq, <code>console.error()</code> ilə qeyd et. Sükut edən catch gizli bug-lara aparır.</span></div></li>
+        <li><span class="check">✓</span><div><strong>try blokunu mümkün qədər kiçik saxla</strong><span class="desc">Yalnız xəta ehtimalı olan konkret sətirləri əhatə et, bütün funksiyanı yox.</span></div></li>
+        <li><span class="check">✓</span><div><strong>Öz Error siniflərini yarat</strong><span class="desc"><code>instanceof</code> ilə error tiplərini ayırd etmək kodu daha oxunaqlı və idarə olunan edir.</span></div></li>
+        <li><span class="check">✓</span><div><strong>finally-i təmizlik üçün istifadə et</strong><span class="desc">Bağlantıları bağlamaq, loading göstəricisini gizlətmək kimi əməliyyatlar üçün ideal yerdir.</span></div></li>
+        <li><span class="check">✓</span><div><strong>Asinxron kodda da unutma</strong><span class="desc"><code>async/await</code> ilə try/catch birlikdə, yaxud Promise-lərdə <code>.catch()</code> mütləq olmalıdır.</span></div></li>
+        <li><span class="check">✓</span><div><strong>İstifadəçiyə mehriban, özünə detallı mesaj göstər</strong><span class="desc">Son istifadəçi texniki mesaj görməməlidir — sadə mesaj göstər, texniki detalı arxa planda (monitorinq sistemində) logla.</span></div></li>
+        <li><span class="check">✓</span><div><strong>Error.cause ilə konteksti saxla</strong><span class="desc">Xətanı yenidən atarkən orijinal səbəbi itirmə — <code>{ cause: originalError }</code> istifadə et.</span></div></li>
+        <li><span class="check">✓</span><div><strong>Xəta yollarını da test et</strong><span class="desc">Yalnız "hər şey düz gedəndə" deyil, şəbəkə kəsildikdə, boş input verildikdə də funksiyanın necə davrandığını yoxla.</span></div></li>
+      </ul>
+    </section>
+
+    <!-- ========== NÜANSLAR ========== -->
+    <section class="sec" id="nuanslar">
+      <div class="sec-head">
+        <span class="sec-eyebrow">07 · Detallar</span>
+        <h2>Nüanslar</h2>
+        <p class="sec-lead">JavaScript-in error handling davranışında bir neçə incə, çox vaxt təəccübləndirən detal var. Bunları bilmək debugging zamanı çox vaxt qazandırır.</p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">⚠️</div>
+        <div><strong>finally, return-u belə üstələyir</strong><p>Əgər həm try/catch-də, həm də finally-də <code>return</code> yazılsa, <strong>finally-dəki qalib gəlir</strong>. Bax:</p></div>
+      </div>
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">finally-return.js</span></div>
+        <pre><code data-code="ex-finallyreturn"></code></pre>
+      </div>
+      <p style="margin:-6px 0 24px 0; font-size:13.8px;">Nəticə: <strong>2</strong>. Bu davranış çox vaxt gözlənilməz bug-lara səbəb olur, ona görə finally daxilində <code>return</code> yazmaqdan çəkin.</p>
+
+      <div class="callout">
+        <div class="callout-icon">🔎</div>
+        <div><strong>catch dəyişəni yalnız öz bloku daxilində mövcuddur</strong><p>catch-in <code>(error)</code> parametri blok-səviyyəli (block-scoped) dəyişəndir — catch blokundan kənarda əlçatan deyil. Əgər error-u kənarda istifadə etmək lazımdırsa, onu əvvəlcədən elan olunmuş xarici dəyişənə mənimsətmək lazımdır.</p></div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">🧩</div>
+        <div><strong>JavaScript-də "çoxlu catch tipi" yoxdur</strong><p>Bəzi dillərdə (Java, Python) fərqli error tipləri üçün ayrı-ayrı catch blokları yazmaq mümkündür. JavaScript-də isə bir catch bloku var — fərqli tipləri <code>instanceof</code> ilə özün ayırd etməlisən.</p></div>
+      </div>
+      <div class="code-window">
+        <div class="code-window-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-filename">instanceof-ayirma.js</span></div>
+        <pre><code data-code="ex-instanceof"></code></pre>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">📡</div>
+        <div><strong>Unhandled promise rejection sükutla itə bilər</strong><p>Əgər bir Promise rədd edilsə (reject) və heç yerdə <code>.catch()</code> yoxdursa, brauzer konsolunda "Uncaught (in promise)" xəbərdarlığı görünür. Qlobal şəkildə izləmək üçün <code>window.addEventListener('unhandledrejection', ...)</code> istifadə edilə bilər.</p></div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">🪪</div>
+        <div><strong>error.stack developer üçündür, istifadəçi üçün yox</strong><p>Bu xassənin formatı brauzerlər arasında standart deyil və daxili fayl yollarını göstərə bilər. İstifadəçiyə göstərmə — amma Sentry kimi monitorinq sistemlərinə göndərmək üçün çox dəyərlidir.</p></div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">🎯</div>
+        <div><strong>Optional catch binding</strong><p>Əgər error obyektinin özünə ehtiyacın yoxdursa, mötərizəni tamamilə buraxa bilərsən: <code>catch { ... }</code>. Kodu bir az təmizləyir, məntiqi dəyişmir.</p></div>
+      </div>
+
+      <div class="callout">
+        <div class="callout-icon">🚫</div>
+        <div><strong>throw hər şeyi qəbul edir, amma hər şeyi atma</strong><p>Texniki olaraq <code>throw 404;</code> yaxud <code>throw {mesaj: "xəta"};</code> da işləyir. Amma bu, stack izini itirir və alətlərin gözlədiyi formatı pozur. Həmişə <code>Error</code> (və ya ondan törəyən) obyekt at.</p></div>
+      </div>
+    </section>
+
+    <!-- ========== TEST ========== -->
+    <section class="sec" id="test">
+      <div class="sec-head">
+        <span class="sec-eyebrow">08 · Özünü yoxla</span>
+        <h2>Özünü yoxla</h2>
+        <p class="sec-lead">Sualın üzərinə klikləyib cavabı yoxla — əvvəlcə özün cavablandırmağa çalış.</p>
+      </div>
+
+      <details class="quiz-item">
+        <summary>finally bloku, try-də return olsa belə icra olunacaqmı?</summary>
+        <div class="quiz-answer">Bəli. finally, try/catch-də nə baş verməsindən — hətta <code>return</code>, <code>throw</code> və ya <code>break</code> olsa belə — asılı olmayaraq həmişə icra olunur. Üstəlik, finally daxilində <code>return</code> yazılsa, o, əvvəlki return-u əvəz edir.</div>
+      </details>
+
+      <details class="quiz-item">
+        <summary>throw ilə hansı dəyərləri atmaq olar? Tövsiyə olunan nədir?</summary>
+        <div class="quiz-answer">Texniki cəhətdən istənilən dəyəri (string, rəqəm, obyekt) atmaq mümkündür. Amma tövsiyə olunan yalnız <code>Error</code> obyekti (və ya ondan törəyən xüsusi sinif) atmaqdır — çünki bu, avtomatik olaraq stack izini və standart <code>.name</code>/<code>.message</code> xassələrini təmin edir.</div>
+      </details>
+
+      <details class="quiz-item">
+        <summary>Niyə boş catch bloku (<code>catch (e) {}</code>) təhlükəlidir?</summary>
+        <div class="quiz-answer">Çünki xəta sükutla "udulur" — heç bir iz qalmır. Proqram zahirən normal işləyir kimi görünsə də, arxada nəyin səhv getdiyi bilinmir və bu, tapılması çox çətin olan gizli bug-lara səbəb olur.</div>
+      </details>
+
+      <details class="quiz-item">
+        <summary>instanceof niyə xüsusi (custom) error-larla vacibdir?</summary>
+        <div class="quiz-answer">JavaScript-də bir catch bloku daxilində fərqli error tiplərini ayırd etməyin yeganə yolu <code>instanceof</code>-dur. Bu, məsələn validasiya xətası ilə şəbəkə xətasına fərqli reaksiya vermək üçün lazımdır.</div>
+      </details>
+
+      <details class="quiz-item">
+        <summary>Asinxron (async) funksiyada await edilən sorğunun xətasını necə tuturuq?</summary>
+        <div class="quiz-answer">await edilən kodu try blokuna alıb, adi sinxron kod kimi catch ilə tuturuq. Alternativ olaraq, funksiyanı çağıran yerdə Promise-ə birbaşa <code>.catch()</code> əlavə etmək də mümkündür.</div>
+      </details>
+    </section>
+  </main>
+</div>
+
+<footer>
+  Dərs 27 · Error Handling — try / catch / finally, throw, xüsusi Error növləri əsasında hazırlanmışdır.
+</footer>
+
+<script>
+// ---------- Kod nümunələri ----------
+var CODE = {
+"ex-crash":
+"console.log(\"Proqram başladı\");\n\nconst user = null;\nconsole.log(user.name); // TypeError burda baş verir\n\nconsole.log(\"Bu sətir heç vaxt icra olunmayacaq\");",
+
+"ex-trycatch":
+"try {\n  console.log(\"Proqram başladı\");\n  const user = null;\n  console.log(user.name);\n} catch (error) {\n  console.log(\"Xəta tutuldu:\", error.message);\n} finally {\n  console.log(\"Bu hissə həmişə işləyir\");\n}\n\nconsole.log(\"Proqram davam edir\");",
+
+"ex-errorprops":
+"try {\n  null.foo;\n} catch (error) {\n  console.log(error.name);    // TypeError\n  console.log(error.message); // Cannot read properties of null (reading 'foo')\n  console.log(error.stack);   // xətanın harda baş verdiyini gostərən iz\n}",
+
+"ex-throw":
+"function bolme(a, b) {\n  if (b === 0) {\n    throw new Error(\"Sıfıra bölmək olmaz!\");\n  }\n  return a / b;\n}\n\ntry {\n  console.log(bolme(10, 0));\n} catch (error) {\n  console.log(\"Xəta:\", error.message);\n}",
+
+"ex-rethrow":
+"function melumatiEmalEt(data) {\n  try {\n    return JSON.parse(data);\n  } catch (error) {\n    console.error(\"Log ucun qeyd edildi:\", error.message);\n    throw error; // özümüz həll edə bilmirik, yuxarı ötürürük\n  }\n}",
+
+"ex-builtin":
+"null.foo;                       // TypeError\n[1, 2, 3].length = -1;          // RangeError\nnonExistentVariable;            // ReferenceError\nJSON.parse(\"{ yanlis json\");   // SyntaxError",
+
+"ex-customerror":
+"class ValidationError extends Error {\n  constructor(message) {\n    super(message);\n    this.name = \"ValidationError\";\n  }\n}\n\nfunction yasYoxla(yas) {\n  if (yas < 0 || yas > 120) {\n    throw new ValidationError(\"Yaş 0-120 aralığında olmalıdır\");\n  }\n  return true;\n}\n\ntry {\n  yasYoxla(-5);\n} catch (error) {\n  if (error instanceof ValidationError) {\n    console.log(\"Validasiya xətası:\", error.message);\n  } else {\n    console.log(\"Naməlum xəta:\", error.message);\n  }\n}",
+
+"ex-errorcause":
+"try {\n  JSON.parse(\"{ yanlis json\");\n} catch (originalError) {\n  throw new Error(\"Konfiqurasiya faylı oxunmadı\", { cause: originalError });\n}",
+
+"ex-asyncerror":
+"class NetworkError extends Error {\n  constructor(message, statusCode) {\n    super(message);\n    this.name = \"NetworkError\";\n    this.statusCode = statusCode;\n  }\n}\n\nasync function melumatGetir() {\n  try {\n    const cavab = await fetch(\"/api/istifadeci\");\n    if (!cavab.ok) {\n      throw new NetworkError(\"Server xətası\", cavab.status);\n    }\n    return await cavab.json();\n  } catch (error) {\n    console.log(\"Məlumat alınmadı:\", error.message);\n  }\n}",
+
+"bug1-bad":
+"try {\n  riskliEmeliyyat();\n} catch (e) {}",
+"bug1-good":
+"try {\n  riskliEmeliyyat();\n} catch (e) {\n  console.error(\"Riskli əməliyyat uğursuz oldu:\", e);\n}",
+
+"bug2-bad":
+"try {\n  const data = JSON.parse(input);\n  const user = tapUser(data.id);\n  interfeysiYenile(user);\n  analitikayaGonder(user);\n} catch (e) {\n  console.log(\"xəta bas verdi\");\n}",
+"bug2-good":
+"let data;\ntry {\n  data = JSON.parse(input);\n} catch (e) {\n  console.error(\"JSON formatı yanlışdır:\", e.message);\n  return;\n}\n\nconst user = tapUser(data.id);\ninterfeysiYenile(user);\nanalitikayaGonder(user);",
+
+"bug3-bad":
+"throw \"Xəta baş verdi\";",
+"bug3-good":
+"throw new Error(\"Xəta baş verdi\");",
+
+"bug4-bad":
+"async function yukle() {\n  const cavab = await fetch(url);\n  return cavab.json();\n}",
+"bug4-good":
+"async function yukle() {\n  try {\n    const cavab = await fetch(url);\n    return await cavab.json();\n  } catch (error) {\n    console.error(\"Yükləmə uğursuz oldu:\", error.message);\n  }\n}",
+
+"bug5-bad":
+"try {\n  setTimeout(function () {\n    throw new Error(\"Gecikmiş xəta\");\n  }, 1000);\n} catch (error) {\n  console.log(\"Bu heç vaxt işə düşməyəcək:\", error.message);\n}",
+"bug5-good":
+"setTimeout(function () {\n  try {\n    riskliEmeliyyat();\n  } catch (error) {\n    console.log(\"Xəta tutuldu:\", error.message);\n  }\n}, 1000);",
+
+"bug6-bad":
+"try {\n  emeliyyatiIcraEt();\n} catch (error) {\n  console.log(\"Xəta oldu, yenidən cəhd et\");\n}",
+"bug6-good":
+"try {\n  emeliyyatiIcraEt();\n} catch (error) {\n  if (error instanceof ValidationError) {\n    goster(\"Zəhmət olmasa məlumatı düzgün daxil edin\");\n  } else if (error instanceof NetworkError) {\n    goster(\"İnternet bağlantınızı yoxlayın\");\n  } else {\n    throw error;\n  }\n}",
+
+"bug7-bad":
+"catch (error) {\n  alert(error.stack);\n}",
+"bug7-good":
+"catch (error) {\n  console.error(error); // developer üçün, arxa planda\n  goster(\"Nəsə səhv getdi, bir az sonra yenidən cəhd edin\");\n}",
+
+"bug8-bad":
+"try {\n  const deyer = obyekt.açar.altAçar;\n} catch (e) {\n  const deyer = defoltDeyer;\n}",
+"bug8-good":
+"const deyer = (obyekt.açar && obyekt.açar.altAçar) || defoltDeyer;",
+
+"ex-finallyreturn":
+"function test() {\n  try {\n    return 1;\n  } finally {\n    return 2;\n  }\n}\n\nconsole.log(test()); // 2",
+
+"ex-instanceof":
+"try {\n  emeliyyatiIcraEt();\n} catch (error) {\n  if (error instanceof ValidationError) {\n    // validasiya xətası üçün məntiq\n  } else if (error instanceof NetworkError) {\n    // şəbəkə xətası üçün məntiq\n  } else {\n    throw error; // tanımadığın xətanı yuxarı ötür\n  }\n}"
+};
+
+function escapeHtml(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+var KEYWORDS = ["const","let","var","function","return","if","else","try","catch","finally",
+"throw","new","class","extends","constructor","super","this","async","await","instanceof",
+"typeof","true","false","null","undefined","for","while","of","in","break","continue",
+"static","get","set"];
+var KEYSET = {};
+KEYWORDS.forEach(function(k){ KEYSET[k] = true; });
+
+function highlight(code){
+  var escaped = escapeHtml(code);
+  var pattern = /(\/\/[^\n]*)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_$][A-Za-z0-9_$]*\b)/g;
+  return escaped.replace(pattern, function(match, comment, str, num, word){
+    if (comment) return '<span class="tok-com">' + comment + '</span>';
+    if (str) return '<span class="tok-str">' + str + '</span>';
+    if (num) return '<span class="tok-num">' + num + '</span>';
+    if (word) {
+      if (KEYSET[word]) return '<span class="tok-kw">' + word + '</span>';
+      if (/^[A-Z]/.test(word)) return '<span class="tok-cls">' + word + '</span>';
+      return word;
+    }
+    return match;
+  });
+}
+
+document.querySelectorAll("code[data-code]").forEach(function(el){
+  var id = el.getAttribute("data-code");
+  if (CODE[id] !== undefined) {
+    el.innerHTML = highlight(CODE[id]);
+  }
+});
+
+// ---------- Simulyator ----------
+var simSteps = document.querySelectorAll("#simFlow .flow-step");
+var simConsole = document.getElementById("simConsole");
+var simBtn = document.getElementById("simRunBtn");
+
+function sleep(ms){ return new Promise(function(resolve){ setTimeout(resolve, ms); }); }
+
+function setActiveStep(key){
+  simSteps.forEach(function(s){
+    s.classList.toggle("active", s.getAttribute("data-key") === key);
+  });
+}
+
+function addLine(text, isErr){
+  var div = document.createElement("div");
+  div.className = "console-line" + (isErr ? " err" : "");
+  div.textContent = (isErr ? "✕ " : "▸ ") + text;
+  simConsole.appendChild(div);
+}
+
+async function runSim(){
+  if (!simBtn) return;
+  simBtn.disabled = true;
+  simConsole.innerHTML = "";
+  simSteps.forEach(function(s){ s.classList.remove("active","done"); });
+
+  setActiveStep("try");
+  await sleep(450);
+  addLine("Proqram başladı", false);
+  await sleep(600);
+
+  setActiveStep("catch");
+  await sleep(350);
+  addLine("Xəta tutuldu: Cannot read properties of null (reading 'name')", true);
+  await sleep(650);
+
+  setActiveStep("finally");
+  await sleep(350);
+  addLine("Bu hissə həmişə işləyir", false);
+  await sleep(550);
+
+  simSteps.forEach(function(s){ s.classList.remove("active"); s.classList.add("done"); });
+  await sleep(250);
+  addLine("Proqram davam edir", false);
+
+  simBtn.disabled = false;
+}
+
+if (simBtn) simBtn.addEventListener("click", runSim);
+
+// ---------- Scrollspy ----------
+var navLinks = document.querySelectorAll(".sidebar a");
+var sections = document.querySelectorAll("main section[id]");
+if ("IntersectionObserver" in window) {
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(l){
+          l.classList.toggle("active", l.getAttribute("href") === "#" + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: "-15% 0px -70% 0px" });
+  sections.forEach(function(s){ observer.observe(s); });
+}
+</script>
+</body>
+</html>

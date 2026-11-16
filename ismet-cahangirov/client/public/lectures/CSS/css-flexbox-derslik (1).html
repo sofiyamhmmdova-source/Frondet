@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSS Flexbox Dərsliyi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Noto+Sans+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── DESIGN TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --bg:        #0f1117;
+      --surface:   #181c27;
+      --card:      #1e2336;
+      --border:    #2a3050;
+      --accent:    #6c8cff;
+      --accent2:   #ff7eb6;
+      --accent3:   #43e6c5;
+      --text:      #e4e8f5;
+      --muted:     #8892b0;
+      --code-bg:   #141824;
+      --tag-bg:    #232b48;
+
+      --font-body: 'Noto Sans', system-ui, sans-serif;
+      --font-mono: 'Noto Sans Mono', monospace;
+
+      --radius:    12px;
+      --radius-sm: 6px;
+      --shadow:    0 4px 24px rgba(0,0,0,.45);
+    }
+
+    /* ─── RESET & BASE ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* ─── SCROLLBAR ─────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ─── LAYOUT ────────────────────────────────────────────────────── */
+    .page-wrapper { max-width: 900px; margin: 0 auto; padding: 0 20px 80px; }
+
+    /* ─── HERO ──────────────────────────────────────────────────────── */
+    .hero {
+      padding: 72px 0 56px;
+      text-align: center;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(108,140,255,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(108,140,255,.12);
+      border: 1px solid rgba(108,140,255,.3);
+      padding: 5px 14px;
+      border-radius: 99px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 6vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* ─── PROGRESS BAR (TOC) ─────────────────────────────────────────── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 48px;
+    }
+    .toc h2 {
+      font-size: .75rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      margin-bottom: 16px;
+    }
+    .toc-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 6px 20px;
+    }
+    .toc-list a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .92rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color .2s;
+    }
+    .toc-list a::before {
+      content: '→';
+      color: var(--border);
+      transition: color .2s, transform .2s;
+    }
+    .toc-list a:hover { color: var(--text); }
+    .toc-list a:hover::before { color: var(--accent); transform: translateX(3px); }
+
+    /* ─── SECTION ────────────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 64px;
+      scroll-margin-top: 24px;
+    }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .section > h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+    .section > p, .section > ul {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: .97rem;
+    }
+    .section > ul { padding-left: 1.2em; }
+    .section > ul li { margin-bottom: 6px; }
+
+    /* ─── CARD ───────────────────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card p { color: var(--muted); font-size: .92rem; margin-bottom: 0; }
+    .tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      letter-spacing: .08em;
+      color: var(--accent3);
+      background: rgba(67,230,197,.12);
+      border: 1px solid rgba(67,230,197,.25);
+      padding: 2px 9px;
+      border-radius: 99px;
+      font-weight: 600;
+    }
+
+    /* ─── CODE BLOCK ──────────────────────────────────────────────────── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .code-header span {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+    }
+    .code-header .dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    pre {
+      font-family: var(--font-mono);
+      font-size: .85rem;
+      line-height: 1.65;
+      padding: 20px 22px;
+      overflow-x: auto;
+      color: var(--text);
+    }
+    .kw  { color: #c792ea; }   /* keyword */
+    .pr  { color: var(--accent); }   /* property */
+    .vl  { color: var(--accent3); }  /* value */
+    .cm  { color: #546e7a; font-style: italic; } /* comment */
+    .sl  { color: var(--accent2); }  /* selector */
+    .at  { color: #ffcb6b; }   /* attribute */
+    .st  { color: var(--accent3); }  /* string */
+
+    /* ─── DEMO BOX ───────────────────────────────────────────────────── */
+    .demo-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 20px 0;
+    }
+    .demo-title {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .demo-box {
+      background: rgba(255,255,255,.04);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      min-height: 80px;
+    }
+    .box {
+      background: linear-gradient(135deg, var(--accent), #5a7bef);
+      color: #fff;
+      font-weight: 600;
+      font-size: .85rem;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      min-width: 60px;
+    }
+    .box-b { background: linear-gradient(135deg, var(--accent2), #e05aa0); }
+    .box-c { background: linear-gradient(135deg, var(--accent3), #2bc5a8); color: #0f1117; }
+    .box-d { background: linear-gradient(135deg, #ffcb6b, #e0a020); color: #0f1117; }
+    .box-e { background: linear-gradient(135deg, #c792ea, #a060d0); }
+
+    /* ─── INTERACTIVE PLAYGROUND ─────────────────────────────────────── */
+    .playground {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 28px 0;
+    }
+    .playground-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .playground-header h4 {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .playground-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 600px) {
+      .playground-body { grid-template-columns: 1fr; }
+    }
+    .controls {
+      padding: 22px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .controls { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    .control-group label {
+      display: block;
+      font-size: .75rem;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: .06em;
+    }
+    .control-group select {
+      width: 100%;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .control-group select:focus { border-color: var(--accent); }
+    .preview-area {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-area span {
+      font-size: .7rem;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .preview-flex {
+      flex: 1;
+      background: rgba(255,255,255,.03);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      min-height: 140px;
+      display: flex;
+      transition: all .3s ease;
+      gap: 8px;
+    }
+    .preview-flex .box { flex: none; font-size: .75rem; padding: 8px 12px; min-width: 44px; }
+
+    /* ─── PROPERTY GRID ──────────────────────────────────────────────── */
+    .prop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .prop-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color .2s, transform .2s;
+    }
+    .prop-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .prop-name {
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .prop-desc { font-size: .85rem; color: var(--muted); }
+    .prop-values {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .val-chip {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      background: var(--tag-bg);
+      color: var(--accent3);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* ─── TIP BOX ────────────────────────────────────────────────────── */
+    .tip {
+      display: flex;
+      gap: 14px;
+      background: rgba(108,140,255,.08);
+      border: 1px solid rgba(108,140,255,.25);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin: 20px 0;
+    }
+    .tip-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1.4; }
+    .tip p { font-size: .9rem; color: var(--text); margin: 0; }
+    .tip strong { color: var(--accent); }
+
+    .warn {
+      background: rgba(255,126,182,.07);
+      border-color: rgba(255,126,182,.25);
+    }
+    .warn p { color: var(--text); }
+
+    /* ─── DIVIDER ────────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 48px 0;
+    }
+
+    /* ─── VISUAL AXIS ────────────────────────────────────────────────── */
+    .axis-demo {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin: 20px 0;
+      display: flex;
+      gap: 32px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .axis-item { text-align: center; flex: 1; min-width: 160px; }
+    .axis-item .label {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .axis-svg-wrap { display: inline-block; }
+
+    /* ─── QUIZ SECTION ───────────────────────────────────────────────── */
+    .quiz { margin: 28px 0; }
+    .quiz-q {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .quiz-q p { font-weight: 600; margin-bottom: 14px; font-size: .95rem; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: .88rem;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      color: var(--text);
+    }
+    .quiz-opt:hover { background: rgba(108,140,255,.08); border-color: var(--accent); }
+    .quiz-opt.correct { background: rgba(67,230,197,.12); border-color: var(--accent3); color: var(--accent3); }
+    .quiz-opt.wrong { background: rgba(255,126,182,.1); border-color: var(--accent2); color: var(--accent2); }
+    .quiz-feedback {
+      margin-top: 10px;
+      font-size: .85rem;
+      display: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+    }
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.ok { background: rgba(67,230,197,.1); color: var(--accent3); }
+    .quiz-feedback.err { background: rgba(255,126,182,.1); color: var(--accent2); }
+
+    /* ─── FOOTER ─────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 48px 0 24px;
+      color: var(--muted);
+      font-size: .82rem;
+      border-top: 1px solid var(--border);
+      margin-top: 64px;
+    }
+    footer strong { color: var(--accent); }
+
+    /* ─── UTILITIES ──────────────────────────────────────────────────── */
+    .mt-0 { margin-top: 0; }
+    .mb-4 { margin-bottom: 16px; }
+    b { color: var(--text); font-weight: 600; }
+    code {
+      font-family: var(--font-mono);
+      font-size: .84em;
+      color: var(--accent3);
+      background: var(--tag-bg);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 480px) {
+      .hero { padding: 48px 0 36px; }
+      .toc { padding: 20px; }
+      .card { padding: 20px; }
+      .axis-demo { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- ═══════════════════════════════ HERO ════════════════════════════ -->
+  <header class="hero">
+    <div class="hero-badge">CSS Dərsliyi · Tam Bələdçi</div>
+    <h1>CSS Flexbox</h1>
+    <p>Elementləri sıraya düzmək, hizalamaq və ölçüsünü idarə etmək üçün ən güclü CSS alətini addım-addım öyrənin.</p>
+  </header>
+
+  <!-- ══════════════════════════════ MÜNDƏRICAT ═══════════════════════ -->
+  <nav class="toc">
+    <h2>// Mündəricat</h2>
+    <ul class="toc-list">
+      <li><a href="#neDir">Flexbox nədir?</a></li>
+      <li><a href="#container">Flex Container</a></li>
+      <li><a href="#axis">Ox anlayışı</a></li>
+      <li><a href="#direction">flex-direction</a></li>
+      <li><a href="#wrap">flex-wrap</a></li>
+      <li><a href="#justify">justify-content</a></li>
+      <li><a href="#align-items">align-items</a></li>
+      <li><a href="#align-content">align-content</a></li>
+      <li><a href="#gap">gap</a></li>
+      <li><a href="#item-props">Item Xassələri</a></li>
+      <li><a href="#flex-shorthand">flex shorthand</a></li>
+      <li><a href="#playground">İnteraktiv Sınaq</a></li>
+      <li><a href="#realworld">Real Nümunə</a></li>
+      <li><a href="#quiz">Özünü Yoxla</a></li>
+    </ul>
+  </nav>
+
+  <!-- ══════════════════════════════ 1. NƏDİR ═══════════════════════ -->
+  <section class="section" id="neDir">
+    <span class="section-label">// 01</span>
+    <h2>Flexbox nədir?</h2>
+    <p>Flexbox (Flexible Box Layout) — elementləri bir sırada və ya sütunda asanlıqla düzmək, aralarındaki boşluğu idarə etmək üçün CSS-ə əlavə edilmiş xüsusi bir <b>düzülüş sistemi</b>dir.</p>
+    <p>Eskidən elementləri yan-yana düzmək üçün <code>float</code> və ya mürəkkəb <code>position</code> hiylələrindən istifadə edilirdi. Flexbox bunları çox sadələşdirdi.</p>
+
+    <div class="card">
+      <h3>🎯 Flexbox nə vaxt işlədilir?</h3>
+      <p>Naviqasiya paneli, kart sıraları, forma elementləri, mərkəzləmə, eyni hündürlüklü sütunlar — bunların hamısı üçün Flexbox mükəmməldir.</p>
+    </div>
+
+    <div class="tip">
+      <div class="tip-icon">💡</div>
+      <p><strong>Qayda:</strong> Flexbox <b>bir istiqamətdə</b> (ya üfüqi, ya şaquli) işləyir. İki istiqamətdə işləmək üçün CSS Grid-dən istifadə edin.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 2. CONTAINER ════════════════════ -->
+  <section class="section" id="container">
+    <span class="section-label">// 02</span>
+    <h2>Flex Container — Başlanğıc</h2>
+    <p>Flexbox-u aktiv etmək üçün valideyn elementə <code>display: flex</code> yazırıq. Bu qayda yazıldıqdan sonra həmin elementin birbaşa uşaqları <b>flex item</b>ə çevrilir.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots">
+          <div class="dot dot-r"></div>
+          <div class="dot dot-y"></div>
+          <div class="dot dot-g"></div>
+        </div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="cm">/* Flex Container yaradırıq */</span>
+<span class="sl">.konteyner</span> {
+  <span class="pr">display</span>: <span class="vl">flex</span>;  <span class="cm">/* ← bu sehrli sözü yazmaq kifayətdir */</span>
+}
+
+<span class="cm">/* İndi .konteyner-in uşaqları flex item olur */</span></pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// display: flex — əvvəl və sonra</div>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px;"><b>display: flex olmadan</b> (normal axın — elementlər alt-alta düzülür):</p>
+      <div class="demo-box" style="display:block;">
+        <div class="box" style="margin-bottom:6px;">A</div>
+        <div class="box box-b" style="margin-bottom:6px;">B</div>
+        <div class="box box-c">C</div>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);margin:16px 0 12px;"><b>display: flex ilə</b> (elementlər avtomatik yan-yana düzülür):</p>
+      <div class="demo-box" style="display:flex;gap:8px;">
+        <div class="box">A</div>
+        <div class="box box-b">B</div>
+        <div class="box box-c">C</div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-icon">📌</div>
+      <p><strong>display: inline-flex</strong> — <code>flex</code> ilə eyni işləyir, ancaq konteyner özü sətir elementi kimi davranır (başqa elementlərlə yan-yana dayanır).</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 3. OXLAR ════════════════════════ -->
+  <section class="section" id="axis">
+    <span class="section-label">// 03</span>
+    <h2>Əsas Ox və Çarpaz Ox</h2>
+    <p>Flexbox-da hər şey <b>iki ox</b> ətrafında qurulur. Bu oxları anlamadan xassələri mənimsəmək çətin olur.</p>
+
+    <div class="axis-demo">
+      <div class="axis-item">
+        <span class="label">Əsas Ox (Main Axis)</span>
+        <svg width="160" height="90" viewBox="0 0 160 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="28" width="36" height="34" rx="4" fill="#6c8cff" opacity=".85"/>
+          <rect x="52" y="28" width="36" height="34" rx="4" fill="#6c8cff" opacity=".6"/>
+          <rect x="96" y="28" width="36" height="34" rx="4" fill="#6c8cff" opacity=".4"/>
+          <line x1="8" y1="76" x2="140" y2="76" stroke="#6c8cff" stroke-width="2" stroke-dasharray="4 3"/>
+          <polygon points="140,72 152,76 140,80" fill="#6c8cff"/>
+          <text x="76" y="88" fill="#8892b0" font-size="9" text-anchor="middle" font-family="monospace">→ flex-direction ilə idarə olunur</text>
+        </svg>
+      </div>
+      <div class="axis-item">
+        <span class="label">Çarpaz Ox (Cross Axis)</span>
+        <svg width="160" height="90" viewBox="0 0 160 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="52" y="4" width="56" height="22" rx="4" fill="#43e6c5" opacity=".85"/>
+          <rect x="52" y="32" width="56" height="22" rx="4" fill="#43e6c5" opacity=".6"/>
+          <rect x="52" y="60" width="56" height="22" rx="4" fill="#43e6c5" opacity=".4"/>
+          <line x1="8" y1="4" x2="8" y2="84" stroke="#43e6c5" stroke-width="2" stroke-dasharray="4 3"/>
+          <polygon points="4,84 8,88 12,84" fill="#43e6c5"/>
+          <text x="80" y="96" fill="#8892b0" font-size="9" text-anchor="middle" font-family="monospace">↓ əsas oxa perpendikulyar</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🧭 Yadda saxla</h3>
+      <p><b>Əsas ox</b> — elementlərin düzüldüyü istiqamət (<code>flex-direction</code> ilə dəyişir).<br>
+      <b>Çarpaz ox</b> — əsas oxa perpendikulyar olan istiqamət.<br>
+      <code>justify-content</code> əsas ox boyunca, <code>align-items</code> isə çarpaz ox boyunca işləyir.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 4. DIRECTION ════════════════════ -->
+  <section class="section" id="direction">
+    <span class="section-label">// 04</span>
+    <h2>flex-direction</h2>
+    <p>Elementlərin hansı istiqamətdə düzüləcəyini müəyyən edir. Defolt dəyər <code>row</code>-dur.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> {
+  <span class="pr">display</span>: <span class="vl">flex</span>;
+  <span class="pr">flex-direction</span>: <span class="vl">row</span>;         <span class="cm">/* → soldan sağa (defolt) */</span>
+  <span class="pr">flex-direction</span>: <span class="vl">row-reverse</span>;  <span class="cm">/* ← sağdan sola */</span>
+  <span class="pr">flex-direction</span>: <span class="vl">column</span>;       <span class="cm">/* ↓ yuxarıdan aşağı */</span>
+  <span class="pr">flex-direction</span>: <span class="vl">column-reverse</span>;<span class="cm">/* ↑ aşağıdan yuxarı */</span>
+}</pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// row (soldan sağa)</div>
+      <div class="demo-box" style="display:flex;flex-direction:row;gap:8px;">
+        <div class="box">1</div><div class="box box-b">2</div><div class="box box-c">3</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// row-reverse (sağdan sola)</div>
+      <div class="demo-box" style="display:flex;flex-direction:row-reverse;gap:8px;">
+        <div class="box">1</div><div class="box box-b">2</div><div class="box box-c">3</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// column (yuxarıdan aşağı)</div>
+      <div class="demo-box" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
+        <div class="box">1</div><div class="box box-b">2</div><div class="box box-c">3</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// column-reverse (aşağıdan yuxarı)</div>
+      <div class="demo-box" style="display:flex;flex-direction:column-reverse;gap:8px;align-items:flex-start;">
+        <div class="box">1</div><div class="box box-b">2</div><div class="box box-c">3</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 5. WRAP ═════════════════════════ -->
+  <section class="section" id="wrap">
+    <span class="section-label">// 05</span>
+    <h2>flex-wrap</h2>
+    <p>Elementlər konteynerə sığmadıqda nə olacağını müəyyən edir. Defolt <code>nowrap</code>-dır — elementlər sığmasa da sıxışdırılır.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> {
+  <span class="pr">flex-wrap</span>: <span class="vl">nowrap</span>;        <span class="cm">/* sığmayan sıxışdırılır (defolt) */</span>
+  <span class="pr">flex-wrap</span>: <span class="vl">wrap</span>;           <span class="cm">/* sığmayan aşağı keçir */</span>
+  <span class="pr">flex-wrap</span>: <span class="vl">wrap-reverse</span>;   <span class="cm">/* sığmayan yuxarı keçir */</span>
+}</pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// nowrap — elementlər sıxışdırılır (konteyner kiçildikcə görünər)</div>
+      <div class="demo-box" style="display:flex;flex-wrap:nowrap;gap:8px;">
+        <div class="box" style="min-width:80px;">Kart 1</div>
+        <div class="box box-b" style="min-width:80px;">Kart 2</div>
+        <div class="box box-c" style="min-width:80px;">Kart 3</div>
+        <div class="box box-d" style="min-width:80px;">Kart 4</div>
+        <div class="box box-e" style="min-width:80px;">Kart 5</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// wrap — sığmayanlar növbəti sıraya keçir</div>
+      <div class="demo-box" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <div class="box" style="min-width:80px;">Kart 1</div>
+        <div class="box box-b" style="min-width:80px;">Kart 2</div>
+        <div class="box box-c" style="min-width:80px;">Kart 3</div>
+        <div class="box box-d" style="min-width:80px;">Kart 4</div>
+        <div class="box box-e" style="min-width:80px;">Kart 5</div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-icon">💡</div>
+      <p><strong>flex-flow</strong> — <code>flex-direction</code> və <code>flex-wrap</code>-ı birlikdə yaza bilərik: <code>flex-flow: row wrap;</code></p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 6. JUSTIFY ══════════════════════ -->
+  <section class="section" id="justify">
+    <span class="section-label">// 06</span>
+    <h2>justify-content</h2>
+    <p>Elementləri <b>əsas ox</b> boyunca (adətən üfüqi) necə paylaşdıracağımızı müəyyən edir. Konteyner içindəki boş yerə görə elementlər hizalanır.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> {
+  <span class="pr">justify-content</span>: <span class="vl">flex-start</span>;     <span class="cm">/* soldan başla (defolt) */</span>
+  <span class="pr">justify-content</span>: <span class="vl">flex-end</span>;       <span class="cm">/* sağda bitir */</span>
+  <span class="pr">justify-content</span>: <span class="vl">center</span>;         <span class="cm">/* ortada */</span>
+  <span class="pr">justify-content</span>: <span class="vl">space-between</span>;  <span class="cm">/* kənar olmadan bərabər boşluq */</span>
+  <span class="pr">justify-content</span>: <span class="vl">space-around</span>;   <span class="cm">/* kənarla bərabər yarım boşluq */</span>
+  <span class="pr">justify-content</span>: <span class="vl">space-evenly</span>;   <span class="cm">/* hər tərəfdən eyni boşluq */</span>
+}</pre>
+    </div>
+
+    <!-- Demo blokları -->
+    <div class="demo-wrap">
+      <div class="demo-title">// flex-start</div>
+      <div class="demo-box" style="display:flex;justify-content:flex-start;gap:8px;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// flex-end</div>
+      <div class="demo-box" style="display:flex;justify-content:flex-end;gap:8px;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// center</div>
+      <div class="demo-box" style="display:flex;justify-content:center;gap:8px;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// space-between — kənar boşluq yoxdur</div>
+      <div class="demo-box" style="display:flex;justify-content:space-between;gap:0;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// space-around — kənarlar yarım boşluq alır</div>
+      <div class="demo-box" style="display:flex;justify-content:space-around;gap:0;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// space-evenly — hər boşluq bərabər</div>
+      <div class="demo-box" style="display:flex;justify-content:space-evenly;gap:0;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 7. ALIGN-ITEMS ══════════════════ -->
+  <section class="section" id="align-items">
+    <span class="section-label">// 07</span>
+    <h2>align-items</h2>
+    <p>Elementləri <b>çarpaz ox</b> boyunca (adətən şaquli) hizalamaq üçün istifadə olunur. <code>justify-content</code>-in şaquli oxdakı qardaşı kimi düşünün.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> {
+  <span class="pr">align-items</span>: <span class="vl">stretch</span>;      <span class="cm">/* konteyner boyuna uzanır (defolt) */</span>
+  <span class="pr">align-items</span>: <span class="vl">flex-start</span>;   <span class="cm">/* yuxarıya hizalanır */</span>
+  <span class="pr">align-items</span>: <span class="vl">flex-end</span>;     <span class="cm">/* aşağıya hizalanır */</span>
+  <span class="pr">align-items</span>: <span class="vl">center</span>;       <span class="cm">/* şaquli mərkəzdə */</span>
+  <span class="pr">align-items</span>: <span class="vl">baseline</span>;     <span class="cm">/* mətn bazal xəttinə görə */</span>
+}</pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// stretch — hər element konteyner hündürlüyünə uzanır</div>
+      <div class="demo-box" style="display:flex;align-items:stretch;gap:8px;height:100px;">
+        <div class="box" style="height:auto;">A</div>
+        <div class="box box-b" style="height:auto;">B</div>
+        <div class="box box-c" style="height:auto;">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// flex-start — yuxarıya hizalanır</div>
+      <div class="demo-box" style="display:flex;align-items:flex-start;gap:8px;height:100px;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// center — şaquli mərkəzdə</div>
+      <div class="demo-box" style="display:flex;align-items:center;gap:8px;height:100px;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// flex-end — aşağıya hizalanır</div>
+      <div class="demo-box" style="display:flex;align-items:flex-end;gap:8px;height:100px;">
+        <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <div class="tip-icon">⭐</div>
+      <p><strong>Klassik mərkəzləmə:</strong> Bir elementi tam ortaya yerləşdirmək üçün <code>justify-content: center</code> + <code>align-items: center</code> birlikdə istifadə edin. Bu, CSS-in ən çox istifadə olunan tricklarından biridir.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 8. ALIGN-CONTENT ════════════════ -->
+  <section class="section" id="align-content">
+    <span class="section-label">// 08</span>
+    <h2>align-content</h2>
+    <p><code>flex-wrap: wrap</code> istifadə edildikdə <b>bir neçə sıra</b> əmələ gəlirsə, bu sıraların çarpaz ox boyunca necə paylaşılacağını müəyyən edir. Yalnız bir sıra varsa təsiri olmur.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> {
+  <span class="pr">flex-wrap</span>: <span class="vl">wrap</span>;              <span class="cm">/* mütləq wrap olmalıdır */</span>
+  <span class="pr">align-content</span>: <span class="vl">flex-start</span>;    <span class="cm">/* sıralar yuxarıda toplanır */</span>
+  <span class="pr">align-content</span>: <span class="vl">flex-end</span>;      <span class="cm">/* sıralar aşağıda toplanır */</span>
+  <span class="pr">align-content</span>: <span class="vl">center</span>;        <span class="cm">/* sıralar ortada */</span>
+  <span class="pr">align-content</span>: <span class="vl">space-between</span>; <span class="cm">/* sıra arası bərabər boşluq */</span>
+  <span class="pr">align-content</span>: <span class="vl">stretch</span>;       <span class="cm">/* sıralar uzanır (defolt) */</span>
+}</pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// align-content: flex-start</div>
+      <div class="demo-box" style="display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px;height:160px;">
+        <div class="box" style="width:80px;">1</div><div class="box box-b" style="width:80px;">2</div>
+        <div class="box box-c" style="width:80px;">3</div><div class="box box-d" style="width:80px;">4</div>
+        <div class="box box-e" style="width:80px;">5</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// align-content: space-between</div>
+      <div class="demo-box" style="display:flex;flex-wrap:wrap;align-content:space-between;gap:8px;height:160px;">
+        <div class="box" style="width:80px;">1</div><div class="box box-b" style="width:80px;">2</div>
+        <div class="box box-c" style="width:80px;">3</div><div class="box box-d" style="width:80px;">4</div>
+        <div class="box box-e" style="width:80px;">5</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 9. GAP ══════════════════════════ -->
+  <section class="section" id="gap">
+    <span class="section-label">// 09</span>
+    <h2>gap (row-gap, column-gap)</h2>
+    <p>Flex itemlər arasındakı boşluğu idarə edir. Əvvəllər <code>margin</code> ilə həll olunan bu problem indi çox sadədir.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> {
+  <span class="pr">gap</span>: <span class="vl">16px</span>;             <span class="cm">/* hər tərəfdən 16px boşluq */</span>
+  <span class="pr">gap</span>: <span class="vl">16px 24px</span>;        <span class="cm">/* sıra boşluğu 16px, sütun boşluğu 24px */</span>
+  <span class="pr">row-gap</span>: <span class="vl">16px</span>;         <span class="cm">/* yalnız sıralar arası boşluq */</span>
+  <span class="pr">column-gap</span>: <span class="vl">24px</span>;      <span class="cm">/* yalnız sütunlar arası boşluq */</span>
+}</pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// gap: 8px vs gap: 24px</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px;">gap: 8px</p>
+          <div class="demo-box" style="display:flex;gap:8px;">
+            <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:.78rem;color:var(--muted);margin-bottom:8px;">gap: 24px</p>
+          <div class="demo-box" style="display:flex;gap:24px;">
+            <div class="box">A</div><div class="box box-b">B</div><div class="box box-c">C</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 10. ITEM XASSƏLƏR ═══════════════ -->
+  <section class="section" id="item-props">
+    <span class="section-label">// 10</span>
+    <h2>Flex Item Xassələri</h2>
+    <p>Yuxarıdakı xassələr konteynerə (valideynə) yazılırdı. İndi isə <b>ayrı-ayrı itemlərə</b> (uşaqlara) yazılan xassələrə baxaq.</p>
+
+    <div class="prop-grid">
+      <div class="prop-card">
+        <span class="prop-name">order</span>
+        <p class="prop-desc">Elementin görünüş sırasını dəyişir. HTML sırası dəyişmədən vizual sıra dəyişir.</p>
+        <div class="prop-values">
+          <span class="val-chip">0</span>
+          <span class="val-chip">-1</span>
+          <span class="val-chip">1, 2, 3...</span>
+        </div>
+      </div>
+      <div class="prop-card">
+        <span class="prop-name">flex-grow</span>
+        <p class="prop-desc">Boş yer varsa, elementin nə qədər böyüyəcəyini müəyyən edir. 0 — böyümür.</p>
+        <div class="prop-values">
+          <span class="val-chip">0 (defolt)</span>
+          <span class="val-chip">1</span>
+          <span class="val-chip">2</span>
+        </div>
+      </div>
+      <div class="prop-card">
+        <span class="prop-name">flex-shrink</span>
+        <p class="prop-desc">Yer az olduqda elementin nə qədər kiçilə biləcəyini müəyyən edir.</p>
+        <div class="prop-values">
+          <span class="val-chip">1 (defolt)</span>
+          <span class="val-chip">0 (kiçilmə)</span>
+        </div>
+      </div>
+      <div class="prop-card">
+        <span class="prop-name">flex-basis</span>
+        <p class="prop-desc">Elementin əsas ölçüsünü (böyümə/kiçilmədən əvvəl) müəyyən edir.</p>
+        <div class="prop-values">
+          <span class="val-chip">auto</span>
+          <span class="val-chip">200px</span>
+          <span class="val-chip">30%</span>
+        </div>
+      </div>
+      <div class="prop-card">
+        <span class="prop-name">align-self</span>
+        <p class="prop-desc">Yalnız bu element üçün <code>align-items</code>-i ləğv edir.</p>
+        <div class="prop-values">
+          <span class="val-chip">auto</span>
+          <span class="val-chip">flex-start</span>
+          <span class="val-chip">center</span>
+          <span class="val-chip">flex-end</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- flex-grow demo -->
+    <h3 style="margin:28px 0 12px;font-size:1.05rem;">flex-grow nümunəsi</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.item-a</span> { <span class="pr">flex-grow</span>: <span class="vl">1</span>; } <span class="cm">/* boş yerin 1 pay alır */</span>
+<span class="sl">.item-b</span> { <span class="pr">flex-grow</span>: <span class="vl">2</span>; } <span class="cm">/* boş yerin 2 payı alır (ikiqat geniş) */</span>
+<span class="sl">.item-c</span> { <span class="pr">flex-grow</span>: <span class="vl">1</span>; } <span class="cm">/* boş yerin 1 payı alır */</span></pre>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// flex-grow: 1 | 2 | 1</div>
+      <div class="demo-box" style="display:flex;gap:8px;">
+        <div class="box" style="flex-grow:1;">1 pay</div>
+        <div class="box box-b" style="flex-grow:2;">2 pay</div>
+        <div class="box box-c" style="flex-grow:1;">1 pay</div>
+      </div>
+    </div>
+
+    <!-- align-self demo -->
+    <h3 style="margin:28px 0 12px;font-size:1.05rem;">align-self nümunəsi</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="sl">.konteyner</span> { <span class="pr">align-items</span>: <span class="vl">flex-start</span>; }
+
+<span class="sl">.item-1</span> { <span class="pr">align-self</span>: <span class="vl">flex-start</span>; }
+<span class="sl">.item-2</span> { <span class="pr">align-self</span>: <span class="vl">center</span>;     } <span class="cm">/* yalnız bu element mərkəzdə */</span>
+<span class="sl">.item-3</span> { <span class="pr">align-self</span>: <span class="vl">flex-end</span>;   } <span class="cm">/* yalnız bu element aşağıda */</span></pre>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// align-self müxtəlif dəyərlərlə</div>
+      <div class="demo-box" style="display:flex;align-items:flex-start;gap:8px;height:120px;">
+        <div class="box" style="align-self:flex-start;">Yuxarı</div>
+        <div class="box box-b" style="align-self:center;">Orta</div>
+        <div class="box box-c" style="align-self:flex-end;">Aşağı</div>
+        <div class="box box-d" style="align-self:stretch;height:auto;">Uzanmış</div>
+      </div>
+    </div>
+
+    <!-- order demo -->
+    <h3 style="margin:28px 0 12px;font-size:1.05rem;">order nümunəsi</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="cm">/* HTML sırası: 1, 2, 3, 4 */</span>
+<span class="sl">.item-1</span> { <span class="pr">order</span>: <span class="vl">3</span>; }
+<span class="sl">.item-2</span> { <span class="pr">order</span>: <span class="vl">1</span>; }
+<span class="sl">.item-3</span> { <span class="pr">order</span>: <span class="vl">4</span>; }
+<span class="sl">.item-4</span> { <span class="pr">order</span>: <span class="vl">2</span>; }
+<span class="cm">/* Görünüş sırası: 2, 4, 1, 3 olur */</span></pre>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// HTML: 1→2→3→4, CSS order ilə: 2→4→1→3</div>
+      <div class="demo-box" style="display:flex;gap:8px;">
+        <div class="box" style="order:3;">1 (order:3)</div>
+        <div class="box box-b" style="order:1;">2 (order:1)</div>
+        <div class="box box-c" style="order:4;">3 (order:4)</div>
+        <div class="box box-d" style="order:2;">4 (order:2)</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 11. SHORTHAND ════════════════════ -->
+  <section class="section" id="flex-shorthand">
+    <span class="section-label">// 11</span>
+    <h2>flex shorthand (qısa yazılış)</h2>
+    <p><code>flex-grow</code>, <code>flex-shrink</code> və <code>flex-basis</code>-i bir xəttdə yazmaq üçün <code>flex</code> shorthand-ı istifadə edirik.</p>
+
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>style.css</span>
+      </div>
+      <pre><span class="cm">/* flex: grow  shrink  basis */</span>
+<span class="sl">.item</span> { <span class="pr">flex</span>: <span class="vl">1 1 auto</span>; }    <span class="cm">/* böyü, kiçil, əsas ölçü avtomatik */</span>
+
+<span class="cm">/* Ən çox istifadə olunan dəyərlər */</span>
+<span class="sl">.item</span> { <span class="pr">flex</span>: <span class="vl">1</span>; }         <span class="cm">/* flex: 1 1 0% — bərabər böyümə */</span>
+<span class="sl">.item</span> { <span class="pr">flex</span>: <span class="vl">auto</span>; }      <span class="cm">/* flex: 1 1 auto */</span>
+<span class="sl">.item</span> { <span class="pr">flex</span>: <span class="vl">none</span>; }      <span class="cm">/* flex: 0 0 auto — sabit ölçü */</span>
+<span class="sl">.item</span> { <span class="pr">flex</span>: <span class="vl">0 0 200px</span>; } <span class="cm">/* həmişə 200px, böyümür, kiçilmir */</span></pre>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-title">// flex:1 — hər element bərabər yer alır</div>
+      <div class="demo-box" style="display:flex;gap:8px;">
+        <div class="box" style="flex:1;">flex: 1</div>
+        <div class="box box-b" style="flex:1;">flex: 1</div>
+        <div class="box box-c" style="flex:1;">flex: 1</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// flex: 1 | 2 | 1 — proporsional böyümə</div>
+      <div class="demo-box" style="display:flex;gap:8px;">
+        <div class="box" style="flex:1;">flex: 1</div>
+        <div class="box box-b" style="flex:2;">flex: 2</div>
+        <div class="box box-c" style="flex:1;">flex: 1</div>
+      </div>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// flex: none — element öz ölçüsündə qalır</div>
+      <div class="demo-box" style="display:flex;gap:8px;">
+        <div class="box" style="flex:1;">flex: 1</div>
+        <div class="box box-b" style="flex:none;">flex: none (sabit)</div>
+        <div class="box box-c" style="flex:1;">flex: 1</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 12. PLAYGROUND ══════════════════ -->
+  <section class="section" id="playground">
+    <span class="section-label">// 12</span>
+    <h2>🎮 İnteraktiv Sınaq Meydanı</h2>
+    <p>Xassələri seçin, nəticəni canlı görün. Bu ən yaxşı öyrənmə üsuludur!</p>
+
+    <div class="playground">
+      <div class="playground-header">
+        <span>⚡</span>
+        <h4>Canlı Flexbox Sınaq</h4>
+      </div>
+      <div class="playground-body">
+        <div class="controls">
+          <div class="control-group">
+            <label>flex-direction</label>
+            <select id="pgDir">
+              <option value="row">row</option>
+              <option value="row-reverse">row-reverse</option>
+              <option value="column">column</option>
+              <option value="column-reverse">column-reverse</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>justify-content</label>
+            <select id="pgJustify">
+              <option value="flex-start">flex-start</option>
+              <option value="flex-end">flex-end</option>
+              <option value="center">center</option>
+              <option value="space-between">space-between</option>
+              <option value="space-around">space-around</option>
+              <option value="space-evenly">space-evenly</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>align-items</label>
+            <select id="pgAlign">
+              <option value="stretch">stretch</option>
+              <option value="flex-start">flex-start</option>
+              <option value="center">center</option>
+              <option value="flex-end">flex-end</option>
+              <option value="baseline">baseline</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>flex-wrap</label>
+            <select id="pgWrap">
+              <option value="nowrap">nowrap</option>
+              <option value="wrap">wrap</option>
+              <option value="wrap-reverse">wrap-reverse</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>gap</label>
+            <select id="pgGap">
+              <option value="0px">0px</option>
+              <option value="8px" selected>8px</option>
+              <option value="16px">16px</option>
+              <option value="24px">24px</option>
+            </select>
+          </div>
+        </div>
+        <div class="preview-area">
+          <span>Nəticə</span>
+          <div class="preview-flex" id="pgPreview">
+            <div class="box">A</div>
+            <div class="box box-b">B</div>
+            <div class="box box-c">C</div>
+            <div class="box box-d">D</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function updatePlayground() {
+        const el = document.getElementById('pgPreview');
+        el.style.flexDirection  = document.getElementById('pgDir').value;
+        el.style.justifyContent = document.getElementById('pgJustify').value;
+        el.style.alignItems     = document.getElementById('pgAlign').value;
+        el.style.flexWrap       = document.getElementById('pgWrap').value;
+        el.style.gap            = document.getElementById('pgGap').value;
+      }
+      ['pgDir','pgJustify','pgAlign','pgWrap','pgGap'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updatePlayground);
+      });
+      updatePlayground();
+    </script>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 13. REAL WORLD ══════════════════ -->
+  <section class="section" id="realworld">
+    <span class="section-label">// 13</span>
+    <h2>Real Dünya Nümunələri</h2>
+
+    <h3 style="margin-bottom:12px;font-size:1rem;">📌 1. Naviqasiya paneli</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>nav.css</span>
+      </div>
+      <pre><span class="sl">nav</span> {
+  <span class="pr">display</span>: <span class="vl">flex</span>;
+  <span class="pr">justify-content</span>: <span class="vl">space-between</span>;  <span class="cm">/* loqo solda, linklər sağda */</span>
+  <span class="pr">align-items</span>: <span class="vl">center</span>;              <span class="cm">/* şaquli mərkəzə */</span>
+  <span class="pr">padding</span>: <span class="vl">16px 32px</span>;
+}
+<span class="sl">.nav-links</span> {
+  <span class="pr">display</span>: <span class="vl">flex</span>;
+  <span class="pr">gap</span>: <span class="vl">24px</span>;
+}</pre>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// Nav nəticəsi</div>
+      <div class="demo-box" style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;">
+        <div class="box" style="font-size:.8rem;">🏠 Loqo</div>
+        <div style="display:flex;gap:8px;">
+          <div class="box box-b" style="font-size:.75rem;padding:8px 12px;">Ana Səhifə</div>
+          <div class="box box-c" style="font-size:.75rem;padding:8px 12px;color:#0f1117;">Haqqımda</div>
+          <div class="box box-d" style="font-size:.75rem;padding:8px 12px;color:#0f1117;">Əlaqə</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin:28px 0 12px;font-size:1rem;">📌 2. Kart şəbəkəsi (responsive)</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>cards.css</span>
+      </div>
+      <pre><span class="sl">.kart-konteyner</span> {
+  <span class="pr">display</span>: <span class="vl">flex</span>;
+  <span class="pr">flex-wrap</span>: <span class="vl">wrap</span>;
+  <span class="pr">gap</span>: <span class="vl">20px</span>;
+}
+<span class="sl">.kart</span> {
+  <span class="pr">flex</span>: <span class="vl">1 1 250px</span>;  <span class="cm">/* min 250px, daha geniş olsa böyüyür */</span>
+}</pre>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// Responsive kart nəticəsi (pəncərəni dardın)</div>
+      <div class="demo-box" style="display:flex;flex-wrap:wrap;gap:12px;">
+        <div class="box" style="flex:1 1 150px;min-width:120px;font-size:.8rem;">Kart 1</div>
+        <div class="box box-b" style="flex:1 1 150px;min-width:120px;font-size:.8rem;">Kart 2</div>
+        <div class="box box-c" style="flex:1 1 150px;min-width:120px;font-size:.8rem;color:#0f1117;">Kart 3</div>
+        <div class="box box-d" style="flex:1 1 150px;min-width:120px;font-size:.8rem;color:#0f1117;">Kart 4</div>
+      </div>
+    </div>
+
+    <h3 style="margin:28px 0 12px;font-size:1rem;">📌 3. Ekranı dolduran layout (header + main + footer)</h3>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span>layout.css</span>
+      </div>
+      <pre><span class="sl">body</span> {
+  <span class="pr">display</span>: <span class="vl">flex</span>;
+  <span class="pr">flex-direction</span>: <span class="vl">column</span>;
+  <span class="pr">min-height</span>: <span class="vl">100vh</span>;
+}
+<span class="sl">main</span> {
+  <span class="pr">flex</span>: <span class="vl">1</span>;  <span class="cm">/* qalan bütün yeri alır — footer hər zaman aşağıda */</span>
+}</pre>
+    </div>
+    <div class="demo-wrap">
+      <div class="demo-title">// Sticky footer layout</div>
+      <div class="demo-box" style="display:flex;flex-direction:column;height:180px;gap:0;padding:0;">
+        <div class="box" style="border-radius:0;font-size:.78rem;padding:10px;">Header</div>
+        <div class="box box-b" style="flex:1;border-radius:0;font-size:.78rem;display:flex;align-items:center;justify-content:center;">Main (flex:1 — bütün boşluğu alır)</div>
+        <div class="box box-c" style="border-radius:0;font-size:.78rem;padding:10px;color:#0f1117;">Footer (həmişə aşağıda)</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ XÜLASƏ CƏDVƏL ══════════════════ -->
+  <section class="section">
+    <span class="section-label">// 14</span>
+    <h2>📋 Tam Xülasə Cədvəli</h2>
+
+    <div style="overflow-x:auto;margin:20px 0;">
+      <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:12px 16px;color:var(--accent);font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;">Xassə</th>
+            <th style="text-align:left;padding:12px 16px;color:var(--accent);font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;">Kimə yazılır</th>
+            <th style="text-align:left;padding:12px 16px;color:var(--accent);font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;">Nə edir</th>
+            <th style="text-align:left;padding:12px 16px;color:var(--accent);font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;">Defolt</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">display</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Flexbox-u aktiv edir</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">block</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">flex-direction</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Elementlərin istiqamətini müəyyən edir</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">row</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">flex-wrap</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Sığmayanlar keçsin mi?</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">nowrap</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">justify-content</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Əsas ox boyunca hizalama</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">flex-start</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">align-items</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Çarpaz ox boyunca hizalama</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">stretch</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">align-content</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Çox sıra varsa sıraların hizalanması</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">stretch</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">gap</td>
+            <td style="padding:10px 16px;color:var(--muted);">Konteyner</td>
+            <td style="padding:10px 16px;color:var(--text);">Elementlər arası boşluq</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">0</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">order</td>
+            <td style="padding:10px 16px;color:var(--muted);">Item</td>
+            <td style="padding:10px 16px;color:var(--text);">Görünüş sırasını dəyişir</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">0</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">flex-grow</td>
+            <td style="padding:10px 16px;color:var(--muted);">Item</td>
+            <td style="padding:10px 16px;color:var(--text);">Nə qədər böyüsün</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">0</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">flex-shrink</td>
+            <td style="padding:10px 16px;color:var(--muted);">Item</td>
+            <td style="padding:10px 16px;color:var(--text);">Nə qədər kiçilsin</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">1</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">flex-basis</td>
+            <td style="padding:10px 16px;color:var(--muted);">Item</td>
+            <td style="padding:10px 16px;color:var(--text);">Başlanğıc ölçü</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">auto</td>
+          </tr>
+          <tr style="background:rgba(255,255,255,.02);">
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--accent3);">align-self</td>
+            <td style="padding:10px 16px;color:var(--muted);">Item</td>
+            <td style="padding:10px 16px;color:var(--text);">Yalnız bu item üçün align-items</td>
+            <td style="padding:10px 16px;font-family:var(--font-mono);color:var(--muted);">auto</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════════════════════════════ 15. QUİZ ════════════════════════ -->
+  <section class="section" id="quiz">
+    <span class="section-label">// 15</span>
+    <h2>🧠 Özünü Yoxla</h2>
+    <p>Öyrəndiklərini test et! Cavabı seç, dərhal nəticəni gör.</p>
+
+    <div class="quiz">
+
+      <div class="quiz-q">
+        <p>1. Elementləri üfüqi olaraq bərabər boşluqla ayırmaq üçün hansı dəyəri istifadə edirik?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q1')">align-items: center</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q1')">flex-direction: row</button>
+          <button class="quiz-opt" onclick="checkQ(this,'correct','q1')">justify-content: space-between</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q1')">flex-wrap: wrap</button>
+        </div>
+        <div class="quiz-feedback" id="q1">✅ Doğru! <code>justify-content: space-between</code> elementlər arasında bərabər boşluq yaradır, kənarlara boşluq qoymur.</div>
+      </div>
+
+      <div class="quiz-q">
+        <p>2. Bir elementi həm üfüqi, həm şaquli mərkəzə yerləşdirmək üçün nə istifadə edirik?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q2')">display: block; margin: auto;</button>
+          <button class="quiz-opt" onclick="checkQ(this,'correct','q2')">display: flex; justify-content: center; align-items: center;</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q2')">flex-direction: column; justify-content: center;</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q2')">flex-wrap: wrap; align-content: center;</button>
+        </div>
+        <div class="quiz-feedback" id="q2">✅ Doğru! Bu klassik "mükəmməl mərkəzləmə" həllidir — hər Flexbox istifadəçisinin əzbər bilməli olduğu bir patterndir.</div>
+      </div>
+
+      <div class="quiz-q">
+        <p>3. <code>flex-grow: 2</code> verilmiş element, <code>flex-grow: 1</code> olan elementdən neçə dəfə daha geniş olur?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q3')">2px daha geniş olur</button>
+          <button class="quiz-opt" onclick="checkQ(this,'correct','q3')">Boş yerin 2 payını alır, yəni 2 dəfə geniş olur</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q3')">Heç bir fərq olmur</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q3')">200% geniş olur</button>
+        </div>
+        <div class="quiz-feedback" id="q3">✅ Doğru! <code>flex-grow</code> dəyərlər nisbətini müəyyən edir. 2:1 nisbəti — boş yerin 2/3-ü birinci elementə, 1/3-ü ikinciyə gedir.</div>
+      </div>
+
+      <div class="quiz-q">
+        <p>4. Konteyner xassəsi olmayan, yalnız müəyyən bir item üçün çarpaz ox hizasını dəyişdirən xassə hansıdır?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q4')">align-content</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q4')">align-items</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q4')">justify-self</button>
+          <button class="quiz-opt" onclick="checkQ(this,'correct','q4')">align-self</button>
+        </div>
+        <div class="quiz-feedback" id="q4">✅ Doğru! <code>align-self</code> yalnız o item üçün <code>align-items</code>-i ləğv edir. Qeyd: <code>justify-self</code> Flexbox-da işləmir, yalnız Grid-də işləyir.</div>
+      </div>
+
+      <div class="quiz-q">
+        <p>5. Elementlər konteynerə sığmadıqda növbəti sıraya keçmələri üçün nə yazmalıyıq?</p>
+        <div class="quiz-options">
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q5')">flex-direction: column</button>
+          <button class="quiz-opt" onclick="checkQ(this,'correct','q5')">flex-wrap: wrap</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q5')">overflow: hidden</button>
+          <button class="quiz-opt" onclick="checkQ(this,'wrong','q5')">align-content: wrap</button>
+        </div>
+        <div class="quiz-feedback" id="q5">✅ Doğru! <code>flex-wrap: wrap</code> sığmayan elementlərin növbəti sıraya keçməsini təmin edir. Bu, responsiv dizayn üçün çox vacibdir.</div>
+      </div>
+
+    </div>
+
+    <script>
+      function checkQ(btn, result, qId) {
+        const parent = btn.closest('.quiz-q');
+        if (parent.querySelector('.correct, .wrong')) return;
+        btn.classList.add(result);
+        const fb = document.getElementById(qId);
+        fb.classList.add('show');
+        if (result === 'correct') {
+          fb.classList.add('ok');
+        } else {
+          fb.classList.add('err');
+          fb.textContent = '❌ Yanlış! Düzgün cavabı tapmağa çalış...';
+          parent.querySelectorAll('.quiz-opt').forEach(o => {
+            if (o.getAttribute('onclick').includes("'correct'")) {
+              setTimeout(() => o.classList.add('correct'), 1200);
+            }
+          });
+        }
+      }
+    </script>
+  </section>
+
+  <footer>
+    <p>CSS Flexbox Dərsliyi · Azərbaycan dilində hazırlanmışdır</p>
+    <p style="margin-top:8px;"><strong>Növbəti addım:</strong> CSS Grid — iki ölçülü düzülüş sistemi</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

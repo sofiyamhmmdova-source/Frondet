@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript: Funksiyalar və Scope — Tam Dərslik</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #0d0f14;
+    --bg-card: #13161e;
+    --bg-card2: #1a1e2a;
+    --bg-code: #0a0c11;
+    --border: #232840;
+    --border-accent: #2e3560;
+    --text-primary: #e8eaf6;
+    --text-secondary: #8b90b8;
+    --text-muted: #545878;
+    --accent-blue: #5c9eff;
+    --accent-purple: #a78bfa;
+    --accent-cyan: #38d9f5;
+    --accent-green: #4ade80;
+    --accent-orange: #fb923c;
+    --accent-pink: #f472b6;
+    --accent-yellow: #facc15;
+    --accent-red: #f87171;
+    --glow-blue: rgba(92,158,255,0.15);
+    --glow-purple: rgba(167,139,250,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 16px;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ── HERO SECTION ── */
+  .hero {
+    position: relative;
+    padding: 80px 24px 60px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(92,158,255,0.18) 0%, rgba(167,139,250,0.1) 40%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(92,158,255,0.1);
+    border: 1px solid rgba(92,158,255,0.3);
+    border-radius: 100px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 7vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent-blue) 70%, var(--accent-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    font-size: clamp(14px, 3vw, 17px);
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto 40px;
+    font-weight: 300;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 720px;
+    margin: 0 auto 60px;
+    text-align: left;
+  }
+
+  .toc-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .toc li { counter-increment: toc; }
+
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 24px;
+  }
+
+  .toc a:hover { background: rgba(92,158,255,0.08); color: var(--accent-blue); }
+
+  /* ── MAIN LAYOUT ── */
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 60px;
+    scroll-margin-top: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    background: rgba(92,158,255,0.1);
+    border: 1px solid rgba(92,158,255,0.25);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-size: clamp(1.3rem, 4vw, 1.75rem);
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-accent-blue { border-left: 3px solid var(--accent-blue); }
+  .card-accent-purple { border-left: 3px solid var(--accent-purple); }
+  .card-accent-green { border-left: 3px solid var(--accent-green); }
+  .card-accent-orange { border-left: 3px solid var(--accent-orange); }
+  .card-accent-cyan { border-left: 3px solid var(--accent-cyan); }
+  .card-accent-pink { border-left: 3px solid var(--accent-pink); }
+  .card-accent-yellow { border-left: 3px solid var(--accent-yellow); }
+
+  .card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card p, .card li { font-size: 14.5px; color: var(--text-secondary); }
+  .card ul, .card ol { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* ── ANALOGY BOX ── */
+  .analogy {
+    background: linear-gradient(135deg, rgba(167,139,250,0.07), rgba(92,158,255,0.05));
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 20px 0;
+  }
+
+  .analogy-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent-purple);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .analogy p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+
+  /* ── INFO / WARNING ── */
+  .info-box {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .info-box.tip { background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.2); }
+  .info-box.warning { background: rgba(251,146,60,0.07); border: 1px solid rgba(251,146,60,0.2); }
+  .info-box.danger { background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); }
+  .info-box.note { background: rgba(56,217,245,0.07); border: 1px solid rgba(56,217,245,0.2); }
+
+  .info-icon { font-size: 18px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+  .info-box p { color: var(--text-secondary); line-height: 1.6; }
+  .info-box strong { color: var(--text-primary); }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap {
+    margin: 20px 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .code-header {
+    background: #0f1117;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .code-dots { display: flex; gap: 6px; }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dot.red { background: #ff5f57; }
+  .code-dot.yellow { background: #febc2e; }
+  .code-dot.green { background: #28c840; }
+
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  pre {
+    background: var(--bg-code);
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.75;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── SYNTAX COLORS ── */
+  .kw { color: var(--accent-purple); font-weight: 700; }
+  .fn { color: var(--accent-blue); }
+  .str { color: var(--accent-green); }
+  .num { color: var(--accent-orange); }
+  .cmt { color: var(--text-muted); font-style: italic; }
+  .var { color: var(--accent-cyan); }
+  .op { color: var(--accent-pink); }
+  .bool { color: var(--accent-orange); }
+  .param { color: #fbbf24; }
+  .ret { color: var(--accent-red); font-weight: 700; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 560px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+
+  .compare-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .compare-card .badge-sm {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .badge-var { background: rgba(248,113,113,0.15); color: var(--accent-red); border: 1px solid rgba(248,113,113,0.3); }
+  .badge-let { background: rgba(92,158,255,0.15); color: var(--accent-blue); border: 1px solid rgba(92,158,255,0.3); }
+  .badge-const { background: rgba(74,222,128,0.15); color: var(--accent-green); border: 1px solid rgba(74,222,128,0.3); }
+
+  .compare-card ul { list-style: none; text-align: left; padding: 0; }
+  .compare-card li { font-size: 12.5px; color: var(--text-secondary); padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .compare-card li:last-child { border: none; }
+  .compare-card li::before { content: '→ '; color: var(--text-muted); }
+
+  /* ── PILLAR (SCOPE VISUAL) ── */
+  .scope-visual {
+    margin: 24px 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .scope-layer {
+    padding: 16px 20px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    position: relative;
+  }
+
+  .scope-global { background: rgba(92,158,255,0.07); border-bottom: 1px solid var(--border); }
+  .scope-function { background: rgba(167,139,250,0.07); border-bottom: 1px solid var(--border); padding-left: 36px; }
+  .scope-block { background: rgba(74,222,128,0.07); padding-left: 60px; }
+
+  .scope-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  .scope-global .scope-label { color: var(--accent-blue); }
+  .scope-function .scope-label { color: var(--accent-purple); }
+  .scope-block .scope-label { color: var(--accent-green); }
+
+  /* ── TASK CARDS ── */
+  .task-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .task-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, rgba(92,158,255,0.12), transparent 70%);
+    border-radius: 50%;
+  }
+
+  .task-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    background: rgba(92,158,255,0.1);
+    border: 1px solid rgba(92,158,255,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .task-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .task-card p { font-size: 14px; color: var(--text-secondary); }
+
+  /* ── SUMMARY TABLE ── */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 20px 0;
+    overflow-x: auto;
+    display: block;
+  }
+
+  .summary-table th {
+    background: rgba(92,158,255,0.1);
+    color: var(--accent-blue);
+    font-weight: 700;
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .summary-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  .summary-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-accent), transparent);
+    margin: 48px 0;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer span { color: var(--accent-blue); }
+
+  /* ── MOBILE TWEAKS ── */
+  @media (max-width: 600px) {
+    .hero { padding: 60px 20px 40px; }
+    pre { font-size: 12px; padding: 14px; }
+    .card { padding: 16px 18px; }
+    .section-title { font-size: 1.2rem; }
+    .task-card { padding: 16px 18px; }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero > * { animation: fadeUp 0.6s ease both; }
+  .hero .badge { animation-delay: 0.05s; }
+  .hero h1 { animation-delay: 0.15s; }
+  .hero p { animation-delay: 0.25s; }
+  .toc { animation-delay: 0.35s; }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(92,158,255,0.1);
+    color: var(--accent-blue);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 0.88em;
+    border: 1px solid rgba(92,158,255,0.2);
+  }
+
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  strong { color: var(--text-primary); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="badge">⚡ JavaScript Dərsliyi · Sıfırdan</div>
+  <h1>Funksiyalar<br>və Scope</h1>
+  <p>Sıfırdan başlayanlar üçün ən sadə anlayışlardan ən mürəkkəb konseptlərə qədər addım-addım, real bənzətmələrlə hazırlanmış tam dərslik.</p>
+</div>
+
+<!-- TOC -->
+<div class="container">
+<div class="toc">
+  <div class="toc-title">📚 Mündəricat</div>
+  <ol>
+    <li><a href="#s1">Funksiya nədir? DRY prinsipi</a></li>
+    <li><a href="#s2">Funksiya növləri</a></li>
+    <li><a href="#s3">Parametrlər, arqumentlər və default dəyərlər</a></li>
+    <li><a href="#s4">Return — geri qaytarma</a></li>
+    <li><a href="#s5">Scope — Əhatə dairəsi</a></li>
+    <li><a href="#s6">var, let, const fərqləri və Hoisting</a></li>
+    <li><a href="#s7">Closure — bağlam anlayışı</a></li>
+    <li><a href="#s8">Xülasə və praktik tapşırıqlar</a></li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 1 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Funksiya nədir?</h2>
+  </div>
+
+  <p>Proqramlaşdırmada <strong>funksiya (function)</strong> — müəyyən bir işi yerinə yetirmək üçün yazılmış, adlandırılmış kod blokudur. Funksiyalar sayəsində eyni kodu dəfələrlə yazmaqdan xilas oluruq.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">🧠 Real həyat bənzətməsi</div>
+    <p>Düşün ki, sən hər səhər çay dəmləyirsən: su qaynadırsan, çay tökür, şəkər əlavə edirsən. Bu addımlar həmişə eynidir. Funksiya da eynən belədir — bir dəfə yazırsın, istədiyin qədər "çağırırsan".</p>
+  </div>
+
+  <div class="card card-accent-blue">
+    <h3>♻️ DRY Prinsipi</h3>
+    <p><strong>DRY</strong> — <em>Don't Repeat Yourself</em> (Özünü Təkrar Etmə) deməkdir. Bu, proqramlaşdırmanın ən fundamental qaydasıdır. Eyni kodu iki dəfə yazmaq əvəzinə bir funksiya yazıb onu çağır.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">DRY Prinsipinin Nümayişi</span>
+    </div>
+    <pre><span class="cmt">// ❌ PISI YANAŞMA — eyni kodu 3 dəfə yazdıq</span>
+console.log(<span class="str">"Salam, Əli!"</span>);
+console.log(<span class="str">"Salam, Leyla!"</span>);
+console.log(<span class="str">"Salam, Kamran!"</span>);
+
+<span class="cmt">// ✅ DRY YANAŞMASİ — bir funksiya, sonsuz istifadə</span>
+<span class="kw">function</span> <span class="fn">salamVer</span>(<span class="param">ad</span>) {
+  console.log(<span class="str">"Salam, "</span> <span class="op">+</span> <span class="param">ad</span> <span class="op">+</span> <span class="str">"!"</span>);
+}
+
+<span class="fn">salamVer</span>(<span class="str">"Əli"</span>);     <span class="cmt">// → Salam, Əli!</span>
+<span class="fn">salamVer</span>(<span class="str">"Leyla"</span>);   <span class="cmt">// → Salam, Leyla!</span>
+<span class="fn">salamVer</span>(<span class="str">"Kamran"</span>);  <span class="cmt">// → Salam, Kamran!</span></pre>
+  </div>
+
+  <div class="info-box tip">
+    <span class="info-icon">💡</span>
+    <p><strong>Əsas ideya:</strong> Funksiya <em>bir dəfə</em> yazılır, <em>istənilən qədər</em> çağırılır. Bu, kodu qısa, oxunaqlı və dəyişdirməsi asan edir.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 2 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Funksiya növləri</h2>
+  </div>
+
+  <p>JavaScript-də funksiya yaratmağın bir neçə yolu var. Hər birinin öz xüsusiyyəti var — gəlin hamısını öyrənək.</p>
+
+  <!-- 2.1 Function Declaration -->
+  <div class="card card-accent-blue">
+    <h3>📝 2.1 — Function Declaration (Funksiya Bəyannaməsi)</h3>
+    <p>Ən klassik üsul. <code>function</code> açar sözü ilə başlayır, sonra funksiyaya ad verilir. Bu üsulun xüsusiyyəti: funksiya kodda yazılmadan əvvəl də çağırıla bilər (buna <strong>Hoisting</strong> deyilir — bunu 6-cı bölmədə öyrənəcəyik).</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Function Declaration</span>
+    </div>
+    <pre><span class="cmt">// Struktur: function ad(parametrlər) { ... }</span>
+
+<span class="kw">function</span> <span class="fn">toplama</span>(<span class="param">a</span>, <span class="param">b</span>) {
+  <span class="kw">return</span> <span class="param">a</span> <span class="op">+</span> <span class="param">b</span>;
+}
+
+<span class="kw">let</span> <span class="var">netice</span> <span class="op">=</span> <span class="fn">toplama</span>(<span class="num">5</span>, <span class="num">3</span>);
+console.log(<span class="var">netice</span>); <span class="cmt">// → 8</span>
+
+<span class="cmt">// Hoisting — funksiyadan ƏVVƏL çağırmaq mümkündür!</span>
+console.log(<span class="fn">salam</span>()); <span class="cmt">// → "Əhsən!" — xəta vermir!</span>
+
+<span class="kw">function</span> <span class="fn">salam</span>() {
+  <span class="kw">return</span> <span class="str">"Əhsən!"</span>;
+}</pre>
+  </div>
+
+  <!-- 2.2 Function Expression -->
+  <div class="card card-accent-purple">
+    <h3>💾 2.2 — Function Expression (Funksiya İfadəsi)</h3>
+    <p>Funksiya bir dəyişkənə mənimsədilir. Bu üsulda funksiyaya ad vermək məcburi deyil (belə funksiyalara <strong>anonymous — anonim</strong> funksiyalar deyilir). Hoisting işləmir — funksiya yalnız yazıldıqdan sonra çağırıla bilər.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Function Expression</span>
+    </div>
+    <pre><span class="cmt">// Funksiya bir dəyişkənə mənimsədilir</span>
+<span class="kw">const</span> <span class="var">vurma</span> <span class="op">=</span> <span class="kw">function</span>(<span class="param">a</span>, <span class="param">b</span>) {
+  <span class="kw">return</span> <span class="param">a</span> <span class="op">*</span> <span class="param">b</span>;
+};
+
+console.log(<span class="var">vurma</span>(<span class="num">4</span>, <span class="num">6</span>)); <span class="cmt">// → 24</span>
+
+<span class="cmt">// ❌ Bu xəta verər — Hoisting işləmir!</span>
+<span class="cmt">// console.log(vurma(4, 6)); ← bu sətri əvvəl yazsaq, ReferenceError</span>
+
+<span class="cmt">// Funksiyalar dəyişkənlər kimi ötürülə bilər</span>
+<span class="kw">const</span> <span class="var">emeliyyat</span> <span class="op">=</span> <span class="var">vurma</span>;
+console.log(<span class="var">emeliyyat</span>(<span class="num">3</span>, <span class="num">3</span>)); <span class="cmt">// → 9</span></pre>
+  </div>
+
+  <!-- 2.3 Arrow Function -->
+  <div class="card card-accent-cyan">
+    <h3>🏹 2.3 — Arrow Function (Ok Funksiyası)</h3>
+    <p>ES6 (2015) ilə gəlmiş müasir sintaksis. Daha qısa yazılır. <code>function</code> açar sözünün əvəzinə <code>=&gt;</code> (ox) işarəsi istifadə edilir. <strong>Əhəmiyyətli fərq:</strong> Arrow funksiyaların öz <code>this</code> konteksti yoxdur (bu, irəli mövzudur).</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Arrow Function — Müxtəlif Yazılış Formaları</span>
+    </div>
+    <pre><span class="cmt">// ─── Uzun forma (bir neçə sətir kodu) ───</span>
+<span class="kw">const</span> <span class="var">salam</span> <span class="op">=</span> (<span class="param">ad</span>) <span class="op">=></span> {
+  <span class="kw">const</span> <span class="var">mesaj</span> <span class="op">=</span> <span class="str">"Salam, "</span> <span class="op">+</span> <span class="param">ad</span>;
+  <span class="kw">return</span> <span class="var">mesaj</span>;
+};
+
+<span class="cmt">// ─── Qısa forma (tək ifadə — return avtomatikdir) ───</span>
+<span class="kw">const</span> <span class="var">kvadrat</span> <span class="op">=</span> (<span class="param">x</span>) <span class="op">=></span> <span class="param">x</span> <span class="op">*</span> <span class="param">x</span>;
+<span class="cmt">// ← return yazmırıq, avtomatik qaytarır!</span>
+
+<span class="cmt">// ─── Tək parametrdə mötərizə isteğe bağlıdır ───</span>
+<span class="kw">const</span> <span class="var">ikiqat</span> <span class="op">=</span> <span class="param">sayi</span> <span class="op">=></span> <span class="param">sayi</span> <span class="op">*</span> <span class="num">2</span>;
+
+<span class="cmt">// ─── Parametrsiz — mötərizə mütləqdir ───</span>
+<span class="kw">const</span> <span class="var">vaxtGoster</span> <span class="op">=</span> () <span class="op">=></span> <span class="kw">new</span> Date().toLocaleTimeString();
+
+console.log(<span class="var">salam</span>(<span class="str">"Aytən"</span>));  <span class="cmt">// → Salam, Aytən</span>
+console.log(<span class="var">kvadrat</span>(<span class="num">5</span>));     <span class="cmt">// → 25</span>
+console.log(<span class="var">ikiqat</span>(<span class="num">7</span>));      <span class="cmt">// → 14</span>
+console.log(<span class="var">vaxtGoster</span>());   <span class="cmt">// → 14:32:05 (məsələn)</span></pre>
+  </div>
+
+  <div class="info-box note">
+    <span class="info-icon">📌</span>
+    <p><strong>Nə zaman hansını istifadə etməli?</strong> Ümumi qayda: müasir proyektlərdə <strong>Arrow function</strong> daha çox istifadə edilir. Lakin metodlar və konstruktorlar üçün klassik <code>function</code> daha uyğundur.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 3 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Parametrlər, Arqumentlər və Default Dəyərlər</h2>
+  </div>
+
+  <div class="card card-accent-orange">
+    <h3>🔤 Parametr vs Arqument fərqi</h3>
+    <ul>
+      <li><strong>Parametr (Parameter)</strong> — funksiya <em>tərifi</em>ndəki yer tutucu dəyişkəndir. Funksiya yazılarkən müəyyən edilir.</li>
+      <li><strong>Arqument (Argument)</strong> — funksiya <em>çağırılanda</em> göndərilən əsl dəyərdir.</li>
+    </ul>
+  </div>
+
+  <div class="analogy">
+    <div class="analogy-label">🧠 Bənzətmə</div>
+    <p>Parametr — blankdakı boş xanalardır: <em>"Ad: ____"</em>. Arqument isə həmin xanaya yazdığın əsl məlumatdır: <em>"Ad: Nigar"</em>. Blank (şablon) bir dəfə hazırlanır, amma hər dəfə fərqli məlumat doldurula bilər.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Parametr və Arqument</span>
+    </div>
+    <pre><span class="cmt">//        ↓ parametr  ↓ parametr</span>
+<span class="kw">function</span> <span class="fn">tanit</span>(<span class="param">ad</span>, <span class="param">yas</span>) {
+  console.log(<span class="param">ad</span> <span class="op">+</span> <span class="str">" — "</span> <span class="op">+</span> <span class="param">yas</span> <span class="op">+</span> <span class="str">" yaşındadır."</span>);
+}
+
+<span class="cmt">//    ↓ arqument  ↓ arqument</span>
+<span class="fn">tanit</span>(<span class="str">"Murad"</span>, <span class="num">25</span>);   <span class="cmt">// → Murad — 25 yaşındadır.</span>
+<span class="fn">tanit</span>(<span class="str">"Xədicə"</span>, <span class="num">30</span>); <span class="cmt">// → Xədicə — 30 yaşındadır.</span>
+
+<span class="cmt">// Çox arqument göndərsən — artıqlar nəzərə alınmır</span>
+<span class="fn">tanit</span>(<span class="str">"Elvin"</span>, <span class="num">22</span>, <span class="str">"Bakı"</span>); <span class="cmt">// "Bakı" nəzərə alınmır</span>
+
+<span class="cmt">// Az arqument göndərsən — çatmayanlar "undefined" olur</span>
+<span class="fn">tanit</span>(<span class="str">"Günel"</span>); <span class="cmt">// → Günel — undefined yaşındadır.</span></pre>
+  </div>
+
+  <!-- Default Parameters -->
+  <div class="card card-accent-green">
+    <h3>🎯 Default Parameters (Standart Dəyərlər)</h3>
+    <p>Arqument göndərilmədikdə <code>undefined</code> əvəzinə müəyyən edilmiş standart dəyər istifadə olunur. Bu, ES6 ilə gəlmiş çox faydalı xüsusiyyətdir.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Default Parameters</span>
+    </div>
+    <pre><span class="cmt">//                  ↓ default dəyər    ↓ default dəyər</span>
+<span class="kw">function</span> <span class="fn">sifaris</span>(<span class="param">mehsul</span>, <span class="param">say</span> <span class="op">=</span> <span class="num">1</span>, <span class="param">renk</span> <span class="op">=</span> <span class="str">"qara"</span>) {
+  console.log(say <span class="op">+</span> <span class="str">" ədəd "</span> <span class="op">+</span> renk <span class="op">+</span> <span class="str">" rəngli "</span> <span class="op">+</span> mehsul);
+}
+
+<span class="fn">sifaris</span>(<span class="str">"köynək"</span>, <span class="num">3</span>, <span class="str">"mavi"</span>);
+<span class="cmt">// → 3 ədəd mavi rəngli köynək</span>
+
+<span class="fn">sifaris</span>(<span class="str">"şalvar"</span>, <span class="num">2</span>);
+<span class="cmt">// → 2 ədəd qara rəngli şalvar  ← "qara" default işləndi</span>
+
+<span class="fn">sifaris</span>(<span class="str">"papaq"</span>);
+<span class="cmt">// → 1 ədəd qara rəngli papaq   ← ikisi də default işləndi</span>
+
+<span class="cmt">// Arrow function ilə default parametr</span>
+<span class="kw">const</span> <span class="var">gucle</span> <span class="op">=</span> (<span class="param">eded</span>, <span class="param">guc</span> <span class="op">=</span> <span class="num">2</span>) <span class="op">=></span> <span class="param">eded</span> <span class="op">**</span> <span class="param">guc</span>;
+console.log(<span class="var">gucle</span>(<span class="num">3</span>));    <span class="cmt">// → 9  (3² — default 2)</span>
+console.log(<span class="var">gucle</span>(<span class="num">2</span>, <span class="num">10</span>)); <span class="cmt">// → 1024 (2¹⁰)</span></pre>
+  </div>
+
+  <div class="info-box tip">
+    <span class="info-icon">💡</span>
+    <p><strong>Praktik tövsiyə:</strong> Default dəyərlər həmişə parametr siyahısının <em>sonunda</em> yerləşdirilməlidir. Əgər ortada olarsa, onu atlayıb növbətisinə keçmək çətin olar.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 4 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Return — Geri Qaytarma</h2>
+  </div>
+
+  <p><code>return</code> açar sözü funksiyanın bir dəyər <strong>qaytarması</strong> üçün istifadə edilir. Funksiya <code>return</code>-a çatanda dayaqır və nəticəni çağırıcıya ötürür.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">🧠 Bənzətmə</div>
+    <p>Hesablamalar aparan maşın kimi düşün. Bir tərəfdən ham material (parametrlər) daxil olur, maşın işləyir, digər tərəfdən isə hazır məhsul (<code>return</code> dəyəri) çıxır. Maşının çıxışı olmasa, içəriyə nə getdiyinin heç bir fərqi olmaz.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">return ilə vs. return-süz funksiya</span>
+    </div>
+    <pre><span class="cmt">// ❌ Return olmayan funksiya — dəyər saxlanmır</span>
+<span class="kw">function</span> <span class="fn">cemi1</span>(<span class="param">a</span>, <span class="param">b</span>) {
+  <span class="param">a</span> <span class="op">+</span> <span class="param">b</span>; <span class="cmt">// hesablanır, amma heç yerə getmir</span>
+}
+<span class="kw">let</span> <span class="var">x</span> <span class="op">=</span> <span class="fn">cemi1</span>(<span class="num">4</span>, <span class="num">5</span>);
+console.log(<span class="var">x</span>); <span class="cmt">// → undefined ← itib getdi!</span>
+
+<span class="cmt">// ✅ Return olan funksiya — dəyər qaytarılır</span>
+<span class="kw">function</span> <span class="fn">cemi2</span>(<span class="param">a</span>, <span class="param">b</span>) {
+  <span class="kw">return</span> <span class="param">a</span> <span class="op">+</span> <span class="param">b</span>;
+}
+<span class="kw">let</span> <span class="var">y</span> <span class="op">=</span> <span class="fn">cemi2</span>(<span class="num">4</span>, <span class="num">5</span>);
+console.log(<span class="var">y</span>); <span class="cmt">// → 9 ✓</span>
+
+<span class="cmt">// return — funksiyanı ANINDA dayandırır</span>
+<span class="kw">function</span> <span class="fn">yoxla</span>(<span class="param">eded</span>) {
+  <span class="kw">if</span> (<span class="param">eded</span> <span class="op"><</span> <span class="num">0</span>) {
+    <span class="kw">return</span> <span class="str">"Mənfi ədəd!"</span>; <span class="cmt">// ← buradan çıxır</span>
+  }
+  <span class="kw">return</span> <span class="str">"Müsbət ədəd!"</span>; <span class="cmt">// ← yalnız yuxarı işləmədikdə</span>
+}
+
+console.log(<span class="fn">yoxla</span>(<span class="op">-</span><span class="num">5</span>)); <span class="cmt">// → Mənfi ədəd!</span>
+console.log(<span class="fn">yoxla</span>(<span class="num">7</span>));  <span class="cmt">// → Müsbət ədəd!</span></pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">return-un praktik gücü — funksiyaları birləşdirmək</span>
+    </div>
+    <pre><span class="cmt">// Hər funksiya öz işini edir, return sayəsində birləşirik</span>
+<span class="kw">const</span> <span class="var">daireSahesi</span> <span class="op">=</span> (<span class="param">r</span>) <span class="op">=></span> Math.PI <span class="op">*</span> <span class="param">r</span> <span class="op">**</span> <span class="num">2</span>;
+<span class="kw">const</span> <span class="var">yuvarlaq</span> <span class="op">=</span> (<span class="param">sayi</span>, <span class="param">reqem</span>) <span class="op">=></span> sayi.toFixed(<span class="param">reqem</span>);
+
+<span class="kw">const</span> <span class="var">radiuslu</span> <span class="op">=</span> <span class="num">5</span>;
+<span class="kw">const</span> <span class="var">sahe</span> <span class="op">=</span> <span class="var">daireSahesi</span>(<span class="var">radiuslu</span>);
+console.log(<span class="var">yuvarlaq</span>(<span class="var">sahe</span>, <span class="num">2</span>)); <span class="cmt">// → "78.54"</span>
+
+<span class="cmt">// Funksiya nəticəsini birbaşa istifadə</span>
+console.log(<span class="var">yuvarlaq</span>(<span class="var">daireSahesi</span>(<span class="num">3</span>), <span class="num">2</span>)); <span class="cmt">// → "28.27"</span></pre>
+  </div>
+
+  <div class="info-box warning">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Tuzaq:</strong> <code>return</code>-dan sonra gələn kod <strong>heç vaxt işləmir!</strong> JavaScript bunu "dead code" (ölü kod) adlandırır. Bəzi linterlər sizi xəbərdar edər.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 5 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Scope — Əhatə Dairəsi</h2>
+  </div>
+
+  <p><strong>Scope</strong> — dəyişkənin kodun hansı hissəsindən görünə biləcəyini, yəni əhatə dairəsini müəyyən edir. Bu, JavaScript-in ən vacib konseptlərindən biridir.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">🧠 Ev bənzətməsi</div>
+    <p>Düşün ki, bir ev var. Həyətdə (Global Scope) olan şeylər — meşbə, ağaclar — hamı tərəfindən görülür. Yataq otağında (Function Scope) olan şeylər — çarpayı, şkaf — yalnız o otaqda olanlar tərəfindən görülür. Həyətdəki adam otağa girməsə, içəridəkiləri görə bilmir.</p>
+  </div>
+
+  <!-- Scope Visual -->
+  <div class="scope-visual">
+    <div class="scope-layer scope-global">
+      <div class="scope-label">🌍 Global Scope</div>
+      <code>let dil = "Azərbaycan";</code>
+      <div class="scope-layer scope-function">
+        <div class="scope-label">📦 Function Scope</div>
+        <code>let sehir = "Bakı";</code>
+        <div class="scope-layer scope-block">
+          <div class="scope-label">🔒 Block Scope</div>
+          <code>let kuce = "İstiqlaliyyət";</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5.1 Global Scope -->
+  <div class="card card-accent-blue">
+    <h3>🌍 5.1 — Global Scope (Qlobal Əhatə Dairəsi)</h3>
+    <p>Hər hansı funksiyanın <em>xaricində</em> müəyyən edilmiş dəyişkənlər qlobal scope-dadır. Onlara kodun <strong>istənilən yerindən</strong> müraciət etmək mümkündür.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Global Scope</span>
+    </div>
+    <pre><span class="kw">let</span> <span class="var">sirketAdi</span> <span class="op">=</span> <span class="str">"AzərTech"</span>; <span class="cmt">// ← Global scope</span>
+
+<span class="kw">function</span> <span class="fn">birinci</span>() {
+  console.log(<span class="var">sirketAdi</span>); <span class="cmt">// → "AzərTech" ✓ görür</span>
+}
+
+<span class="kw">function</span> <span class="fn">ikinci</span>() {
+  console.log(<span class="var">sirketAdi</span>); <span class="cmt">// → "AzərTech" ✓ o da görür</span>
+}
+
+<span class="fn">birinci</span>();
+<span class="fn">ikinci</span>();</pre>
+  </div>
+
+  <div class="info-box warning">
+    <span class="info-icon">⚠️</span>
+    <p><strong>Diqqət:</strong> Çox sayda qlobal dəyişkən yaratmaq pis təcrübədir. Böyük proyektlərdə bu, gözlənilməz xətalara — "name collision" problemlərinə — səbəb ola bilər.</p>
+  </div>
+
+  <!-- 5.2 Function Scope -->
+  <div class="card card-accent-purple">
+    <h3>📦 5.2 — Function (Local) Scope — Funksiya Əhatə Dairəsi</h3>
+    <p>Funksiyanın <em>içindəki</em> dəyişkənlər yalnız o funksiyanın daxilindən görünür. Xaricindən müraciət etmək <strong>mümkün deyil</strong> — sanki kilid vurulmuş otaq kimidir.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Function Scope</span>
+    </div>
+    <pre><span class="kw">function</span> <span class="fn">hesapla</span>() {
+  <span class="kw">let</span> <span class="var">neticə</span> <span class="op">=</span> <span class="num">100</span>; <span class="cmt">// ← Local (function) scope</span>
+  console.log(<span class="var">neticə</span>); <span class="cmt">// → 100 ✓ daxildən görünür</span>
+}
+
+<span class="fn">hesapla</span>();
+
+<span class="cmt">// ❌ Funksiyadan kənarda müraciət — xəta!</span>
+<span class="cmt">// console.log(neticə); ← ReferenceError: neticə is not defined</span>
+
+<span class="cmt">// Hər funksiya öz dəyişkən "kimiçi"ni yaradır</span>
+<span class="kw">function</span> <span class="fn">funA</span>() {
+  <span class="kw">let</span> <span class="var">deger</span> <span class="op">=</span> <span class="str">"A-nın dəyəri"</span>;
+  console.log(<span class="var">deger</span>);
+}
+
+<span class="kw">function</span> <span class="fn">funB</span>() {
+  <span class="kw">let</span> <span class="var">deger</span> <span class="op">=</span> <span class="str">"B-nin dəyəri"</span>; <span class="cmt">// Eyni ad, başqa dəyər — ziddiyyət yoxdur!</span>
+  console.log(<span class="var">deger</span>);
+}
+
+<span class="fn">funA</span>(); <span class="cmt">// → A-nın dəyəri</span>
+<span class="fn">funB</span>(); <span class="cmt">// → B-nin dəyəri</span></pre>
+  </div>
+
+  <!-- 5.3 Block Scope -->
+  <div class="card card-accent-green">
+    <h3>🔒 5.3 — Block Scope (Blok Əhatə Dairəsi)</h3>
+    <p>Fiqurlu mötərizələr <code>{ }</code> arasındakı kod bloku — if, for, while, switch — öz scope-unu yaradır. <code>let</code> və <code>const</code> blok scope-a hörmət edir. <code>var</code> isə blokları <em>keçir</em> (bu problematikdir!).</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Block Scope — let vs var</span>
+    </div>
+    <pre><span class="cmt">// ─── let ilə block scope ───</span>
+<span class="kw">if</span> (<span class="bool">true</span>) {
+  <span class="kw">let</span> <span class="var">blokDeyeri</span> <span class="op">=</span> <span class="str">"mən blokdayam"</span>;
+  console.log(<span class="var">blokDeyeri</span>); <span class="cmt">// ✓ blok içindən görünür</span>
+}
+<span class="cmt">// console.log(blokDeyeri); ← ❌ ReferenceError! blokdan çıxdı</span>
+
+<span class="cmt">// ─── var ilə blok keçir (PROBLEM!) ───</span>
+<span class="kw">if</span> (<span class="bool">true</span>) {
+  <span class="kw">var</span> <span class="var">varDeyeri</span> <span class="op">=</span> <span class="str">"mən qaçdım!"</span>;
+}
+console.log(<span class="var">varDeyeri</span>); <span class="cmt">// → "mən qaçdım!" ← ❌ gözlənilməz!</span>
+
+<span class="cmt">// ─── for dövrəsindəki klassik tuzaq ───</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var">i</span> <span class="op">=</span> <span class="num">0</span>; <span class="var">i</span> <span class="op"><</span> <span class="num">3</span>; <span class="var">i</span><span class="op">++</span>) {
+  console.log(<span class="var">i</span>); <span class="cmt">// → 0, 1, 2</span>
+}
+<span class="cmt">// console.log(i); ← ❌ let ilə buradan görünmür</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 6 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">var, let, const — Fərqlər və Hoisting</h2>
+  </div>
+
+  <p>JavaScript-də dəyişkən elan etmənin 3 yolu var: <code>var</code>, <code>let</code>, <code>const</code>. Onların arasındakı fərqləri bilmək çox vacibdir.</p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="badge-sm badge-var">var</div>
+      <ul>
+        <li>Function-scoped</li>
+        <li>Yenidən elan edilə bilər</li>
+        <li>Hoisted — undefined ilə</li>
+        <li>Köhnə standart</li>
+        <li>İstifadə etmə!</li>
+      </ul>
+    </div>
+    <div class="compare-card">
+      <div class="badge-sm badge-let">let</div>
+      <ul>
+        <li>Block-scoped</li>
+        <li>Dəyəri dəyişdirilə bilər</li>
+        <li>Hoisted — lakin başlatılmır</li>
+        <li>Müasir standart</li>
+        <li>Dövrə sayğacı üçün ✓</li>
+      </ul>
+    </div>
+    <div class="compare-card">
+      <div class="badge-sm badge-const">const</div>
+      <ul>
+        <li>Block-scoped</li>
+        <li>Dəyəri dəyişdirilə bilməz</li>
+        <li>Hoisted — lakin başlatılmır</li>
+        <li>Müasir standart</li>
+        <li>Default seçim ✓✓</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">var, let, const müqayisəsi</span>
+    </div>
+    <pre><span class="cmt">// ─── var: köhnə, problemli ───</span>
+<span class="kw">var</span> <span class="var">ad</span> <span class="op">=</span> <span class="str">"Orxan"</span>;
+<span class="kw">var</span> <span class="var">ad</span> <span class="op">=</span> <span class="str">"Tərlan"</span>; <span class="cmt">// ← eyni adla yenidən — XƏTA VERMİR! (problem)</span>
+console.log(<span class="var">ad</span>);   <span class="cmt">// → "Tərlan"</span>
+
+<span class="cmt">// ─── let: dəyər dəyişər, yenidən elan edilməz ───</span>
+<span class="kw">let</span> <span class="var">sayi</span> <span class="op">=</span> <span class="num">10</span>;
+<span class="var">sayi</span> <span class="op">=</span> <span class="num">20</span>;         <span class="cmt">// ← dəyər dəyişdirildi ✓</span>
+<span class="cmt">// let sayi = 30; ← ❌ SyntaxError: yenidən elan edilə bilməz</span>
+
+<span class="cmt">// ─── const: dəyişməz (primitiv üçün) ───</span>
+<span class="kw">const</span> <span class="var">PI</span> <span class="op">=</span> <span class="num">3.14159</span>;
+<span class="cmt">// PI = 3.14; ← ❌ TypeError: Assignment to constant variable</span>
+
+<span class="cmt">// ⚠️ const ilə obyekt/array daxilini dəyişmək olar!</span>
+<span class="kw">const</span> <span class="var">insan</span> <span class="op">=</span> { <span class="var">ad</span>: <span class="str">"Nərmin"</span> };
+<span class="var">insan</span>.<span class="var">ad</span> <span class="op">=</span> <span class="str">"Könül"</span>; <span class="cmt">// ← Obyektin içi dəyişdirilə bilər ✓</span>
+console.log(<span class="var">insan</span>); <span class="cmt">// → { ad: "Könül" }</span></pre>
+  </div>
+
+  <!-- Hoisting -->
+  <div class="card card-accent-orange">
+    <h3>🏗️ Hoisting (Yuxarı Qaldırma)</h3>
+    <p><strong>Hoisting</strong> — JavaScript mühərrikinin bütün dəyişkən və funksiya elanlarını, kod icra edilməzdən əvvəl, scope-un <em>yuxarısına</em> "apararaq" tanıması prosesidir. Ancaq dəyərlər yuxarı getmir — yalnız elanlar.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Hoisting — necə işləyir?</span>
+    </div>
+    <pre><span class="cmt">// ─── var ilə hoisting ───</span>
+console.log(<span class="var">x</span>); <span class="cmt">// → undefined (xəta yox! amma dəyəri gəlmir)</span>
+<span class="kw">var</span> <span class="var">x</span> <span class="op">=</span> <span class="num">5</span>;
+console.log(<span class="var">x</span>); <span class="cmt">// → 5</span>
+
+<span class="cmt">// JavaScript bunu belə "görür" (arxa planda):
+// var x;            ← elan yuxarı çıxdı
+// console.log(x);   → undefined
+// x = 5;            ← dəyər öz yerindədir</span>
+
+<span class="cmt">// ─── let/const ilə hoisting — "Temporal Dead Zone" ───</span>
+<span class="cmt">// console.log(y); ← ❌ ReferenceError: TDZ-dədir!</span>
+<span class="kw">let</span> <span class="var">y</span> <span class="op">=</span> <span class="num">10</span>;
+console.log(<span class="var">y</span>); <span class="cmt">// → 10 ✓</span>
+
+<span class="cmt">// ─── function declaration ilə hoisting — mükəmməl işləyir ───</span>
+console.log(<span class="fn">salamVer</span>()); <span class="cmt">// → "Salam!" ← funksiyadan ƏVVƏL çağırıldı!</span>
+
+<span class="kw">function</span> <span class="fn">salamVer</span>() {
+  <span class="kw">return</span> <span class="str">"Salam!"</span>;
+}</pre>
+  </div>
+
+  <div class="info-box danger">
+    <span class="info-icon">🚫</span>
+    <p><strong>Tövsiyə:</strong> Hoisting-ə güvənmək pis təcrübədir. Dəyişkənlərinizi həmişə istifadə etməzdən əvvəl elan edin. <code>var</code> əvəzinə <code>const</code> və <code>let</code> istifadə edin. Bu, bir çox gizli xətanın qarşısını alır.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 7 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Closure — Bağlam (Giriş Anlayışı)</h2>
+  </div>
+
+  <p><strong>Closure</strong> — bir funksiyanın, o funksiya müəyyən edildikdə mövcud olan xarici dəyişkənlərə, həmin dəyişkənlər artıq scope-dan çıxsa belə, çatmaq imkanıdır. Bir az mürəkkəb səslənsə də, onu anlamaq JavaScript ustası olmaq üçün çox vacibdir.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">🧠 "Xatirə" Bənzətməsi</div>
+    <p>Düşün ki, bir uşaq böyüyür. Valideynlərinin onu böyütdükdə istifadə etdiyi kitablar — "uşaqlığın kitabları" — artıq evdə olmasa da, uşaq böyüdükdə o kitabların məzmununu xatırlayır. Closure da belədir: funksiya, yarandığı mühitin "xatirəsini" saxlayır.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Closure — Əsas Nümunə</span>
+    </div>
+    <pre><span class="kw">function</span> <span class="fn">sayac</span>() {
+  <span class="kw">let</span> <span class="var">eded</span> <span class="op">=</span> <span class="num">0</span>; <span class="cmt">// ← bu sayac() scope-undadır</span>
+
+  <span class="kw">return</span> <span class="kw">function</span>() {
+    <span class="var">eded</span><span class="op">++</span>; <span class="cmt">// ← xarici eded-ə çatır! (Closure)</span>
+    <span class="kw">return</span> <span class="var">eded</span>;
+  };
+}
+
+<span class="kw">const</span> <span class="var">say</span> <span class="op">=</span> <span class="fn">sayac</span>(); <span class="cmt">// sayac() bitdi, amma eded "yaşayır"</span>
+
+console.log(<span class="fn">say</span>()); <span class="cmt">// → 1</span>
+console.log(<span class="fn">say</span>()); <span class="cmt">// → 2</span>
+console.log(<span class="fn">say</span>()); <span class="cmt">// → 3</span>
+
+<span class="cmt">// Hər sayac müstəqildir!</span>
+<span class="kw">const</span> <span class="var">say2</span> <span class="op">=</span> <span class="fn">sayac</span>();
+console.log(<span class="fn">say2</span>()); <span class="cmt">// → 1 (yenidən 0-dan başladı)</span>
+console.log(<span class="fn">say</span>());  <span class="cmt">// → 4  (köhnə sayac davam edir)</span></pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+      <span class="code-lang">Closure-un Praktik İstifadəsi — Özəl Dəyişkənlər</span>
+    </div>
+    <pre><span class="cmt">// "bank hesabı" — balansı qoruyuruq</span>
+<span class="kw">function</span> <span class="fn">hesabYarat</span>(<span class="param">ilkinMebleg</span>) {
+  <span class="kw">let</span> <span class="var">balans</span> <span class="op">=</span> <span class="param">ilkinMebleg</span>; <span class="cmt">// ← xarici dünya görə bilmir</span>
+
+  <span class="kw">return</span> {
+    yatir: (<span class="param">m</span>) <span class="op">=></span> { <span class="var">balans</span> <span class="op">+=</span> <span class="param">m</span>; <span class="kw">return</span> <span class="var">balans</span>; },
+    cek:   (<span class="param">m</span>) <span class="op">=></span> { <span class="var">balans</span> <span class="op">-=</span> <span class="param">m</span>; <span class="kw">return</span> <span class="var">balans</span>; },
+    bax:   ()  <span class="op">=></span> <span class="var">balans</span>
+  };
+}
+
+<span class="kw">const</span> <span class="var">hesab</span> <span class="op">=</span> <span class="fn">hesabYarat</span>(<span class="num">1000</span>);
+console.log(<span class="var">hesab</span>.<span class="fn">bax</span>());     <span class="cmt">// → 1000</span>
+console.log(<span class="var">hesab</span>.<span class="fn">yatir</span>(<span class="num">500</span>)); <span class="cmt">// → 1500</span>
+console.log(<span class="var">hesab</span>.<span class="fn">cek</span>(<span class="num">200</span>));  <span class="cmt">// → 1300</span>
+<span class="cmt">// hesab.balans ← undefined! xarici dünyadan gizlənib</span></pre>
+  </div>
+
+  <div class="info-box note">
+    <span class="info-icon">📌</span>
+    <p><strong>Xatırlat:</strong> Closure — "funksiya + onun yarandığı mühit" kombinasiyasıdır. Bu, JavaScript-in ən güclü xüsusiyyətlərindən biridir və React Hooks, modul sistemi kimi müasir texnologiyaların əsasını təşkil edir.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- SECTION 8 -->
+<!-- ══════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2 class="section-title">Xülasə və Praktik Tapşırıqlar</h2>
+  </div>
+
+  <p>Təbrik edirik! Bu dərslikdə öyrəndiklərini aşağıdakı cədvəldə yekunlaşdıraq:</p>
+
+  <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border); margin:20px 0;">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Konsept</th>
+          <th>Nə deməkdir?</th>
+          <th>Açar söz/İşarə</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Function Declaration</td>
+          <td>Klassik funksiya tərifi, hoisting işləyir</td>
+          <td><code>function ad() {}</code></td>
+        </tr>
+        <tr>
+          <td>Function Expression</td>
+          <td>Dəyişkənə mənimsədilmiş funksiya</td>
+          <td><code>const f = function() {}</code></td>
+        </tr>
+        <tr>
+          <td>Arrow Function</td>
+          <td>Qısa sintaksis, öz this-i yoxdur</td>
+          <td><code>const f = () =&gt; {}</code></td>
+        </tr>
+        <tr>
+          <td>Parametr</td>
+          <td>Funksiyadakı yer tutucu dəyişkən</td>
+          <td><code>function f(parametr)</code></td>
+        </tr>
+        <tr>
+          <td>Arqument</td>
+          <td>Çağıranda göndərilən əsl dəyər</td>
+          <td><code>f(arqument)</code></td>
+        </tr>
+        <tr>
+          <td>Default Parameter</td>
+          <td>Arqument gəlmədikdə istifadə edilən dəyər</td>
+          <td><code>function f(x = 5)</code></td>
+        </tr>
+        <tr>
+          <td>return</td>
+          <td>Funksiyanı dayandırır, dəyər qaytarır</td>
+          <td><code>return deger;</code></td>
+        </tr>
+        <tr>
+          <td>Global Scope</td>
+          <td>Hər yerdən görünən dəyişkən</td>
+          <td>Funksiyanın xaricindəki dəyişkən</td>
+        </tr>
+        <tr>
+          <td>Function Scope</td>
+          <td>Yalnız funksiyanın içindən görünür</td>
+          <td><code>function() { let x }</code></td>
+        </tr>
+        <tr>
+          <td>Block Scope</td>
+          <td>Yalnız <code>{ }</code> bloku içindən görünür</td>
+          <td><code>let</code>, <code>const</code></td>
+        </tr>
+        <tr>
+          <td>Hoisting</td>
+          <td>Elanların yuxarı "qaldırılması"</td>
+          <td><code>var</code>, <code>function</code> elanları</td>
+        </tr>
+        <tr>
+          <td>Closure</td>
+          <td>Funksiyanın xarici scope-u "xatırlaması"</td>
+          <td>Funksiya içindəki funksiya</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Tasks -->
+  <h3 style="font-size:1.1rem; font-weight:700; margin:32px 0 16px; color:var(--accent-cyan);">🎯 Praktik Tapşırıqlar</h3>
+
+  <div class="task-card">
+    <div class="task-num">TAP-01 · Asan</div>
+    <h4>BMİ Hesablayıcı</h4>
+    <p>Çəki (kq) və boy (m) parametrlərini qəbul edən <code>bmiHesabla</code> adlı bir funksiya yaz. Funksiya BMİ dəyərini (çəki / boy²) qaytarsın. Nəticəyə görə konsola <em>"Norma"</em>, <em>"Artıq çəki"</em> və ya <em>"Piylənmə"</em> yazsın. (BMİ: &lt;25 Norma, 25-30 Artıq, &gt;30 Piylənmə)</p>
+  </div>
+
+  <div class="task-card">
+    <div class="task-num">TAP-02 · Orta</div>
+    <h4>Şifrə Generatoru (Closure ilə)</h4>
+    <p>Closure istifadə edərək bir şifrə generatoru funksiyası yaz. <code>generatorYarat(uzunluq)</code> funksiyası bir daxili funksiya qaytarsın. Həmin daxili funksiya çağırıldıqca hər dəfə <code>uzunluq</code> həcmli, rəsgele simvollardan ibarət yeni şifrə yaratsın. Hər generatorun öz uzunluğu olsun (məsələn, <code>gen8 = generatorYarat(8)</code>, <code>gen12 = generatorYarat(12)</code>).</p>
+  </div>
+
+  <div class="task-card">
+    <div class="task-num">TAP-03 · Orta-Çətin</div>
+    <h4>Scope Eksperimenti</h4>
+    <p>Aşağıdakı kod nə çap edər? <em>İcra etmədən</em> cavabı yaz, sonra yoxla:</p>
+    <div class="code-wrap" style="margin-top:12px;">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+        <span class="code-lang">Scope Eksperimenti</span>
+      </div>
+      <pre><span class="kw">let</span> <span class="var">reng</span> <span class="op">=</span> <span class="str">"qırmızı"</span>;
+
+<span class="kw">function</span> <span class="fn">boyama</span>() {
+  <span class="kw">let</span> <span class="var">reng</span> <span class="op">=</span> <span class="str">"mavi"</span>;
+  console.log(<span class="str">"boyama içi:"</span>, <span class="var">reng</span>);
+
+  <span class="kw">function</span> <span class="fn">cercive</span>() {
+    console.log(<span class="str">"cercive içi:"</span>, <span class="var">reng</span>);
+  }
+  <span class="fn">cercive</span>();
+}
+
+<span class="fn">boyama</span>();
+console.log(<span class="str">"global:"</span>, <span class="var">reng</span>);</pre>
+    </div>
+  </div>
+
+  <div class="task-card">
+    <div class="task-num">TAP-04 · Çətin</div>
+    <h4>Köhnə DRY-sız Kodu Yenidən Yaz</h4>
+    <p>Aşağıdakı DRY prinsipini pozan kodu refactor (yenidən strukturlaşdır) et. Bütün hesablamaları parametr qəbul edən ümumi funksiyalarla əvəz et. Arrow function, default parametrlər və düzgün scope istifadə et:</p>
+    <div class="code-wrap" style="margin-top:12px;">
+      <div class="code-header">
+        <div class="code-dots"><div class="code-dot red"></div><div class="code-dot yellow"></div><div class="code-dot green"></div></div>
+        <span class="code-lang">Refactor ediləcək kod</span>
+      </div>
+      <pre><span class="cmt">// ❌ Bu kodu düzəlt!</span>
+<span class="kw">let</span> <span class="var">endirim1</span> <span class="op">=</span> <span class="num">100</span> <span class="op">*</span> <span class="num">0.9</span>;
+<span class="kw">let</span> <span class="var">qiymeti1</span> <span class="op">=</span> <span class="num">100</span> <span class="op">-</span> <span class="var">endirim1</span>;
+console.log(<span class="str">"Yeni qiymət:"</span>, <span class="var">qiymeti1</span>);
+
+<span class="kw">let</span> <span class="var">endirim2</span> <span class="op">=</span> <span class="num">250</span> <span class="op">*</span> <span class="num">0.9</span>;
+<span class="kw">let</span> <span class="var">qiymeti2</span> <span class="op">=</span> <span class="num">250</span> <span class="op">-</span> <span class="var">endirim2</span>;
+console.log(<span class="str">"Yeni qiymət:"</span>, <span class="var">qiymeti2</span>);
+
+<span class="kw">let</span> <span class="var">endirim3</span> <span class="op">=</span> <span class="num">75</span> <span class="op">*</span> <span class="num">0.85</span>;
+<span class="kw">let</span> <span class="var">qiymeti3</span> <span class="op">=</span> <span class="num">75</span> <span class="op">-</span> <span class="var">endirim3</span>;
+console.log(<span class="str">"Yeni qiymət:"</span>, <span class="var">qiymeti3</span>);</pre>
+    </div>
+  </div>
+
+  <div class="info-box tip">
+    <span class="info-icon">🚀</span>
+    <p><strong>Növbəti addım:</strong> Bu mövzuları mənimsədikdən sonra — <strong>Higher-Order Functions</strong> (map, filter, reduce), <strong>Callbacks</strong>, <strong>Promises</strong> və <strong>Async/Await</strong> mövzularına keçə bilərsən. Funksiyalar bu konseptlərin hamısının əsasıdır!</p>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<footer class="footer">
+  <p>JavaScript Dərsliyi · Funksiyalar və Scope · Sıfırdan Başlayanlar Üçün</p>
+  <p style="margin-top:6px;">Hazırlanıb <span>Claude</span> tərəfindən · Azərbaycan dilində</p>
+</footer>
+
+</body>
+</html>

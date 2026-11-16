@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Dəyişənlər, Data Type-lar və Console — Tam Dərs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a0d13;
+    --bg-alt: #0f1420;
+    --surface: #141a26;
+    --surface-2: #1a2130;
+    --surface-3: #202a3d;
+    --border: #262f42;
+    --border-soft: #1c2434;
+    --text: #e7e9f0;
+    --text-muted: #8a93a8;
+    --text-dim: #5b6478;
+    --blue: #61afef;
+    --green: #98c379;
+    --yellow: #e5c07b;
+    --red: #e06c75;
+    --purple: #c678dd;
+    --teal: #56b6c2;
+    --orange: #d19a66;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 12px;
+    --sidebar-w: 272px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3,h4{
+    font-family:var(--font-display);
+    font-weight:600;
+    line-height:1.25;
+    letter-spacing:-0.01em;
+    color:#fff;
+  }
+
+  a{color:var(--teal);}
+  code, pre, .mono{font-family:var(--font-mono);}
+
+  /* ---------- progress bar ---------- */
+  #progress{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg,var(--teal),var(--blue),var(--purple));
+    z-index:9999;
+    transition:width 0.1s linear;
+  }
+
+  /* ---------- top bar (mobile) ---------- */
+  #topbar{
+    position:sticky; top:0; z-index:500;
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(10,13,19,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border-soft);
+    padding:12px 16px;
+  }
+  #topbar .brand{
+    font-family:var(--font-mono); font-weight:600; color:var(--text);
+    font-size:14px; display:flex; align-items:center; gap:8px;
+  }
+  #topbar .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+  #hamburger{
+    display:flex; flex-direction:column; gap:4px; background:none; border:none; cursor:pointer; padding:8px;
+  }
+  #hamburger span{width:22px;height:2px;background:var(--text);border-radius:2px;}
+
+  @media (min-width:900px){
+    #topbar{display:none;}
+  }
+
+  /* ---------- layout ---------- */
+  #layout{
+    display:flex;
+    max-width:1240px;
+    margin:0 auto;
+  }
+
+  /* ---------- sidebar / TOC ---------- */
+  #toc{
+    width:var(--sidebar-w);
+    flex-shrink:0;
+    position:sticky;
+    top:0;
+    align-self:flex-start;
+    height:100vh;
+    overflow-y:auto;
+    padding:28px 20px 40px 28px;
+    border-right:1px solid var(--border-soft);
+  }
+  #toc .toc-title{
+    font-family:var(--font-mono);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--text-dim);
+    margin-bottom:14px;
+  }
+  #toc ul{list-style:none;padding:0;margin:0;}
+  #toc li{margin-bottom:2px;}
+  #toc a{
+    display:block;
+    color:var(--text-muted);
+    text-decoration:none;
+    font-size:14.5px;
+    padding:8px 10px;
+    border-radius:8px;
+    border-left:2px solid transparent;
+    transition:background 0.15s, color 0.15s;
+  }
+  #toc a:hover{background:var(--surface);color:var(--text);}
+  #toc a.active{color:var(--text);border-left-color:var(--teal);background:var(--surface);font-weight:500;}
+  #toc .toc-num{color:var(--text-dim); margin-right:8px; font-family:var(--font-mono); font-size:12.5px;}
+
+  @media (max-width:899px){
+    #toc{
+      position:fixed; top:0; left:0; height:100vh; width:82vw; max-width:320px;
+      background:var(--bg-alt); z-index:900;
+      transform:translateX(-100%);
+      transition:transform 0.25s ease;
+      border-right:1px solid var(--border);
+      padding-top:70px;
+    }
+    #toc.open{transform:translateX(0);}
+    #overlay{
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:800;
+    }
+    #overlay.show{display:block;}
+  }
+
+  /* ---------- main content ---------- */
+  main{
+    flex:1;
+    min-width:0;
+    padding:48px clamp(20px,4vw,64px) 100px;
+  }
+  .content-wrap{max-width:760px;}
+
+  section{scroll-margin-top:24px; margin-bottom:76px;}
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--teal);
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow .n{
+    background:var(--surface-2); border:1px solid var(--border);
+    padding:2px 8px; border-radius:6px; color:var(--text-muted);
+  }
+  h2.section-title{font-size:clamp(24px,3.4vw,32px); margin:0 0 18px;}
+  h3.sub-title{font-size:19px; margin:34px 0 12px; color:#fff;}
+  p{color:#c7cbda; margin:0 0 16px;}
+  strong{color:#fff; font-weight:600;}
+
+  ul.plain, ol.plain{color:#c7cbda; padding-left:22px; margin:0 0 16px;}
+  ul.plain li, ol.plain li{margin-bottom:8px;}
+
+  /* ---------- hero / terminal ---------- */
+  .hero{padding:56px 0 20px;}
+  .terminal{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 16px;
+    background:var(--surface-2);
+    border-bottom:1px solid var(--border);
+  }
+  .terminal-bar .tdot{width:11px;height:11px;border-radius:50%;}
+  .terminal-bar .tdot.r{background:#e06c75;}
+  .terminal-bar .tdot.y{background:#e5c07b;}
+  .terminal-bar .tdot.g{background:#98c379;}
+  .terminal-bar .ttitle{
+    margin-left:10px; font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted);
+  }
+  .terminal-body{
+    padding:22px 22px 26px;
+    font-family:var(--font-mono);
+    font-size:14.5px;
+    min-height:150px;
+  }
+  .terminal-body .line{margin-bottom:6px; white-space:pre-wrap; word-break:break-word;}
+  .terminal-body .prompt{color:var(--text-dim);}
+  .cursor{
+    display:inline-block; width:8px; height:16px; background:var(--teal);
+    vertical-align:middle; animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero h1{
+    font-size:clamp(28px,4.4vw,44px);
+    margin:26px 0 14px;
+  }
+  .hero .lead{font-size:17.5px; color:#aab1c4; max-width:640px;}
+  .hero .badges{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .badge{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted);
+    border:1px solid var(--border); background:var(--surface); padding:6px 12px; border-radius:100px;
+  }
+
+  /* ---------- code blocks ---------- */
+  .code-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin:16px 0 22px;
+    overflow:hidden;
+  }
+  .code-card .code-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 14px;
+    background:var(--surface-2);
+    border-bottom:1px solid var(--border);
+    font-family:var(--font-mono); font-size:12px; color:var(--text-muted);
+  }
+  .code-card pre.code{
+    margin:0; padding:16px 18px;
+    overflow-x:auto;
+    font-size:13.8px; line-height:1.7;
+  }
+  .code-card pre.code code{white-space:pre;}
+  .kw{color:var(--purple);}
+  .str{color:var(--green);}
+  .num{color:var(--orange);}
+  .cmt{color:var(--text-dim); font-style:italic;}
+
+  /* result strip under code */
+  .result-strip{
+    border-top:1px dashed var(--border);
+    padding:10px 18px;
+    font-family:var(--font-mono);
+    font-size:13px;
+  }
+  .result-strip .r-label{color:var(--text-dim); margin-right:8px;}
+  .r-ok{color:var(--green);}
+  .r-err{color:var(--red);}
+  .r-warn{color:var(--yellow);}
+
+  /* ---------- callouts ---------- */
+  .callout{
+    border-radius:10px;
+    border:1px solid var(--border);
+    border-left:3px solid var(--teal);
+    background:var(--surface);
+    padding:16px 18px;
+    margin:20px 0;
+  }
+  .callout .c-title{
+    font-family:var(--font-mono); font-weight:600; font-size:13.5px;
+    display:flex; align-items:center; gap:8px; margin-bottom:6px; color:#fff;
+  }
+  .callout p{margin:0; font-size:14.8px;}
+  .callout.bug{border-left-color:var(--red);}
+  .callout.bug .c-title{color:var(--red);}
+  .callout.tip{border-left-color:var(--green);}
+  .callout.tip .c-title{color:var(--green);}
+  .callout.note{border-left-color:var(--yellow);}
+  .callout.note .c-title{color:var(--yellow);}
+  .callout.info{border-left-color:var(--blue);}
+  .callout.info .c-title{color:var(--blue);}
+
+  /* ---------- tables ---------- */
+  .table-wrap{overflow-x:auto; margin:18px 0 24px; border:1px solid var(--border); border-radius:10px;}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:14.2px;}
+  thead th{
+    background:var(--surface-2); color:#fff; text-align:left;
+    padding:12px 14px; font-family:var(--font-mono); font-size:12.5px;
+    text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:12px 14px; border-bottom:1px solid var(--border-soft); color:#c7cbda; vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td code{background:var(--surface-2); padding:2px 6px; border-radius:5px; font-size:12.8px; color:var(--teal);}
+  tbody tr:hover{background:var(--bg-alt);}
+
+  /* ---------- playground ---------- */
+  .playground{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin:22px 0 26px;
+    overflow:hidden;
+  }
+  .pg-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; background:var(--surface-2); border-bottom:1px solid var(--border);
+  }
+  .pg-head .pg-label{font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); display:flex; gap:8px; align-items:center;}
+  .pg-head .pg-label .pg-dot{width:7px;height:7px;border-radius:50%;background:var(--green);}
+  .pg-run{
+    font-family:var(--font-mono); font-size:12.5px; font-weight:600;
+    background:var(--teal); color:#06262a; border:none; padding:7px 14px;
+    border-radius:7px; cursor:pointer; transition:transform 0.1s, background 0.15s;
+  }
+  .pg-run:hover{background:#6fc7d3;}
+  .pg-run:active{transform:scale(0.96);}
+  .pg-body{display:grid; grid-template-columns:1fr; }
+  @media(min-width:720px){.pg-body{grid-template-columns:1fr 1fr;}}
+  .pg-editor textarea{
+    width:100%; height:100%; min-height:160px; resize:vertical;
+    background:var(--bg-alt); color:var(--text); border:none;
+    font-family:var(--font-mono); font-size:13.5px; padding:16px 18px;
+    outline:none; line-height:1.7;
+  }
+  .pg-output{
+    background:#0d1119; border-left:1px solid var(--border);
+    padding:14px 16px; min-height:160px; font-family:var(--font-mono); font-size:13px;
+    overflow-y:auto; max-height:320px;
+  }
+  @media(max-width:719px){
+    .pg-output{border-left:none; border-top:1px solid var(--border);}
+  }
+  .console-line{padding:5px 0; border-bottom:1px solid var(--border-soft); word-break:break-word;}
+  .console-line:last-child{border-bottom:none;}
+  .console-log{color:var(--text);}
+  .console-error{color:var(--red);}
+  .console-warn{color:var(--yellow);}
+  .console-info{color:var(--blue);}
+  .console-muted{color:var(--text-dim); font-style:italic;}
+  .console-table-wrap{overflow-x:auto;}
+  .console-table-wrap table{min-width:0; font-size:12px;}
+
+  /* ---------- quiz ---------- */
+  .quiz-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:18px 20px; margin-bottom:16px;
+  }
+  .quiz-q{font-weight:600; color:#fff; margin-bottom:12px; font-size:15px;}
+  .quiz-opts{display:flex; flex-direction:column; gap:8px;}
+  .quiz-opt{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface-2); border:1px solid var(--border);
+    border-radius:8px; padding:10px 12px; cursor:pointer; font-size:14.3px;
+    transition:border-color 0.15s, background 0.15s;
+  }
+  .quiz-opt:hover{border-color:var(--teal);}
+  .quiz-opt.correct{border-color:var(--green); background:rgba(152,195,121,0.12); color:var(--green);}
+  .quiz-opt.wrong{border-color:var(--red); background:rgba(224,108,117,0.12); color:var(--red);}
+  .quiz-fb{margin-top:10px; font-size:13.6px; color:var(--text-muted); display:none;}
+  .quiz-fb.show{display:block;}
+
+  /* ---------- cheat sheet ---------- */
+  .cheat-grid{display:grid; grid-template-columns:1fr; gap:14px;}
+  @media(min-width:640px){.cheat-grid{grid-template-columns:1fr 1fr;}}
+  .cheat-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+  }
+  .cheat-card h4{font-size:14px; margin:0 0 10px; color:var(--teal); font-family:var(--font-mono);}
+  .cheat-card ul{margin:0; padding-left:18px; color:#c7cbda; font-size:13.8px;}
+  .cheat-card li{margin-bottom:6px;}
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid var(--border-soft); padding:32px 0 10px; color:var(--text-dim); font-size:13px;
+  }
+
+  /* back to top */
+  #toTop{
+    position:fixed; right:20px; bottom:20px; z-index:600;
+    width:44px; height:44px; border-radius:50%;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    opacity:0; pointer-events:none; transition:opacity 0.2s;
+    font-size:18px;
+  }
+  #toTop.show{opacity:1; pointer-events:auto;}
+
+  ::selection{background:var(--teal); color:#062226;}
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible, .quiz-opt:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--teal); outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="topbar">
+  <div class="brand"><span class="dot"></span> JS · Dəyişənlər &amp; Console</div>
+  <button id="hamburger" aria-label="Mündəricatı aç">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+<div id="overlay"></div>
+
+<div id="layout">
+
+  <nav id="toc">
+    <div class="toc-title">Mündəricat</div>
+    <ul>
+      <li><a href="#giris"><span class="toc-num">00</span>Giriş</a></li>
+      <li><a href="#deyisen-nedir"><span class="toc-num">01</span>Dəyişən nədir?</a></li>
+      <li><a href="#var-let-const"><span class="toc-num">02</span>var, let, const</a></li>
+      <li><a href="#data-types"><span class="toc-num">03</span>Data Type-lar</a></li>
+      <li><a href="#console-obyekti"><span class="toc-num">04</span>Console obyekti</a></li>
+      <li><a href="#xetalar"><span class="toc-num">05</span>Tez-tez rast gəlinən xətalar</a></li>
+      <li><a href="#best-practices"><span class="toc-num">06</span>Ən yaxşı təcrübələr</a></li>
+      <li><a href="#quiz"><span class="toc-num">07</span>Özünü yoxla</a></li>
+      <li><a href="#xulase"><span class="toc-num">08</span>Xülasə / Cheat-sheet</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="content-wrap">
+
+      <!-- ============ HERO / GİRİŞ ============ -->
+      <section id="giris">
+        <div class="hero">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
+              <span class="ttitle">console — dərs.js</span>
+            </div>
+            <div class="terminal-body" id="typeTarget"></div>
+          </div>
+
+          <h1>JavaScript Dəyişənlər, Data Type-lar və Console</h1>
+          <p class="lead">
+            Bu dərsdə <strong>dəyişən nədir</strong>, <code>var</code>, <code>let</code> və <code>const</code>
+            arasındakı fərqlər, JavaScript-in <strong>data type-ları</strong>, <strong>console</strong> obyektinin
+            imkanları və başlanğıc səviyyəli developerlərin ən çox düşdüyü <strong>xətalar (bug-lar)</strong>
+            addım-addım, real kod nümunələri ilə izah olunur. Hər bölmədə özünüz kod yazıb nəticəni canlı
+            görə biləcəyiniz kiçik "console" simulyatoru var.
+          </p>
+          <div class="badges">
+            <span class="badge">⏱ ~35-45 dəqiqə</span>
+            <span class="badge">🧪 İnteraktiv sınaq bölmələri</span>
+            <span class="badge">🐞 10+ real bug nümunəsi</span>
+            <span class="badge">✅ Best practice checklist</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 01 DƏYİŞƏN NƏDİR ============ -->
+      <section id="deyisen-nedir">
+        <div class="eyebrow"><span class="n">01</span> Əsas anlayış</div>
+        <h2 class="section-title">Dəyişən (variable) nədir?</h2>
+        <p>
+          Dəyişəni ən sadə şəkildə <strong>etiketlənmiş qutu</strong> kimi düşünə bilərsiniz: içərisinə bir dəyər
+          qoyursunuz (rəqəm, mətn, obyekt və s.) və sonra həmin qutuya adı ilə müraciət edirsiniz. JavaScript-də
+          yaddaşdakı bu "qutunu" yaratmaq üçün <code>var</code>, <code>let</code> və ya <code>const</code>
+          açar sözlərindən istifadə olunur.
+        </p>
+
+        <div class="code-card">
+          <div class="code-head"><span>nümunə.js</span><span>JavaScript</span></div>
+          <pre class="code"><code>let ad = "Aygün";       // "ad" qutusuna mətn qoyulur
+let yas = 24;           // "yas" qutusuna rəqəm qoyulur
+let aktivdir = true;    // "aktivdir" qutusuna boolean qoyulur
+
+console.log(ad, yas, aktivdir);
+// "Aygün" 24 true</code></pre>
+        </div>
+
+        <p>
+          Bir dəyişən elan edərkən (declare) əslində üç şey baş verir:
+        </p>
+        <ol class="plain">
+          <li><strong>Elan (Declaration):</strong> JavaScript mühərriki yaddaşda dəyişən üçün yer ayırır.</li>
+          <li><strong>Təyinetmə (Initialization/Assignment):</strong> Həmin yerə ilk dəyər yazılır.</li>
+          <li><strong>İstifadə (Usage):</strong> Dəyişən adı vasitəsilə dəyərə istənilən yerdən müraciət olunur (scope daxilində).</li>
+        </ol>
+
+        <div class="callout note">
+          <div class="c-title">💡 Adlandırma qaydaları</div>
+          <p>
+            Dəyişən adları hərflə, <code>$</code> və ya <code>_</code> ilə başlaya bilər (rəqəmlə yox),
+            böyük/kiçik hərfə həssasdır (<code>ad</code> ilə <code>Ad</code> fərqli dəyişənlərdir) və rezerv
+            sözlər (<code>let</code>, <code>class</code>, <code>function</code> və s.) dəyişən adı kimi istifadə
+            oluna bilməz. Konvensiya olaraq <strong>camelCase</strong> istifadə olunur: <code>istifadeciAdi</code>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 02 VAR LET CONST ============ -->
+      <section id="var-let-const">
+        <div class="eyebrow"><span class="n">02</span> Elan üsulları</div>
+        <h2 class="section-title">var, let və const arasındakı fərqlər</h2>
+        <p>
+          JavaScript-də dəyişən elan etməyin 3 yolu var. Onların fərqi yalnız sintaksis deyil — <strong>scope
+          (əhatə dairəsi)</strong>, <strong>hoisting</strong> davranışı və <strong>yenidən yazıla bilmə</strong>
+          qabiliyyətinə görə tamamilə fərqlidirlər.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Xüsusiyyət</th><th><code>var</code></th><th><code>let</code></th><th><code>const</code></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Scope (əhatə dairəsi)</td>
+                <td>Function-scope</td>
+                <td>Block-scope <code>{ }</code></td>
+                <td>Block-scope <code>{ }</code></td>
+              </tr>
+              <tr>
+                <td>Yenidən elan (redeclare)</td>
+                <td>Olar</td>
+                <td>Olmaz (eyni scope-da)</td>
+                <td>Olmaz</td>
+              </tr>
+              <tr>
+                <td>Yenidən təyinetmə (reassign)</td>
+                <td>Olar</td>
+                <td>Olar</td>
+                <td>Olmaz</td>
+              </tr>
+              <tr>
+                <td>Hoisting</td>
+                <td>Bəli, <code>undefined</code> kimi</td>
+                <td>Bəli, amma "Temporal Dead Zone"-da</td>
+                <td>Bəli, amma "Temporal Dead Zone"-da</td>
+              </tr>
+              <tr>
+                <td>Qlobal obyektə bağlanma</td>
+                <td>Bəli (<code>window.x</code>)</td>
+                <td>Xeyr</td>
+                <td>Xeyr</td>
+              </tr>
+              <tr>
+                <td>Tövsiyə olunan istifadə</td>
+                <td>Demək olar ki, heç vaxt</td>
+                <td>Dəyər dəyişəcəksə</td>
+                <td>Default seçim</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-title">Scope fərqi — canlı nümunə</h3>
+        <div class="code-card">
+          <div class="code-head"><span>scope.js</span><span>JavaScript</span></div>
+          <pre class="code"><code>if (true) {
+  var a = "mən var-am";
+  let b = "mən let-əm";
+}
+
+console.log(a); // "mən var-am"  → var funksiya/qlobal scope-a çıxır
+console.log(b); // ReferenceError: b is not defined → let blokdan kənara çıxmır</code></pre>
+          <div class="result-strip"><span class="r-label">Nəticə:</span><span class="r-err">Uncaught ReferenceError: b is not defined</span></div>
+        </div>
+
+        <h3 class="sub-title">const — sabit, amma "içi" dəyişə bilər</h3>
+        <p>
+          <code>const</code> onu göstərir ki, <strong>dəyişənin özünü</strong> yenidən başqa dəyərə bağlaya
+          bilməzsiniz. Amma əgər dəyər obyekt və ya array-dirsə, onun <strong>daxili məzmununu</strong> dəyişmək
+          mümkündür — çünki referens (yaddaş ünvanı) dəyişmir, yalnız məzmun dəyişir.
+        </p>
+        <div class="code-card">
+          <div class="code-head"><span>const-mutasiya.js</span><span>JavaScript</span></div>
+          <pre class="code"><code>const meyveler = ["alma", "armud"];
+meyveler.push("nar");     // ✅ işləyir — array-in içi dəyişir
+console.log(meyveler);    // ["alma", "armud", "nar"]
+
+meyveler = ["banan"];     // ❌ TypeError: Assignment to constant variable.</code></pre>
+          <div class="result-strip"><span class="r-label">Nəticə:</span><span class="r-err">TypeError: Assignment to constant variable.</span></div>
+        </div>
+
+        <div class="playground" data-pg="scope-demo">
+          <div class="pg-head">
+            <div class="pg-label"><span class="pg-dot"></span> Sınaq Konsolu — özünüz sınayın</div>
+            <button class="pg-run">▶ İşə sal</button>
+          </div>
+          <div class="pg-body">
+            <div class="pg-editor"><textarea spellcheck="false">let say = 10;
+say = say + 5;
+console.log("say =", say);
+
+const PI = 3.14;
+console.log("PI =", PI);
+// PI = 4; sətrini aç, nə baş verdiyini gör</textarea></div>
+            <div class="pg-output"><div class="console-line console-muted">▸ "İşə sal" düyməsini basın…</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 03 DATA TYPES ============ -->
+      <section id="data-types">
+        <div class="eyebrow"><span class="n">03</span> Data Type-lar</div>
+        <h2 class="section-title">JavaScript-də data type-lar</h2>
+        <p>
+          JavaScript <strong>dinamik tipli (dynamically typed)</strong> dildir — dəyişən elan edərkən tip
+          göstərmirsiniz, tip avtomatik olaraq verdiyiniz dəyərdən müəyyən olunur və proqram işlədikcə dəyişə bilər.
+          Data type-lar iki qrupa bölünür: <strong>primitiv (primitive)</strong> və <strong>referens (reference)</strong>.
+        </p>
+
+        <h3 class="sub-title">Primitiv tiplər (7 ədəd)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tip</th><th>Nümunə</th><th><code>typeof</code> nəticəsi</th><th>Qeyd</th></tr></thead>
+            <tbody>
+              <tr><td>String</td><td><code>"Salam"</code></td><td><code>"string"</code></td><td>Mətn, tək, cüt və ya backtick dırnaqla</td></tr>
+              <tr><td>Number</td><td><code>42</code>, <code>3.14</code></td><td><code>"number"</code></td><td>Tam və kəsr ədədlər eyni tipdədir</td></tr>
+              <tr><td>Boolean</td><td><code>true</code> / <code>false</code></td><td><code>"boolean"</code></td><td>Məntiqi dəyər</td></tr>
+              <tr><td>Undefined</td><td><code>let x;</code></td><td><code>"undefined"</code></td><td>Dəyişənə hələ dəyər verilməyib</td></tr>
+              <tr><td>Null</td><td><code>let x = null;</code></td><td><code>"object"</code> ⚠️</td><td>Bilərəkdən "boş" dəyər — məşhur JS bug-u, aşağıda izah olunur</td></tr>
+              <tr><td>Symbol</td><td><code>Symbol("id")</code></td><td><code>"symbol"</code></td><td>Unikal, dəyişməz identifikator (ES6)</td></tr>
+              <tr><td>BigInt</td><td><code>123456789n</code></td><td><code>"bigint"</code></td><td>Number-in tuta bilmədiyi böyük ədədlər üçün</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-title">Referens tiplər</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tip</th><th>Nümunə</th><th><code>typeof</code> nəticəsi</th><th>Qeyd</th></tr></thead>
+            <tbody>
+              <tr><td>Object</td><td><code>{ ad: 'Vəli' }</code></td><td><code>"object"</code></td><td>Açar-dəyər cütləri</td></tr>
+              <tr><td>Array</td><td><code>[1, 2, 3]</code></td><td><code>"object"</code> ⚠️</td><td>Array əslində object-dir; yoxlamaq üçün <code>Array.isArray()</code> işlət</td></tr>
+              <tr><td>Function</td><td><code>function() {}</code></td><td><code>"function"</code></td><td>Function-lar özləri də dəyərdir</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout bug">
+          <div class="c-title">🐞 Tarixi bug: <code>typeof null === "object"</code></div>
+          <p>
+            Bu, JavaScript-in ilk versiyalarından qalma məşhur bir xətadır. Məntiqlə <code>typeof null</code>
+            <code>"null"</code> qaytarmalıdır, amma real nəticə <code>"object"</code>-dir. Səbəbi köhnə daxili
+            implementasiyada tip yoxlamasının bit səviyyəsində səhv işləməsidir. Geriyə uyğunluğu (backward
+            compatibility) pozmamaq üçün bu xəta heç vaxt düzəldilmədi. Ona görə <code>null</code> yoxlamaq üçün
+            <code>typeof</code> yox, birbaşa <code>x === null</code> müqayisəsindən istifadə edin.
+          </p>
+        </div>
+
+        <h3 class="sub-title">typeof — canlı sınaq</h3>
+        <div class="playground" data-pg="typeof-demo">
+          <div class="pg-head">
+            <div class="pg-label"><span class="pg-dot"></span> Sınaq Konsolu</div>
+            <button class="pg-run">▶ İşə sal</button>
+          </div>
+          <div class="pg-body">
+            <div class="pg-editor"><textarea spellcheck="false">console.log(typeof "salam");
+console.log(typeof 42);
+console.log(typeof true);
+console.log(typeof undefined);
+console.log(typeof null);
+console.log(typeof [1,2,3]);
+console.log(typeof {ad:"Ali"});
+console.log(typeof function(){});
+console.log(Array.isArray([1,2,3]));</textarea></div>
+            <div class="pg-output"><div class="console-line console-muted">▸ "İşə sal" düyməsini basın…</div></div>
+          </div>
+        </div>
+
+        <div class="callout note">
+          <div class="c-title">💡 undefined ilə null arasındakı fərq</div>
+          <p>
+            <code>undefined</code> — JavaScript mühərriki tərəfindən avtomatik verilir: dəyişənə hələ dəyər
+            verilməyib, funksiyaya arqument göndərilməyib, ya da mövcud olmayan obyekt property-sinə müraciət
+            olunub. <code>null</code> isə — <strong>developer</strong> tərəfindən şüurlu şəkildə "burada heç nə
+            yoxdur" mənasında yazılır. Fərq niyyətdədir: biri "unudulub", digəri "bilərəkdən boşdur".
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 04 CONSOLE ============ -->
+      <section id="console-obyekti">
+        <div class="eyebrow"><span class="n">04</span> Debug alətləri</div>
+        <h2 class="section-title">console obyekti</h2>
+        <p>
+          <code>console</code> brauzerin (və Node.js-in) inkişaf etdiricilərə verdiyi alətdir — kodun içindən
+          məlumatı, xəbərdarlıqları və xətaları ekrana ("DevTools → Console" bölməsinə) çıxarmaq üçün istifadə
+          olunur. Yalnız <code>console.log</code> ilə kifayətlənmək səhvdir — aşağıdakı metodlar debug prosesini
+          xeyli asanlaşdırır.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metod</th><th>Nə üçündür</th><th>Vizual fərq</th></tr></thead>
+            <tbody>
+              <tr><td><code>console.log()</code></td><td>Ümumi məlumat çıxarmaq</td><td>Ağ/normal rəng</td></tr>
+              <tr><td><code>console.info()</code></td><td>İnformativ qeydlər</td><td>Göy rəng, ℹ️ işarə</td></tr>
+              <tr><td><code>console.warn()</code></td><td>Xəbərdarlıq — kritik deyil, amma diqqət tələb edir</td><td>Sarı fon</td></tr>
+              <tr><td><code>console.error()</code></td><td>Xəta mesajları — stack trace ilə birlikdə</td><td>Qırmızı fon</td></tr>
+              <tr><td><code>console.table()</code></td><td>Array/object-ləri cədvəl şəklində göstərir</td><td>Sətir/sütun cədvəli</td></tr>
+              <tr><td><code>console.group()</code> / <code>groupEnd()</code></td><td>Log-ları qruplaşdırıb yığcamlaşdırır</td><td>Girintili (indented) blok</td></tr>
+              <tr><td><code>console.time()</code> / <code>timeEnd()</code></td><td>Kod parçasının işləmə müddətini ölçür</td><td>ms cinsindən nəticə</td></tr>
+              <tr><td><code>console.count()</code></td><td>Bir sətrin neçə dəfə çağırıldığını sayır</td><td>Sayğac</td></tr>
+              <tr><td><code>console.assert()</code></td><td>Şərt yalan olduqda xəta göstərir</td><td>Yalnız şərt false olanda çıxır</td></tr>
+              <tr><td><code>console.trace()</code></td><td>Funksiyanın haradan çağırıldığını (call stack) göstərir</td><td>Zəncirvari sətirlər</td></tr>
+              <tr><td><code>console.clear()</code></td><td>Konsolu təmizləyir</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-card">
+          <div class="code-head"><span>console-metodlari.js</span><span>JavaScript</span></div>
+          <pre class="code"><code>console.log("Adi mesaj");
+console.info("Məlumat üçün mesaj");
+console.warn("Diqqət: bu funksiya deprecated olacaq");
+console.error("Xəta baş verdi: server cavab vermir");
+
+console.table([
+  { ad: "Aygün", yas: 24 },
+  { ad: "Kamran", yas: 29 }
+]);
+
+console.group("İstifadəçi yoxlanması");
+console.log("Ad doğrudur");
+console.log("Email doğrudur");
+console.groupEnd();
+
+console.time("hesablama");
+for (let i = 0; i &lt; 1000000; i++) {}
+console.timeEnd("hesablama"); // hesablama: 3.241ms</code></pre>
+        </div>
+
+        <div class="callout tip">
+          <div class="c-title">✅ Faydalı ipucu</div>
+          <p>
+            <code>console.log("Dəyər:", deyisen)</code> kimi vergüllə ayrılmış formatdan istifadə edin, sadəcə
+            <code>console.log(deyisen)</code> yox. Beləliklə, konsolda çoxlu log arasında hansı dəyərin nəyə
+            aid olduğunu dərhal görürsünüz. Böyük obyektləri göstərmək üçünsə <code>console.table()</code>
+            oxunaqlılığı xeyli artırır.
+          </p>
+        </div>
+
+        <h3 class="sub-title">Console metodlarını sına</h3>
+        <div class="playground" data-pg="console-demo">
+          <div class="pg-head">
+            <div class="pg-label"><span class="pg-dot"></span> Sınaq Konsolu</div>
+            <button class="pg-run">▶ İşə sal</button>
+          </div>
+          <div class="pg-body">
+            <div class="pg-editor"><textarea spellcheck="false">console.log("Adi log");
+console.info("İnformasiya");
+console.warn("Xəbərdarlıq!");
+console.error("Bu bir xətadır");
+console.table([
+  { ad: "Aygün", yas: 24 },
+  { ad: "Kamran", yas: 29 }
+]);</textarea></div>
+            <div class="pg-output"><div class="console-line console-muted">▸ "İşə sal" düyməsini basın…</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 05 XƏTALAR / BUGS ============ -->
+      <section id="xetalar">
+        <div class="eyebrow"><span class="n">05</span> Diqqətli olun</div>
+        <h2 class="section-title">Tez-tez rast gəlinən xətalar və bug-lar</h2>
+        <p>
+          Aşağıda başlanğıc və orta səviyyəli JavaScript developerlərinin ən çox düşdüyü 10 real problem
+          toplanıb — hər biri "niyə baş verir" izahı və düzəliş nümunəsi ilə birlikdə.
+        </p>
+
+        <h3 class="sub-title">1. const dəyişəni yenidən mənimsətmək</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-1.js</span></div>
+          <pre class="code"><code>const yas = 25;
+yas = 26; // ❌ TypeError: Assignment to constant variable.</code></pre>
+          <div class="result-strip"><span class="r-label">Düzəliş:</span><span class="r-ok">Dəyər dəyişəcəksə əvvəldən <code>let</code> istifadə edin.</span></div>
+        </div>
+
+        <h3 class="sub-title">2. Temporal Dead Zone (TDZ)</h3>
+        <p>
+          <code>let</code> və <code>const</code> ilə elan olunan dəyişənlər də "hoisting"ə uğrayır, amma elan
+          sətrinə qədər onlara toxunmaq mümkün deyil — bu aralığa <strong>Temporal Dead Zone</strong> deyilir.
+        </p>
+        <div class="code-card">
+          <div class="code-head"><span>bug-2.js</span></div>
+          <pre class="code"><code>console.log(sheher); // ❌ ReferenceError: Cannot access 'sheher' before initialization
+let sheher = "Bakı";
+
+// müqayisə üçün var:
+console.log(olke);   // ✅ undefined (xəta vermir, amma çaşdırıcıdır)
+var olke = "Azərbaycan";</code></pre>
+        </div>
+
+        <h3 class="sub-title">3. == ilə === arasındakı fərqi unutmaq</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-3.js</span></div>
+          <pre class="code"><code>console.log("5" == 5);   // true  → tip məcburi çevrilir (coercion)
+console.log("5" === 5);  // false → tip də yoxlanılır
+console.log(null == undefined);  // true
+console.log(null === undefined); // false
+console.log([] == false);        // true  → çaşdırıcı nümunə!</code></pre>
+          <div class="result-strip"><span class="r-label">Qayda:</span><span class="r-ok">Həmişə <code>===</code> və <code>!==</code> istifadə edin, <code>==</code>-dən qaçın.</span></div>
+        </div>
+
+        <h3 class="sub-title">4. NaN özü-özünə bərabər deyil</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-4.js</span></div>
+          <pre class="code"><code>console.log(NaN === NaN); // false 😳
+console.log(Number.isNaN(NaN)); // true → doğru yoxlama üsulu bu
+
+let neticee = "abc" / 2;
+console.log(neticee); // NaN
+console.log(typeof neticee); // "number" — NaN "number" tipindədir!</code></pre>
+        </div>
+
+        <h3 class="sub-title">5. String və Number qarışığı</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-5.js</span></div>
+          <pre class="code"><code>console.log(1 + "1");   // "11"  → toplama zamanı string-ə çevrilir
+console.log("5" - 1);   // 4     → çıxma zamanı number-ə çevrilir
+console.log("5" * "2"); // 10
+console.log(1 + 2 + "3"); // "33"  → soldan sağa: 1+2=3, sonra 3+"3"="33"
+console.log("1" + 2 + 3); // "123" → soldan sağa: "1"+2="12", sonra "12"+3="123"</code></pre>
+        </div>
+
+        <h3 class="sub-title">6. Unutqanlıqla qlobal dəyişən yaratmaq</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-6.js</span></div>
+          <pre class="code"><code>function hesabla() {
+  netice = 100; // ❌ var/let/const yazılmayıb → qeyri-strict modda avtomatik qlobal dəyişən yaranır
+}
+hesabla();
+console.log(netice); // 100 — funksiya xaricindən görünür, bu təhlükəlidir!
+
+// Həll: faylın/funksiyanın əvvəlinə "use strict" əlavə edin
+"use strict";
+function hesabla2() {
+  netice2 = 100; // artıq ReferenceError verəcək
+}</code></pre>
+        </div>
+
+        <h3 class="sub-title">7. var ilə for dövründə closure problemi</h3>
+        <p>Bu, JavaScript-in ən klassik "gotcha"-larından biridir:</p>
+        <div class="code-card">
+          <div class="code-head"><span>bug-7.js</span></div>
+          <pre class="code"><code>for (var i = 0; i &lt; 3; i++) {
+  setTimeout(() =&gt; console.log("var:", i), 100);
+}
+// Nəticə: var: 3  var: 3  var: 3   (gözlənilməz!)
+
+for (let j = 0; j &lt; 3; j++) {
+  setTimeout(() =&gt; console.log("let:", j), 100);
+}
+// Nəticə: let: 0  let: 1  let: 2   (gözlənilən nəticə)</code></pre>
+          <div class="result-strip"><span class="r-label">Səbəb:</span><span class="r-warn"><code>var</code> bir dəfə yaranır və dövr bitəndə 3 olur; <code>let</code> hər iterasiyada yeni block-scope yaradır.</span></div>
+        </div>
+
+        <h3 class="sub-title">8. Dəyişən adının böyük/kiçik hərfə həssaslığı</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-8.js</span></div>
+          <pre class="code"><code>let İstifadeci = "Elvin";
+console.log(istifadeci); // ❌ ReferenceError: istifadeci is not defined
+console.log(İstifadeci);  // ✅ "Elvin"</code></pre>
+        </div>
+
+        <h3 class="sub-title">9. Floating-point (ondalık) dəqiqlik problemi</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-9.js</span></div>
+          <pre class="code"><code>console.log(0.1 + 0.2);          // 0.30000000000000004
+console.log(0.1 + 0.2 === 0.3);  // false 😱
+
+// Düzəliş: kiçik "epsilon" fərqi ilə müqayisə et
+console.log(Math.abs(0.1 + 0.2 - 0.3) &lt; Number.EPSILON); // true</code></pre>
+        </div>
+
+        <h3 class="sub-title">10. Array-i typeof ilə yoxlamaq</h3>
+        <div class="code-card">
+          <div class="code-head"><span>bug-10.js</span></div>
+          <pre class="code"><code>let siyahi = [1, 2, 3];
+console.log(typeof siyahi); // "object" ❌ gözlədiyimiz kimi deyil
+console.log(Array.isArray(siyahi)); // true ✅ doğru üsul budur</code></pre>
+        </div>
+
+        <div class="callout bug">
+          <div class="c-title">🐞 Bonus: reference tiplərin müqayisəsi</div>
+          <p>
+            <code>{ a: 1 } === { a: 1 }</code> nəticəsi <strong>false</strong>-dur, çünki iki obyekt fərqli yaddaş
+            ünvanlarında yaradılıb — məzmun eyni olsa belə referenslər fərqlidir. Obyektləri məzmunca müqayisə
+            etmək üçün <code>JSON.stringify()</code> və ya dərin müqayisə funksiyalarından istifadə olunur.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 06 BEST PRACTICES ============ -->
+      <section id="best-practices">
+        <div class="eyebrow"><span class="n">06</span> Tövsiyələr</div>
+        <h2 class="section-title">Ən yaxşı təcrübələr (Best Practices)</h2>
+
+        <div class="cheat-grid">
+          <div class="cheat-card">
+            <h4>📦 Dəyişən elanı</h4>
+            <ul>
+              <li>Default olaraq həmişə <code>const</code> istifadə et.</li>
+              <li>Dəyər dəyişəcəksə <code>let</code> işlət.</li>
+              <li><code>var</code>-dan tamamilə uzaq dur.</li>
+              <li>Bir sətirdə bir dəyişən elan et — oxunaqlılıq üçün.</li>
+            </ul>
+          </div>
+          <div class="cheat-card">
+            <h4>🏷️ Adlandırma</h4>
+            <ul>
+              <li>camelCase istifadə et: <code>istifadeciAdi</code>.</li>
+              <li>Adlar mənalı olsun: <code>x</code> yox, <code>toplamMebleg</code>.</li>
+              <li>Boolean dəyişənlərə <code>is</code>/<code>has</code> prefiksi ver: <code>isAktiv</code>.</li>
+              <li>Sabitlər üçün <code>UPPER_SNAKE_CASE</code> ola bilər: <code>MAX_LIMIT</code>.</li>
+            </ul>
+          </div>
+          <div class="cheat-card">
+            <h4>⚖️ Müqayisə və tip</h4>
+            <ul>
+              <li>Həmişə <code>===</code> / <code>!==</code> istifadə et.</li>
+              <li><code>null</code> yoxlamaq üçün birbaşa <code>=== null</code> yaz.</li>
+              <li>Array üçün <code>Array.isArray()</code>, <code>typeof</code> yox.</li>
+              <li><code>NaN</code> yoxlamaq üçün <code>Number.isNaN()</code>.</li>
+            </ul>
+          </div>
+          <div class="cheat-card">
+            <h4>🖥️ Console istifadəsi</h4>
+            <ul>
+              <li>Debug üçün <code>console.log</code>, amma production kodundan təmizlə.</li>
+              <li>Xətalar üçün <code>console.error</code>, xəbərdarlıq üçün <code>console.warn</code>.</li>
+              <li>Çoxlu dəyəri etiketlə göstər: <code>console.log("say:", say)</code>.</li>
+              <li>Böyük data üçün <code>console.table()</code> istifadə et.</li>
+            </ul>
+          </div>
+          <div class="cheat-card">
+            <h4>🧵 String-lər</h4>
+            <ul>
+              <li>Birləşdirmə üçün <code>+</code> yerine template literal işlət: <code>`Salam, ${ad}`</code>.</li>
+              <li>Number/String qarışığından ehtiyatlı ol.</li>
+            </ul>
+          </div>
+          <div class="cheat-card">
+            <h4>🛡️ Ümumi təhlükəsizlik</h4>
+            <ul>
+              <li>Faylın/modulun əvvəlinə <code>"use strict"</code> əlavə et (ES modullarda avtomatikdir).</li>
+              <li>ESLint/Prettier kimi alətlərlə kodu avtomatik yoxlat.</li>
+              <li>Dəyişəni istifadə etməzdən əvvəl elan et — hoisting-ə güvənmə.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 07 QUIZ ============ -->
+      <section id="quiz">
+        <div class="eyebrow"><span class="n">07</span> Bilik yoxlaması</div>
+        <h2 class="section-title">Özünü yoxla</h2>
+        <p>Cavabları seçin — dərhal düzgün/səhv olduğunu görəcəksiniz.</p>
+
+        <div class="quiz-card">
+          <div class="quiz-q">1. <code>typeof null</code> nəyə bərabərdir?</div>
+          <div class="quiz-opts" data-correct="2">
+            <div class="quiz-opt">"null"</div>
+            <div class="quiz-opt">"undefined"</div>
+            <div class="quiz-opt">"object"</div>
+            <div class="quiz-opt">"boolean"</div>
+          </div>
+          <div class="quiz-fb">Düzgün cavab: <strong>"object"</strong> — bu, JavaScript-in tarixi bug-udur.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">2. Hansı elan üsulu ilə dəyişənin dəyərini sonradan dəyişmək OLMAZ?</div>
+          <div class="quiz-opts" data-correct="2">
+            <div class="quiz-opt">var</div>
+            <div class="quiz-opt">let</div>
+            <div class="quiz-opt">const</div>
+            <div class="quiz-opt">Heç biri — hamısı dəyişdirilə bilər</div>
+          </div>
+          <div class="quiz-fb">Düzgün cavab: <strong>const</strong> — reassignment-ə icazə vermir.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">3. <code>console.log(1 + "1")</code> nəyi çap edər?</div>
+          <div class="quiz-opts" data-correct="1">
+            <div class="quiz-opt">2</div>
+            <div class="quiz-opt">"11"</div>
+            <div class="quiz-opt">NaN</div>
+            <div class="quiz-opt">Xəta verər</div>
+          </div>
+          <div class="quiz-fb">Düzgün cavab: <strong>"11"</strong> — number string-ə çevrilib birləşdirilir.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">4. <code>NaN === NaN</code> nəticəsi nədir?</div>
+          <div class="quiz-opts" data-correct="1">
+            <div class="quiz-opt">true</div>
+            <div class="quiz-opt">false</div>
+            <div class="quiz-opt">undefined</div>
+            <div class="quiz-opt">Xəta verər</div>
+          </div>
+          <div class="quiz-fb">Düzgün cavab: <strong>false</strong> — NaN-ı yoxlamaq üçün <code>Number.isNaN()</code> işlədin.</div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-q">5. Hansı console metodu məlumatı cədvəl formasında göstərir?</div>
+          <div class="quiz-opts" data-correct="1">
+            <div class="quiz-opt">console.log()</div>
+            <div class="quiz-opt">console.table()</div>
+            <div class="quiz-opt">console.group()</div>
+            <div class="quiz-opt">console.time()</div>
+          </div>
+          <div class="quiz-fb">Düzgün cavab: <strong>console.table()</strong>.</div>
+        </div>
+      </section>
+
+      <!-- ============ 08 XÜLASƏ ============ -->
+      <section id="xulase">
+        <div class="eyebrow"><span class="n">08</span> Yekun</div>
+        <h2 class="section-title">Xülasə / Cheat-sheet</h2>
+
+        <div class="code-card">
+          <div class="code-head"><span>xulase.js</span><span>Sürətli baxış</span></div>
+          <pre class="code"><code>// Dəyişən elanı
+const ADI_SABIT = "dəyişməz";     // default seçim
+let deyise_bilen = "dəyişə bilər"; // dəyər dəyişəcəksə
+
+// Data type yoxlaması
+typeof "mətn"        // "string"
+typeof 42             // "number"
+typeof true            // "boolean"
+typeof undefined       // "undefined"
+typeof null            // "object"  (bug, diqqətli ol!)
+Array.isArray([1,2])   // true      (array üçün doğru üsul)
+
+// Müqayisə
+"5" === 5               // false → tövsiyə olunan
+"5" == 5                // true  → çəkinilməli
+
+// Console
+console.log("mesaj", deyisen);
+console.error("xəta mesajı");
+console.table(masiv);</code></pre>
+        </div>
+
+        <div class="callout tip">
+          <div class="c-title">✅ Yadda saxla</div>
+          <p>
+            <strong>const → let → (var yox!)</strong>, <strong>=== həmişə == əvəzinə</strong>, <strong>typeof null
+            "object"dir</strong>, <strong>NaN özünə bərabər deyil</strong>, <strong>array yoxlamaq üçün
+            Array.isArray()</strong> istifadə et. Bu 5 qaydanı yadda saxlasan, JavaScript-in ən çox rast gəlinən
+            "gotcha"-larının böyük əksəriyyətindən qaçmış olacaqsan.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<button id="toTop" aria-label="Yuxarı qayıt">↑</button>
+
+<footer>
+  <div class="content-wrap" style="max-width:1240px;margin:0 auto;padding:0 clamp(20px,4vw,64px);">
+    JavaScript Dəyişənlər, Data Type-lar və Console — dərs materialı. Bütün kod nümunələri brauzerinizdə lokal işləyir, heç bir məlumat serverə göndərilmir.
+  </div>
+</footer>
+
+<script>
+// ---------------- Typing effect (hero terminal) ----------------
+(function(){
+  const target = document.getElementById('typeTarget');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const script = [
+    { text: '> const dərs = "Dəyişənlər, Data Type-lar, Console";', cls:'prompt' },
+    { text: '> console.log(dərs);', cls:'prompt' },
+    { text: 'Dəyişənlər, Data Type-lar, Console', cls:'ok' },
+    { text: '> console.log(typeof dərs);', cls:'prompt' },
+    { text: 'string', cls:'ok' }
+  ];
+
+  if(reduced){
+    target.innerHTML = script.map(l=>`<div class="line">${l.text}</div>`).join('');
+    return;
+  }
+
+  let lineIdx=0, charIdx=0;
+  function typeNext(){
+    if(lineIdx>=script.length) return;
+    const cur = script[lineIdx];
+    if(!target.querySelector('.line-'+lineIdx)){
+      const div=document.createElement('div');
+      div.className='line line-'+lineIdx;
+      target.appendChild(div);
+    }
+    const el = target.querySelector('.line-'+lineIdx);
+    charIdx++;
+    el.textContent = cur.text.slice(0,charIdx);
+    if(charIdx < cur.text.length){
+      setTimeout(typeNext, 14+Math.random()*18);
+    } else {
+      lineIdx++; charIdx=0;
+      if(lineIdx<script.length) setTimeout(typeNext, 220);
+      else {
+        const cursor=document.createElement('span');
+        cursor.className='cursor';
+        target.appendChild(cursor);
+      }
+    }
+  }
+  typeNext();
+})();
+
+// ---------------- Progress bar ----------------
+(function(){
+  const bar = document.getElementById('progress');
+  window.addEventListener('scroll', ()=>{
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    bar.style.width = scrolled + '%';
+  });
+})();
+
+// ---------------- Mobile TOC toggle ----------------
+(function(){
+  const toc = document.getElementById('toc');
+  const overlay = document.getElementById('overlay');
+  const btn = document.getElementById('hamburger');
+  function close(){ toc.classList.remove('open'); overlay.classList.remove('show'); }
+  btn.addEventListener('click', ()=>{
+    toc.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+  overlay.addEventListener('click', close);
+  toc.querySelectorAll('a').forEach(a=>a.addEventListener('click', close));
+})();
+
+// ---------------- TOC active link on scroll ----------------
+(function(){
+  const links = Array.from(document.querySelectorAll('#toc a'));
+  const sections = links.map(a=>document.querySelector(a.getAttribute('href')));
+  function onScroll(){
+    let idx = 0;
+    const y = window.scrollY + 120;
+    sections.forEach((s,i)=>{ if(s && s.offsetTop <= y) idx = i; });
+    links.forEach(l=>l.classList.remove('active'));
+    if(links[idx]) links[idx].classList.add('active');
+  }
+  window.addEventListener('scroll', onScroll);
+  onScroll();
+})();
+
+// ---------------- Back to top ----------------
+(function(){
+  const btn = document.getElementById('toTop');
+  window.addEventListener('scroll', ()=>{
+    btn.classList.toggle('show', window.scrollY > 500);
+  });
+  btn.addEventListener('click', ()=> window.scrollTo({top:0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto':'smooth'}));
+})();
+
+// ---------------- Syntax highlighter ----------------
+(function(){
+  const KEYWORDS = ['const','let','var','function','return','if','else','true','false','null','undefined','typeof','console','for','while','new','class','this','import','export','default','try','catch','throw','switch','case','break','continue','of','in','instanceof','void','delete','do','yield','async','await','static','extends','super'];
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function highlight(code){
+    const tokenRegex = /(\/\/[^\n]*)|(`(?:\\.|[^`\\])*`)|("(?:\\.|[^"\\])*")|('(?:\\.|[^'\\])*')|(\b\d+\.?\d*n?\b)|([A-Za-z_$][A-Za-z0-9_$]*)/g;
+    let result = '';
+    let lastIndex = 0;
+    let m;
+    while ((m = tokenRegex.exec(code))) {
+      result += escapeHtml(code.slice(lastIndex, m.index));
+      lastIndex = tokenRegex.lastIndex;
+      if (m[1]) result += '<span class="cmt">' + escapeHtml(m[1]) + '</span>';
+      else if (m[2]) result += '<span class="str">' + escapeHtml(m[2]) + '</span>';
+      else if (m[3]) result += '<span class="str">' + escapeHtml(m[3]) + '</span>';
+      else if (m[4]) result += '<span class="str">' + escapeHtml(m[4]) + '</span>';
+      else if (m[5]) result += '<span class="num">' + escapeHtml(m[5]) + '</span>';
+      else if (m[6]) {
+        if (KEYWORDS.indexOf(m[6]) !== -1) result += '<span class="kw">' + escapeHtml(m[6]) + '</span>';
+        else result += escapeHtml(m[6]);
+      }
+    }
+    result += escapeHtml(code.slice(lastIndex));
+    return result;
+  }
+  document.querySelectorAll('pre.code code').forEach(el=>{
+    el.innerHTML = highlight(el.textContent);
+  });
+})();
+
+// ---------------- Playground (mini console sandbox) ----------------
+(function(){
+  function formatArg(a){
+    if (typeof a === 'string') return a;
+    if (a === null) return 'null';
+    if (a === undefined) return 'undefined';
+    if (typeof a === 'object') {
+      try { return JSON.stringify(a); } catch(e){ return String(a); }
+    }
+    return String(a);
+  }
+
+  function renderTable(data, outEl){
+    const wrap = document.createElement('div');
+    wrap.className = 'console-table-wrap';
+    if(Array.isArray(data) && data.length && typeof data[0] === 'object'){
+      const cols = Object.keys(data[0]);
+      let html = '<table><thead><tr><th>#</th>' + cols.map(c=>'<th>'+c+'</th>').join('') + '</tr></thead><tbody>';
+      data.forEach((row,i)=>{
+        html += '<tr><td>'+i+'</td>' + cols.map(c=>'<td>'+formatArg(row[c])+'</td>').join('') + '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    } else {
+      wrap.textContent = formatArg(data);
+    }
+    outEl.appendChild(wrap);
+  }
+
+  function addLine(outEl, type, text){
+    const div = document.createElement('div');
+    div.className = 'console-line console-' + type;
+    const prefix = type==='error' ? '✖ ' : type==='warn' ? '⚠ ' : type==='info' ? 'ℹ ' : '▸ ';
+    div.textContent = prefix + text;
+    outEl.appendChild(div);
+  }
+
+  document.querySelectorAll('.playground').forEach(pg=>{
+    const runBtn = pg.querySelector('.pg-run');
+    const textarea = pg.querySelector('textarea');
+    const outEl = pg.querySelector('.pg-output');
+
+    runBtn.addEventListener('click', ()=>{
+      outEl.innerHTML = '';
+      const code = textarea.value;
+      let hadOutput = false;
+
+      const sandboxConsole = {
+        log: (...args)=>{ hadOutput=true; addLine(outEl,'log', args.map(formatArg).join(' ')); },
+        info: (...args)=>{ hadOutput=true; addLine(outEl,'info', args.map(formatArg).join(' ')); },
+        warn: (...args)=>{ hadOutput=true; addLine(outEl,'warn', args.map(formatArg).join(' ')); },
+        error: (...args)=>{ hadOutput=true; addLine(outEl,'error', args.map(formatArg).join(' ')); },
+        table: (data)=>{ hadOutput=true; renderTable(data, outEl); },
+        group: (label)=>{ hadOutput=true; addLine(outEl,'log', '▾ ' + (label||'')); },
+        groupEnd: ()=>{},
+        time: ()=>{},
+        timeEnd: (label)=>{ hadOutput=true; addLine(outEl,'log', (label||'timer') + ': (simulyasiya rejimində ölçülmür)'); },
+        count: (()=>{ let counts={}; return (label)=>{ label = label || 'default'; counts[label]=(counts[label]||0)+1; hadOutput=true; addLine(outEl,'log', label+': '+counts[label]); }; })(),
+        assert: (cond, ...args)=>{ if(!cond){ hadOutput=true; addLine(outEl,'error','Assertion failed: '+args.map(formatArg).join(' ')); } },
+        trace: (...args)=>{ hadOutput=true; addLine(outEl,'info','trace: '+args.map(formatArg).join(' ')); },
+        clear: ()=>{ outEl.innerHTML=''; }
+      };
+
+      try{
+        const fn = new Function('console', code);
+        fn(sandboxConsole);
+      }catch(err){
+        hadOutput = true;
+        addLine(outEl, 'error', (err.name||'Error') + ': ' + err.message);
+      }
+
+      if(!hadOutput){
+        addLine(outEl, 'muted', '(nəticə yoxdur — console.log() istifadə edin)');
+      }
+    });
+  });
+})();
+
+// ---------------- Quiz ----------------
+(function(){
+  document.querySelectorAll('.quiz-card').forEach(card=>{
+    const opts = card.querySelectorAll('.quiz-opt');
+    const optsWrap = card.querySelector('.quiz-opts');
+    const correctIdx = parseInt(optsWrap.getAttribute('data-correct'), 10);
+    const fb = card.querySelector('.quiz-fb');
+    let answered = false;
+    opts.forEach((opt, i)=>{
+      opt.setAttribute('tabindex','0');
+      opt.setAttribute('role','button');
+      opt.addEventListener('click', ()=>{
+        if(answered) return;
+        answered = true;
+        opts.forEach((o,j)=>{
+          if(j===correctIdx) o.classList.add('correct');
+          else if(o===opt) o.classList.add('wrong');
+        });
+        fb.classList.add('show');
+      });
+      opt.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter' || e.key===' '){ e.preventDefault(); opt.click(); }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

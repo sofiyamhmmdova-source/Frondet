@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSS Dərslik — Pseudo Selectors, Variables, nth-child, Combinators, :has(), :not()</title>
+
+  <!-- DejaVu fonts via fontsource CDN (Unicode coverage incl. Azerbaijani chars) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- DejaVu Sans via Google Fonts (closest available alternative with full AZ support) -->
+  <style>
+    /* ── DejaVu fallback stack ──────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=DejaVu+Sans:wght@400;700&display=swap');
+
+    /* Since DejaVu isn't on Google Fonts directly, we embed it via
+       cdnjs / jsdelivr below in the @font-face blocks */
+    @font-face {
+      font-family: 'DejaVu Sans';
+      src: url('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf') format('truetype');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'DejaVu Sans';
+      src: url('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'DejaVu Mono';
+      src: url('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSansMono.ttf') format('truetype');
+      font-weight: 400;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'DejaVu Mono';
+      src: url('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSansMono-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    /* ── Design Tokens ──────────────────────────────────────────── */
+    :root {
+      --bg:           #0e1117;
+      --surface:      #161b27;
+      --surface-alt:  #1d2333;
+      --border:       #2a3045;
+      --accent:       #5b8af5;
+      --accent-glow:  rgba(91,138,245,.18);
+      --green:        #3ecf8e;
+      --orange:       #f5a623;
+      --red:          #e05c5c;
+      --purple:       #b47df5;
+      --text:         #dce3f0;
+      --text-muted:   #7a8599;
+      --tag-bg:       rgba(91,138,245,.12);
+      --radius:       10px;
+      --radius-sm:    6px;
+      --font-body:    'DejaVu Sans', 'Segoe UI', Arial, sans-serif;
+      --font-mono:    'DejaVu Mono', 'Courier New', monospace;
+    }
+
+    /* ── Reset ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .page-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 64px 20px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(91,138,245,.22), transparent 72%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--tag-bg);
+      border: 1px solid rgba(91,138,245,.35);
+      color: var(--accent);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      border-radius: 100px;
+      padding: 4px 14px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 700;
+      line-height: 1.2;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 32px;
+      font-size: 1.05rem;
+    }
+
+    /* ── TOC Nav ────────────────────────────────────────────────── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 48px;
+    }
+    .toc h2 { font-size: 1rem; color: var(--text-muted); margin-bottom: 14px; letter-spacing: .06em; text-transform: uppercase; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 6px; }
+    .toc a { color: var(--accent); text-decoration: none; font-size: .96rem; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* ── Section ────────────────────────────────────────────────── */
+    .section {
+      margin-bottom: 64px;
+      scroll-margin-top: 24px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .icon-blue  { background: rgba(91,138,245,.15); }
+    .icon-green { background: rgba(62,207,142,.15); }
+    .icon-orange{ background: rgba(245,166,35,.15); }
+    .icon-purple{ background: rgba(180,125,245,.15); }
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .section-header p {
+      font-size: .88rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    p { margin-bottom: 14px; color: var(--text); }
+    h3 { font-size: 1.1rem; color: #fff; margin: 28px 0 10px; font-weight: 700; }
+    h4 { font-size: .95rem; color: var(--accent); margin: 20px 0 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ── Code block ─────────────────────────────────────────────── */
+    .code-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 16px 0 24px;
+      overflow: hidden;
+    }
+    .code-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--surface-alt);
+      border-bottom: 1px solid var(--border);
+      font-size: .78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      letter-spacing: .04em;
+    }
+    .code-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    .d-red    { background: var(--red); }
+    .d-orange { background: var(--orange); }
+    .d-green  { background: var(--green); }
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: .88rem;
+      line-height: 1.7;
+      white-space: pre;
+    }
+    /* Syntax highlight via spans */
+    .kw  { color: var(--purple); }   /* keyword / selector */
+    .pr  { color: var(--accent); }   /* property */
+    .vl  { color: var(--green);  }   /* value */
+    .cm  { color: var(--text-muted); font-style: italic; } /* comment */
+    .ps  { color: var(--orange); }   /* pseudo */
+    .vr  { color: #f5a623; }         /* variable */
+
+    /* ── Info / Warning / Error cards ───────────────────────────── */
+    .card {
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin: 20px 0;
+      border-left: 4px solid;
+    }
+    .card-title {
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .card p { margin: 0; font-size: .94rem; }
+    .card-info   { background: rgba(91,138,245,.08); border-color: var(--accent);  }
+    .card-info .card-title   { color: var(--accent); }
+    .card-warn   { background: rgba(245,166,35,.08); border-color: var(--orange); }
+    .card-warn .card-title   { color: var(--orange); }
+    .card-error  { background: rgba(224,92,92,.08);  border-color: var(--red);    }
+    .card-error .card-title  { color: var(--red); }
+    .card-tip    { background: rgba(62,207,142,.08); border-color: var(--green);  }
+    .card-tip .card-title    { color: var(--green); }
+
+    /* ── Demo boxes ─────────────────────────────────────────────── */
+    .demo-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 20px 0;
+    }
+    .demo-label {
+      font-size: .78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+      font-family: var(--font-mono);
+    }
+
+    /* Hover demo */
+    .btn-demo {
+      display: inline-block;
+      padding: 10px 24px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background .25s, transform .2s, box-shadow .25s;
+      font-family: var(--font-body);
+      border: none;
+      font-size: .95rem;
+    }
+    .btn-demo:hover {
+      background: #3d6de0;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(91,138,245,.35);
+    }
+    .btn-demo:active { transform: translateY(0); }
+    .btn-demo:focus  { outline: 3px solid rgba(91,138,245,.5); outline-offset: 3px; }
+
+    /* Focus demo */
+    .input-demo {
+      background: var(--surface-alt);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: .95rem;
+      width: 100%;
+      max-width: 320px;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .input-demo:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* nth-child demo list */
+    .nth-list { list-style: none; }
+    .nth-list li {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      font-size: .93rem;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      transition: background .2s;
+    }
+    .nth-list li:nth-child(odd)  { background: rgba(91,138,245,.10); border-color: rgba(91,138,245,.25); }
+    .nth-list li:nth-child(even) { background: rgba(62,207,142,.08); border-color: rgba(62,207,142,.2); }
+    .nth-list li:first-child     { font-weight: 700; color: var(--orange); }
+    .nth-list li:last-child      { font-weight: 700; color: var(--red); }
+
+    /* Variable theme demo */
+    .var-demo {
+      --card-accent: #5b8af5;
+      background: var(--surface-alt);
+      border: 2px solid var(--card-accent);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 12px;
+      color: var(--card-accent);
+      font-weight: 700;
+      transition: --card-accent .3s;
+    }
+    .var-demo.green { --card-accent: #3ecf8e; }
+    .var-demo.orange{ --card-accent: #f5a623; }
+
+    /* Before/After demo */
+    .pseudo-elem-demo p {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 8px;
+    }
+    .pseudo-elem-demo p::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: .8em;
+      top: 3px;
+    }
+    .highlight-demo::first-line    { color: var(--orange); font-weight: 700; }
+    .highlight-demo::first-letter  { font-size: 2.2em; float: left; margin-right: 6px; color: var(--accent); line-height: 1; }
+
+    /* Table ─────────────────────────────────────────────────────── */
+    .ref-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .9rem; }
+    .ref-table th {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 2px solid var(--border);
+    }
+    .ref-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .ref-table tr:hover td { background: var(--surface-alt); }
+    .ref-table code { font-family: var(--font-mono); color: var(--orange); font-size: .85em; }
+
+    /* Bug list ──────────────────────────────────────────────────── */
+    .bug-list { list-style: none; }
+    .bug-list li {
+      padding: 14px 16px 14px 44px;
+      position: relative;
+      border-radius: var(--radius-sm);
+      margin-bottom: 10px;
+      background: rgba(224,92,92,.07);
+      border: 1px solid rgba(224,92,92,.2);
+      font-size: .93rem;
+    }
+    .bug-list li::before {
+      content: attr(data-icon);
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      font-size: 1.1rem;
+    }
+
+    /* Inline code ───────────────────────────────────────────────── */
+    code {
+      font-family: var(--font-mono);
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: .88em;
+      color: var(--orange);
+    }
+
+    /* Tags ──────────────────────────────────────────────────────── */
+    .tag {
+      display: inline-block;
+      background: var(--tag-bg);
+      border: 1px solid rgba(91,138,245,.3);
+      color: var(--accent);
+      font-size: .75rem;
+      border-radius: 100px;
+      padding: 2px 10px;
+      margin: 0 4px 4px 0;
+      font-family: var(--font-mono);
+    }
+
+    /* Footer ────────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .85rem;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Combinator demos ────────────────────────────────────────── */
+    .comb-icon { display:inline-block; background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:2px 10px; font-family:var(--font-mono); font-size:1.2rem; color:var(--orange); margin:0 4px; }
+
+    /* Descendant */
+    .desc-demo { background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+    .desc-demo p { color: var(--text-muted); margin:0 0 6px; font-size:.88rem; }
+    .desc-demo span { color: var(--green); font-weight:700; }
+
+    /* Child combinator */
+    .child-demo > p { color: var(--accent); font-weight:700; border-left:3px solid var(--accent); padding-left:10px; }
+    .child-demo div p { color: var(--text-muted); font-style:italic; }
+
+    /* Adjacent sibling */
+    .adj-demo h4 + p { color:var(--green); font-weight:700; border-bottom:1px dashed var(--green); padding-bottom:6px; }
+
+    /* General sibling */
+    .gen-demo h4 ~ p { color:var(--purple); }
+    .gen-demo h4 { color:#fff; }
+
+    /* Visual combinator tree */
+    .tree { list-style:none; padding:0; font-family:var(--font-mono); font-size:.88rem; }
+    .tree li { padding: 5px 0 5px 24px; position:relative; color:var(--text); }
+    .tree li::before { content:''; position:absolute; left:8px; top:0; bottom:0; border-left:1px solid var(--border); }
+    .tree li:last-child::before { height:50%; }
+    .tree li::after { content:'─'; position:absolute; left:8px; top:13px; color:var(--border); }
+    .tree .selected { color:var(--green); font-weight:700; }
+    .tree .selected::after { color:var(--green); }
+    .tree .parent { color:var(--accent); }
+
+    /* Combinator badge */
+    .comb-badge { display:inline-flex; align-items:center; gap:8px; background:var(--surface-alt); border:1px solid var(--border); border-radius:var(--radius); padding:10px 16px; margin:6px 6px 6px 0; font-size:.88rem; }
+    .comb-badge .sym { font-family:var(--font-mono); font-size:1.2rem; color:var(--orange); min-width:22px; text-align:center; }
+    .comb-badge .desc { color:var(--text-muted); }
+
+    /* ── :has() demo ────────────────────────────────────────────── */
+    .has-demo { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media(max-width:560px){ .has-demo { grid-template-columns:1fr; } }
+    .has-card { background:var(--surface-alt); border:2px solid var(--border); border-radius:var(--radius); padding:16px; transition:border-color .2s, background .2s; }
+    .has-card:has(img)   { border-color:var(--green);  background:rgba(62,207,142,.07); }
+    .has-card:has(input:checked) { border-color:var(--accent); background:rgba(91,138,245,.1); }
+    .has-card img { width:100%; border-radius:var(--radius-sm); display:block; }
+    .has-card label { display:flex; align-items:center; gap:8px; cursor:pointer; }
+    .has-card input[type=checkbox] { accent-color:var(--accent); width:16px; height:16px; }
+    .has-img-label { font-size:.78rem; color:var(--green); font-weight:700; margin-top:8px; text-transform:uppercase; letter-spacing:.05em; }
+    .has-check-label { font-size:.78rem; color:var(--accent); font-weight:700; margin-top:8px; text-transform:uppercase; letter-spacing:.05em; }
+
+    /* ── :not() demo ────────────────────────────────────────────── */
+    .not-list { list-style:none; }
+    .not-list li { padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:6px; border:1px solid var(--border); font-size:.93rem; transition:opacity .2s; }
+    .not-list li:not(.xüsusi) { opacity:.4; }
+    .not-list li.xüsusi { opacity:1; background:rgba(91,138,245,.12); border-color:rgba(91,138,245,.4); color:var(--accent); font-weight:700; }
+
+    .not-btn-group { display:flex; flex-wrap:wrap; gap:8px; }
+    .not-btn { padding:8px 18px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--surface-alt); color:var(--text); font-family:var(--font-body); font-size:.9rem; cursor:pointer; transition:all .2s; }
+    .not-btn:not(:disabled):hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .not-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .hero { padding: 40px 0 32px; }
+      pre   { font-size: .8rem; padding: 14px; }
+      .section-header h2 { font-size: 1.25rem; }
+      .ref-table { font-size: .82rem; }
+      .ref-table th, .ref-table td { padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-badge">CSS Dərsliyi</div>
+  <h1>Pseudo · Variables · nth<br><span>Combinators · :has() · :not()</span></h1>
+  <p>Tələbələr üçün tam, praktik, Azərbaycan dilindəki CSS dərsliyi — canlı nümunələr, xəta izahları və praktik tövsiyələrlə.</p>
+</div>
+
+<div class="page-wrap">
+
+  <!-- TOC -->
+  <nav class="toc" aria-label="Mündəricat">
+    <h2>📋 Mündəricat</h2>
+    <ol>
+      <li><a href="#pseudo-selectors">Pseudo Selectors (:hover, :focus, :visited …)</a></li>
+      <li><a href="#pseudo-elements">Pseudo Elements (::before, ::after, ::first-line …)</a></li>
+      <li><a href="#variables">CSS Dəyişənləri (Custom Properties)</a></li>
+      <li><a href="#nth-selectors">nth-child, nth-of-type, odd &amp; even</a></li>
+      <li><a href="#combinators">Combinator Selektorlar ( · &gt; + ~ )</a></li>
+      <li><a href="#has-selector">:has() — Valideyn Selektoru</a></li>
+      <li><a href="#not-selector">:not() — İstisna Selektoru</a></li>
+      <li><a href="#bugs">Ümumi Xətalar &amp; Buqlar</a></li>
+      <li><a href="#reference">Sürətli İstinad Cədvəli</a></li>
+    </ol>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 1 — PSEUDO SELECTORS
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="pseudo-selectors">
+    <div class="section-header">
+      <div class="section-icon icon-blue">🎯</div>
+      <div>
+        <h2>Pseudo Selectors</h2>
+        <p>Elementlərin müəyyən <em>vəziyyətlərini</em> seçən CSS seçiciləri</p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Pseudo selector</strong> — bir sözlə, elementin özü deyil, onun müəyyən <em>halını</em> (state) hədəfləyən seçicidir.
+      Bir <code>:</code> (bir iki nöqtə) ilə yazılır.
+    </p>
+
+    <h3>:hover — siçan üstündəykəndə</h3>
+    <p>İstifadəçi siçanı elementin üzərinə gətirdikdə tətbiq olunur.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:hover</span>
+      </div>
+      <pre><span class="kw">.düymə</span><span class="ps">:hover</span> {
+  <span class="pr">background-color</span>: <span class="vl">#3d6de0</span>;
+  <span class="pr">transform</span>:        <span class="vl">translateY(-2px)</span>;
+  <span class="pr">box-shadow</span>:       <span class="vl">0 8px 20px rgba(0,0,255,.25)</span>;
+  <span class="pr">cursor</span>:           <span class="vl">pointer</span>;
+}
+
+<span class="cm">/* Transition olmadan hover ani görünür — həmişə əlavə edin! */</span>
+<span class="kw">.düymə</span> {
+  <span class="pr">transition</span>: <span class="vl">background-color .25s, transform .2s, box-shadow .25s</span>;
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🖱 Canlı Nümunə — düymənin üzərinə gəlin</div>
+      <button class="btn-demo">Üzərimə gəl!</button>
+    </div>
+
+    <div class="card card-warn">
+      <div class="card-title">⚠️ Diqqət</div>
+      <p>Mobil cihazlarda <code>:hover</code> etibarlı deyil — mobil üçün <code>:focus</code> və ya <code>:active</code> istifadə edin.</p>
+    </div>
+
+
+    <h3>:focus — elementin fokuslanması</h3>
+    <p>İstifadəçi <kbd>Tab</kbd> ilə və ya klikklə bir elementə fokuslandıqda tətbiq olunur. Əlçatanlıq (accessibility) baxımından <strong>çox vacibdir</strong>.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:focus</span>
+      </div>
+      <pre><span class="kw">input</span><span class="ps">:focus</span> {
+  <span class="pr">border-color</span>: <span class="vl">#5b8af5</span>;
+  <span class="pr">box-shadow</span>:   <span class="vl">0 0 0 3px rgba(91,138,245,.2)</span>;
+  <span class="pr">outline</span>:      <span class="vl">none</span>; <span class="cm">/* outline:none qoyduqda mütləq öz stilini yaz! */</span>
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">⌨️ Canlı Nümunə — daxilə klikləyin və ya Tab basın</div>
+      <input class="input-demo" type="text" placeholder="Bura klikləyin..."/>
+    </div>
+
+    <div class="card card-error">
+      <div class="card-title">🚫 Ümumi Səhv</div>
+      <p><code>outline: none</code> yazıb öz alternativini yazmamaq — bu klaviatura istifadəçilərini (o cümlədən əlilləri) interfeysdə itirmək deməkdir. <strong>Həmişə öz fokus stilini yaz!</strong></p>
+    </div>
+
+
+    <h3>:active — kliklənmə anı</h3>
+    <p>Düymə basılıb buraxılana qədər olan an.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:active</span>
+      </div>
+      <pre><span class="kw">.düymə</span><span class="ps">:active</span> {
+  <span class="pr">transform</span>: <span class="vl">scale(0.96)</span>;
+  <span class="pr">box-shadow</span>: <span class="vl">none</span>;
+}</pre>
+    </div>
+
+
+    <h3>:visited — ziyarət edilmiş link</h3>
+    <p>Brauzer tarixçəsindəki linklərə tətbiq olunur.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:visited</span>
+      </div>
+      <pre><span class="kw">a</span><span class="ps">:link</span>    { <span class="pr">color</span>: <span class="vl">#5b8af5</span>; } <span class="cm">/* ziyarətsiz link */</span>
+<span class="kw">a</span><span class="ps">:visited</span> { <span class="pr">color</span>: <span class="vl">#b47df5</span>; } <span class="cm">/* ziyarət edilmiş */</span>
+<span class="kw">a</span><span class="ps">:hover</span>   { <span class="pr">color</span>: <span class="vl">#3ecf8e</span>; }
+<span class="kw">a</span><span class="ps">:active</span>  { <span class="pr">color</span>: <span class="vl">#f5a623</span>; }</pre>
+    </div>
+
+    <div class="card card-info">
+      <div class="card-title">💡 LVHA Qaydası</div>
+      <p>Link → Visited → Hover → Active. Bu sıra <strong>mütləq</strong> gözlənilməlidir, əks halda stillər bir-birini ləğv edə bilər. Yadda saxlamaq üçün: <strong>LoVe HAte</strong>.</p>
+    </div>
+
+
+    <h3>:disabled / :enabled — form elementləri</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:disabled / :enabled</span>
+      </div>
+      <pre><span class="kw">button</span><span class="ps">:disabled</span> {
+  <span class="pr">opacity</span>:    <span class="vl">0.45</span>;
+  <span class="pr">cursor</span>:     <span class="vl">not-allowed</span>;
+  <span class="pr">background</span>: <span class="vl">#555</span>;
+}
+<span class="kw">input</span><span class="ps">:enabled</span> {
+  <span class="pr">border-color</span>: <span class="vl">#5b8af5</span>;
+}</pre>
+    </div>
+
+
+    <h3>:checked — seçilmiş checkbox / radio</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:checked</span>
+      </div>
+      <pre><span class="kw">input[type="checkbox"]</span><span class="ps">:checked</span> + <span class="kw">label</span> {
+  <span class="pr">color</span>:           <span class="vl">#3ecf8e</span>;
+  <span class="pr">font-weight</span>:     <span class="vl">700</span>;
+  <span class="pr">text-decoration</span>: <span class="vl">line-through</span>;
+}
+
+<span class="cm">/* Gözəl custom toggle üçün əla üsul! */</span></pre>
+    </div>
+
+
+    <h3>:not() — istisna selektoru</h3>
+    <p>Müəyyən elementi <em>çıxarıb</em> qalanları seçmək üçün istifadə olunur.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:not()</span>
+      </div>
+      <pre><span class="cm">/* .xüsusi class-ı olmayan bütün p-ləri seç */</span>
+<span class="kw">p</span><span class="ps">:not(.xüsusi)</span> {
+  <span class="pr">color</span>: <span class="vl">#aaa</span>;
+}
+
+<span class="cm">/* Son elementdən başqa hamısına border */</span>
+<span class="kw">li</span><span class="ps">:not(:last-child)</span> {
+  <span class="pr">border-bottom</span>: <span class="vl">1px solid #333</span>;
+}</pre>
+    </div>
+
+    <div class="card card-tip">
+      <div class="card-title">✅ Praktik Tövsiyə</div>
+      <p><code>:not(:last-child)</code> kombinasiyası ən son elementdən başqa hamısına stil vermək üçün çox istifadə olunur — separator xəttləri üçün əladır.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 2 — PSEUDO ELEMENTS
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="pseudo-elements">
+    <div class="section-header">
+      <div class="section-icon icon-green">✨</div>
+      <div>
+        <h2>Pseudo Elements</h2>
+        <p>HTML-ə toxunmadan element <em>hissələrini</em> yarat və ya seç</p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Pseudo element</strong> — elementin müəyyən <em>hissəsini</em> (ilk hərf, ilk sətir) seçmək və ya HTML-ə yeni məzmun (<em>qabaq / arxa</em>) <strong>əlavə etmək</strong> üçündür.
+      İki <code>::</code> ilə yazılır (köhnə CSS-də bir <code>:</code> də işləyirdi, amma standart <code>::</code>-dir).
+    </p>
+
+    <h3>::before — elementin əvvəlinə məzmun əlavə et</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>::before</span>
+      </div>
+      <pre><span class="kw">.siyahı-maddəsi</span><span class="ps">::before</span> {
+  <span class="pr">content</span>:     <span class="vl">"▶ "</span>;    <span class="cm">/* content mütləq olmalıdır! */</span>
+  <span class="pr">color</span>:       <span class="vl">#5b8af5</span>;
+  <span class="pr">font-size</span>:   <span class="vl">0.8em</span>;
+}
+
+<span class="cm">/* Boş content ilə şəkil elementləri üçün istifadə */</span>
+<span class="kw">.kart</span><span class="ps">::before</span> {
+  <span class="pr">content</span>:    <span class="vl">""</span>;
+  <span class="pr">display</span>:    <span class="vl">block</span>;
+  <span class="pr">width</span>:      <span class="vl">100%</span>;
+  <span class="pr">height</span>:     <span class="vl">4px</span>;
+  <span class="pr">background</span>: <span class="vl">linear-gradient(90deg, #5b8af5, #3ecf8e)</span>;
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">✨ Canlı Nümunə — ::before ilə oxucuqlar</div>
+      <div class="pseudo-elem-demo">
+        <p>CSS çox güclü bir dildir</p>
+        <p>Pseudo elementlər HTML-ə toxunmadan işləyir</p>
+        <p>Bu oxucuqlar CSS ilə əlavə edilib</p>
+      </div>
+    </div>
+
+
+    <h3>::after — elementin sonuna məzmun əlavə et</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>::after</span>
+      </div>
+      <pre><span class="kw">.qiymət</span><span class="ps">::after</span> {
+  <span class="pr">content</span>: <span class="vl">" ₼"</span>;  <span class="cm">/* manat simvolunu CSS-dən əlavə et */</span>
+  <span class="pr">color</span>:   <span class="vl">#f5a623</span>;
+}
+
+<span class="cm">/* Clearfix — float-ları təmizləmək üçün klassik üsul */</span>
+<span class="kw">.clearfix</span><span class="ps">::after</span> {
+  <span class="pr">content</span>: <span class="vl">""</span>;
+  <span class="pr">display</span>: <span class="vl">table</span>;
+  <span class="pr">clear</span>:   <span class="vl">both</span>;
+}</pre>
+    </div>
+
+    <div class="card card-warn">
+      <div class="card-title">⚠️ Vacib Qeyd</div>
+      <p><code>content</code> xassəsi <strong>mütləq</strong> olmalıdır, hətta boş olsa belə: <code>content: ""</code>. Onsuz <code>::before</code> / <code>::after</code> ekranda görünməz.</p>
+    </div>
+
+
+    <h3>::first-line — mətnin ilk sətri</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>::first-line</span>
+      </div>
+      <pre><span class="kw">p</span><span class="ps">::first-line</span> {
+  <span class="pr">font-weight</span>: <span class="vl">700</span>;
+  <span class="pr">color</span>:       <span class="vl">#f5a623</span>;
+  <span class="pr">font-size</span>:   <span class="vl">1.1em</span>;
+  <span class="pr">letter-spacing</span>: <span class="vl">0.05em</span>;
+}</pre>
+    </div>
+
+    <h3>::first-letter — mətnin ilk hərfi</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>::first-letter</span>
+      </div>
+      <pre><span class="kw">p</span><span class="ps">::first-letter</span> {
+  <span class="pr">font-size</span>:   <span class="vl">2.5em</span>;
+  <span class="pr">float</span>:       <span class="vl">left</span>;
+  <span class="pr">margin-right</span>:<span class="vl">6px</span>;
+  <span class="pr">color</span>:       <span class="vl">#5b8af5</span>;
+  <span class="pr">line-height</span>: <span class="vl">1</span>;
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">📖 ::first-letter nümunəsi</div>
+      <p class="highlight-demo">CSS Pseudo Elements sayəsində mətnin ilk hərfini xüsusi stilə sala bilərik. Bu klassik qəzetlərdəki "drop cap" effektidir. Kitab dizaynında çox istifadə olunur.</p>
+    </div>
+
+
+    <h3>::selection — seçilmiş mətn</h3>
+    <p>İstifadəçi mətni seçdikdə (highlight) tətbiq olunur.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>::selection</span>
+      </div>
+      <pre><span class="kw">::selection</span> {
+  <span class="pr">background-color</span>: <span class="vl">#5b8af5</span>;
+  <span class="pr">color</span>:            <span class="vl">#ffffff</span>;
+}
+
+<span class="cm">/* Yalnız müəyyən elementin seçimini dəyiş */</span>
+<span class="kw">.xüsusi-mətn</span><span class="ps">::selection</span> {
+  <span class="pr">background-color</span>: <span class="vl">#3ecf8e</span>;
+  <span class="pr">color</span>:            <span class="vl">#000</span>;
+}</pre>
+    </div>
+
+    <div class="card card-info">
+      <div class="card-title">💡 Məlumat</div>
+      <p><code>::selection</code> üçün yalnız bu xassələr işləyir: <code>color</code>, <code>background-color</code>, <code>text-shadow</code>. Digər xassələr brauzerlər tərəfindən nəzərə alınmır.</p>
+    </div>
+
+
+    <h3>::placeholder — input placeholder stili</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>::placeholder</span>
+      </div>
+      <pre><span class="kw">input</span><span class="ps">::placeholder</span> {
+  <span class="pr">color</span>:       <span class="vl">rgba(200,200,200,.45)</span>;
+  <span class="pr">font-style</span>:  <span class="vl">italic</span>;
+  <span class="pr">font-size</span>:   <span class="vl">0.9em</span>;
+}</pre>
+    </div>
+
+    <div class="card card-warn">
+      <div class="card-title">⚠️ Köhnə brauzer prefiksi</div>
+      <p>Çox köhnə brauzerlər üçün <code>::-webkit-input-placeholder</code> və <code>::-moz-placeholder</code> lazım ola bilər. Müasir layihələrdə artıq lazım deyil.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 3 — CSS VARIABLES
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="variables">
+    <div class="section-header">
+      <div class="section-icon icon-orange">🎨</div>
+      <div>
+        <h2>CSS Dəyişənləri (Custom Properties)</h2>
+        <p>Dəyərləri bir yerdə saxla, hər yerdə istifadə et</p>
+      </div>
+    </div>
+
+    <p>
+      CSS dəyişənləri (adı: <em>Custom Properties</em>) — eyni dəyəri (rəng, ölçü, font) bir dəfə yazıb,
+      bütün faylda istifadə etməyə imkan verir. Dizayn sistemlərinin əsasıdır.
+    </p>
+
+    <h3>Elan (Declaration)</h3>
+    <p>Dəyişən adı mütləq <code>--</code> ilə başlamalıdır.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Custom Properties elanı</span>
+      </div>
+      <pre><span class="cm">/* :root — bütün sənəddə görünən qlobal dəyişənlər */</span>
+<span class="kw">:root</span> {
+  <span class="vr">--əsas-rəng</span>:       <span class="vl">#5b8af5</span>;
+  <span class="vr">--arxa-rəng</span>:       <span class="vl">#0e1117</span>;
+  <span class="vr">--mətn-rəngi</span>:      <span class="vl">#dce3f0</span>;
+  <span class="vr">--kənar-radius</span>:    <span class="vl">10px</span>;
+  <span class="vr">--keçid-müddəti</span>:   <span class="vl">0.25s</span>;
+  <span class="vr">--font-əsas</span>:       <span class="vl">'DejaVu Sans', Arial, sans-serif</span>;
+  <span class="vr">--aralıq-kiçik</span>:    <span class="vl">8px</span>;
+  <span class="vr">--aralıq-orta</span>:     <span class="vl">16px</span>;
+  <span class="vr">--aralıq-böyük</span>:    <span class="vl">32px</span>;
+}</pre>
+    </div>
+
+    <h3>İstifadə (var())</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>var() istifadəsi</span>
+      </div>
+      <pre><span class="kw">.düymə</span> {
+  <span class="pr">background-color</span>: <span class="vl">var(</span><span class="vr">--əsas-rəng</span><span class="vl">)</span>;
+  <span class="pr">border-radius</span>:    <span class="vl">var(</span><span class="vr">--kənar-radius</span><span class="vl">)</span>;
+  <span class="pr">font-family</span>:      <span class="vl">var(</span><span class="vr">--font-əsas</span><span class="vl">)</span>;
+  <span class="pr">transition</span>:       <span class="vl">all var(</span><span class="vr">--keçid-müddəti</span><span class="vl">) ease</span>;
+  <span class="pr">padding</span>:          <span class="vl">var(</span><span class="vr">--aralıq-kiçik</span><span class="vl">) var(</span><span class="vr">--aralıq-orta</span><span class="vl">)</span>;
+}
+
+<span class="kw">.kart</span> {
+  <span class="pr">background</span>: <span class="vl">var(</span><span class="vr">--arxa-rəng</span><span class="vl">)</span>;
+  <span class="pr">color</span>:      <span class="vl">var(</span><span class="vr">--mətn-rəngi</span><span class="vl">)</span>;
+  <span class="pr">padding</span>:    <span class="vl">var(</span><span class="vr">--aralıq-böyük</span><span class="vl">)</span>;
+}</pre>
+    </div>
+
+    <h3>Ehtiyat dəyər (Fallback)</h3>
+    <p>Dəyişən tapılmazsa istifadə ediləcək default dəyər — <code>var(--dəyişən, ehtiyat)</code>:</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Fallback dəyər</span>
+      </div>
+      <pre><span class="kw">.element</span> {
+  <span class="cm">/* əgər --xüsusi-rəng yoxdursa, #ff6b6b istifadə ediləcək */</span>
+  <span class="pr">color</span>: <span class="vl">var(</span><span class="vr">--xüsusi-rəng</span><span class="vl">, #ff6b6b)</span>;
+
+  <span class="cm">/* başqa bir dəyişəni fallback kimi istifadə */</span>
+  <span class="pr">background</span>: <span class="vl">var(</span><span class="vr">--xüsusi-arxa</span><span class="vl">, var(</span><span class="vr">--arxa-rəng</span><span class="vl">, #000))</span>;
+}</pre>
+    </div>
+
+    <h3>Lokal dəyişən — komponentin öz dəyişəni</h3>
+    <p>Dəyişənlər miras (inheritance) alınır — uşaq elementlər valideyinin dəyişənlərini görür.</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Lokal dəyişənlər</span>
+      </div>
+      <pre><span class="kw">.kart</span> {
+  <span class="vr">--kart-rəng</span>: <span class="vl">#5b8af5</span>;     <span class="cm">/* bu .kart içindədir */</span>
+  <span class="pr">border</span>: <span class="vl">2px solid var(</span><span class="vr">--kart-rəng</span><span class="vl">)</span>;
+}
+
+<span class="kw">.kart.uğur</span>   { <span class="vr">--kart-rəng</span>: <span class="vl">#3ecf8e</span>; }
+<span class="kw">.kart.xəbərdarlıq</span> { <span class="vr">--kart-rəng</span>: <span class="vl">#f5a623</span>; }
+<span class="kw">.kart.xəta</span>   { <span class="vr">--kart-rəng</span>: <span class="vl">#e05c5c</span>; }
+
+<span class="cm">/* .kart içindəki bütün elementlər --kart-rəng görəcək */</span>
+<span class="kw">.kart h3</span> { <span class="pr">color</span>: <span class="vl">var(</span><span class="vr">--kart-rəng</span><span class="vl">)</span>; }
+<span class="kw">.kart svg</span> { <span class="pr">fill</span>:  <span class="vl">var(</span><span class="vr">--kart-rəng</span><span class="vl">)</span>; }</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🎨 Canlı Nümunə — lokal dəyişənlər</div>
+      <div class="var-demo">Mavi kart (default --kart-rəng)</div>
+      <div class="var-demo green">Yaşıl kart (--kart-rəng: #3ecf8e)</div>
+      <div class="var-demo orange">Narıncı kart (--kart-rəng: #f5a623)</div>
+    </div>
+
+    <h3>JavaScript ilə dəyişmək</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> script.js</span>
+        <span>JS + CSS Variables</span>
+      </div>
+      <pre><span class="cm">// Dəyişəni oxu</span>
+<span class="kw">const</span> rəng = <span class="vl">getComputedStyle(document.documentElement)</span>
+  .<span class="vl">getPropertyValue('--əsas-rəng')</span>;
+
+<span class="cm">// Dəyişəni yenilə (tema dəyişikliyi!)</span>
+<span class="vl">document.documentElement.style</span>
+  .<span class="vl">setProperty('--əsas-rəng', '#ff6b6b')</span>;
+
+<span class="cm">// Tema toggler nümunəsi</span>
+<span class="kw">function</span> <span class="vl">togglTema(tema)</span> {
+  <span class="kw">if</span> (tema === <span class="vl">'qaranlıq'</span>) {
+    <span class="vl">document.documentElement.style</span>.<span class="vl">setProperty('--arxa', '#000')</span>;
+    <span class="vl">document.documentElement.style</span>.<span class="vl">setProperty('--mətn', '#fff')</span>;
+  }
+}</pre>
+    </div>
+
+    <div class="card card-tip">
+      <div class="card-title">✅ Niyə CSS Variables SCSS dəyişənlərindən üstündür?</div>
+      <p>SCSS dəyişənləri <em>compile zamanı</em> sabit dəyərlərə çevrilir — dəyişdirilmir. CSS Variables isə <strong>real vaxt rejimində</strong> JS ilə dəyişdirilə bilir, miras alınır, mediya sorğularında override edilə bilər. Tema sistemi üçün CSS Variables düzgün seçimdir.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 4 — NTH SELECTORS
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="nth-selectors">
+    <div class="section-header">
+      <div class="section-icon icon-purple">🔢</div>
+      <div>
+        <h2>nth-child, odd &amp; even Selektorlar</h2>
+        <p>Elementləri <em>sıralarına</em> görə seç</p>
+      </div>
+    </div>
+
+    <p>
+      <code>:nth-child()</code> ailəsi, elementləri sıra nömrəsinə görə seçməyə imkan verir.
+      Cədvəllərin zebra effektindən tutmuş mürəkkəb şəbəkə dizaynlarına qədər hər yerdə istifadə olunur.
+    </p>
+
+    <h3>Əsas sintaksis</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>nth-child sintaksisi</span>
+      </div>
+      <pre><span class="cm">/* Sabit sıra nömrəsi */</span>
+<span class="kw">li</span><span class="ps">:nth-child(1)</span>  { <span class="pr">color</span>: <span class="vl">red</span>;    }  <span class="cm">/* birinci element */</span>
+<span class="kw">li</span><span class="ps">:nth-child(3)</span>  { <span class="pr">color</span>: <span class="vl">blue</span>;   }  <span class="cm">/* üçüncü element */</span>
+
+<span class="cm">/* Açar sözlər */</span>
+<span class="kw">li</span><span class="ps">:nth-child(odd)</span>  { <span class="pr">background</span>: <span class="vl">#1a2035</span>; }  <span class="cm">/* tək: 1,3,5,7... */</span>
+<span class="kw">li</span><span class="ps">:nth-child(even)</span> { <span class="pr">background</span>: <span class="vl">#0d1620</span>; }  <span class="cm">/* cüt: 2,4,6,8... */</span>
+
+<span class="cm">/* An+B düsturu */</span>
+<span class="kw">li</span><span class="ps">:nth-child(2n)</span>    <span class="cm">/* hər 2-ci = cüt  */</span>
+<span class="kw">li</span><span class="ps">:nth-child(2n+1)</span>  <span class="cm">/* hər 2-ci +1 = tək  */</span>
+<span class="kw">li</span><span class="ps">:nth-child(3n)</span>    <span class="cm">/* hər 3-cü: 3,6,9,12... */</span>
+<span class="kw">li</span><span class="ps">:nth-child(3n+1)</span>  <span class="cm">/* 3-cü +1: 1,4,7,10... */</span>
+<span class="kw">li</span><span class="ps">:nth-child(n+4)</span>   <span class="cm">/* 4-cüdən sonra hamısı */</span>
+<span class="kw">li</span><span class="ps">:nth-child(-n+3)</span>  <span class="cm">/* yalnız ilk 3 element */</span></pre>
+    </div>
+
+    <h4>An+B Düsturu İzahı</h4>
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> izah</span>
+        <span>An+B nə deməkdir?</span>
+      </div>
+      <pre><span class="cm">/*
+  :nth-child(An + B)
+  ─────────────────────────────────
+  A  = addım (hər neçəsi?)
+  n  = 0, 1, 2, 3 ... sonsuz
+  B  = başlanğıc nöqtəsi (offset)
+
+  Nümunə: :nth-child(3n+2)
+  ─────────────────────────
+  n=0 → 3×0+2 = 2   ✓
+  n=1 → 3×1+2 = 5   ✓
+  n=2 → 3×2+2 = 8   ✓
+  Seçilən: 2-ci, 5-ci, 8-ci, 11-ci...
+*/</span></pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🔢 Canlı Nümunə — odd/even/first/last</div>
+      <ul class="nth-list">
+        <li>1-ci element (first-child — narıncı)</li>
+        <li>2-ci element (even — yaşıl)</li>
+        <li>3-cü element (odd — mavi)</li>
+        <li>4-cü element (even — yaşıl)</li>
+        <li>5-ci element (odd — mavi)</li>
+        <li>6-cı element (even — yaşıl)</li>
+        <li>7-ci element (last-child — qırmızı)</li>
+      </ul>
+    </div>
+
+
+    <h3>:first-child &amp; :last-child</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>first / last child</span>
+      </div>
+      <pre><span class="kw">li</span><span class="ps">:first-child</span> {
+  <span class="pr">font-weight</span>: <span class="vl">700</span>;
+  <span class="pr">border-top</span>:  <span class="vl">2px solid #5b8af5</span>;
+}
+
+<span class="kw">li</span><span class="ps">:last-child</span> {
+  <span class="pr">border-bottom</span>: <span class="vl">none</span>; <span class="cm">/* son elementdən border-ı götür */</span>
+}</pre>
+    </div>
+
+
+    <h3>:nth-of-type() — eyni tipli elementlər arasında</h3>
+    <p>
+      <code>:nth-child</code> <strong>bütün</strong> qardaş elementlər arasında sayır.
+      <code>:nth-of-type</code> isə yalnız eyni <em>etiket</em> tipli elementlər arasında sayır.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>nth-of-type</span>
+      </div>
+      <pre><span class="cm">/* HTML:
+  &lt;div&gt;
+    &lt;p&gt;Birinci p&lt;/p&gt;    ← p:nth-of-type(1)
+    &lt;span&gt;Span&lt;/span&gt;
+    &lt;p&gt;İkinci p&lt;/p&gt;    ← p:nth-of-type(2)
+    &lt;p&gt;Üçüncü p&lt;/p&gt;   ← p:nth-of-type(3)
+  &lt;/div&gt;
+*/</span>
+
+<span class="kw">p</span><span class="ps">:nth-of-type(2)</span>  { <span class="pr">color</span>: <span class="vl">#3ecf8e</span>; }  <span class="cm">/* ikinci p */</span>
+<span class="kw">p</span><span class="ps">:nth-of-type(odd)</span>{ <span class="pr">color</span>: <span class="vl">#5b8af5</span>; }  <span class="cm">/* tək p-lər */</span></pre>
+    </div>
+
+    <div class="card card-warn">
+      <div class="card-title">⚠️ nth-child vs nth-of-type fərqi</div>
+      <p>
+        <code>p:nth-child(2)</code> — atasının 2-ci uşağı <em>həm də</em> <code>p</code> olmalıdır.<br/>
+        <code>p:nth-of-type(2)</code> — atasının <em>p elementləri</em> arasında 2-cisi.<br/>
+        Qarışdırmaq ən çox görülən CSS xətalarından biridir!
+      </p>
+    </div>
+
+    <h3>:nth-last-child() — sondan saymaq</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>nth-last-child</span>
+      </div>
+      <pre><span class="cm">/* Sondan 2-ci element */</span>
+<span class="kw">li</span><span class="ps">:nth-last-child(2)</span> {
+  <span class="pr">color</span>: <span class="vl">#b47df5</span>;
+}
+
+<span class="cm">/* Son 3 elementdən başqa hamısını seç */</span>
+<span class="kw">li</span><span class="ps">:not(:nth-last-child(-n+3))</span> {
+  <span class="pr">opacity</span>: <span class="vl">0.6</span>;
+}</pre>
+    </div>
+
+    <h3>Zebra Cədvəl Nümunəsi</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Zebra cədvəl</span>
+      </div>
+      <pre><span class="kw">table</span> { <span class="pr">border-collapse</span>: <span class="vl">collapse</span>; <span class="pr">width</span>: <span class="vl">100%</span>; }
+
+<span class="kw">tr</span><span class="ps">:nth-child(even)</span> {
+  <span class="pr">background-color</span>: <span class="vl">rgba(91,138,245,.07)</span>;
+}
+
+<span class="kw">tr</span><span class="ps">:hover</span> {
+  <span class="pr">background-color</span>: <span class="vl">rgba(91,138,245,.15)</span>;
+}
+
+<span class="cm">/* Header cərgəni istisna et */</span>
+<span class="kw">thead tr</span><span class="ps">:hover</span> {
+  <span class="pr">background-color</span>: <span class="vl">transparent</span>;
+}</pre>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 5 — COMBINATOR SELECTORS
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="combinators">
+    <div class="section-header">
+      <div class="section-icon icon-green">🔗</div>
+      <div>
+        <h2>Combinator Selektorlar</h2>
+        <p>Elementlər arasındakı <em>münasibəti</em> hədəfləyən CSS operatorları</p>
+      </div>
+    </div>
+
+    <p>
+      <strong>Combinator</strong> — iki seçici arasında əlaqəni müəyyən edir. Hansı elementin
+      hansı elementə <em>görə</em> seçiləcəyini bildirir. Dörd növ mövcuddur:
+    </p>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;">
+      <div class="comb-badge"><span class="sym"> </span><span class="desc">Nəsil (Boşluq)</span></div>
+      <div class="comb-badge"><span class="sym">&gt;</span><span class="desc">Birbaşa uşaq</span></div>
+      <div class="comb-badge"><span class="sym">+</span><span class="desc">Bitişik qardaş</span></div>
+      <div class="comb-badge"><span class="sym">~</span><span class="desc">Ümumi qardaş</span></div>
+    </div>
+
+    <!-- 1. DESCENDANT -->
+    <h3>1. Nəsil Kombinator (Descendant) — <span class="comb-icon">boşluq</span></h3>
+    <p>
+      Bir elementin <strong>daxilindəki bütün nəsillərini</strong> (uşaq, nəvə, nəticə …) seçir.
+      İç-içə nə qədər dərin olsa da tapır.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Descendant combinator</span>
+      </div>
+      <pre><span class="cm">/* .nav içindəki bütün a elementlərini seç
+   (birbaşa uşaq olsun ya nəvə — fərq etmir) */</span>
+<span class="kw">.nav a</span> {
+  <span class="pr">color</span>:           <span class="vl">#5b8af5</span>;
+  <span class="pr">text-decoration</span>: <span class="vl">none</span>;
+}
+
+<span class="cm">/* article içindəki bütün p-ləri seç */</span>
+<span class="kw">article p</span> {
+  <span class="pr">line-height</span>: <span class="vl">1.8</span>;
+  <span class="pr">color</span>:       <span class="vl">#dce3f0</span>;
+}
+
+<span class="cm">/* HTML strukturu:
+  &lt;article&gt;
+    &lt;p&gt;Seçilir ✓&lt;/p&gt;
+    &lt;div&gt;
+      &lt;p&gt;Bu da seçilir ✓ (nəvə)&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/article&gt;
+*/</span></pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🌳 Nəsil selektoru — article p</div>
+      <div class="desc-demo">
+        <p>Bu mətni <span>article p</span> selektoru seçir — birbaşa uşaq</p>
+        <div style="padding:10px 14px;border-left:2px solid var(--border);margin-top:8px;">
+          <p style="margin:0;color:var(--green);font-weight:700;">Bu da seçilir — div içindəki p (nəvə) ✓</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-warn">
+      <div class="card-title">⚠️ Performans Diqqəti</div>
+      <p>CSS selektorlar sağdan sola oxunur. <code>div p</code> yazdıqda brauzer əvvəl bütün <code>p</code>-ləri tapır, sonra <code>div</code> içindəmi deyə yoxlayır. Çox ümumi selektor (məs. <code>* span</code>) performansı aşağı sala bilər — mümkün qədər spesifik ol.</p>
+    </div>
+
+
+    <!-- 2. CHILD -->
+    <h3>2. Uşaq Kombinator (Child) — <span class="comb-icon">&gt;</span></h3>
+    <p>
+      Yalnız <strong>birbaşa uşaqları</strong> seçir — nəvələri, nəticələri seçmir.
+      Nəsil kombinator ilə ən çox qarışdırılan operatordur.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Child combinator  &gt;</span>
+      </div>
+      <pre><span class="cm">/* .menyu-nun BİRBAŞA uşağı olan li-ləri seç
+   İç-içə alt menyu li-ləri seçilmir! */</span>
+<span class="kw">.menyu &gt; li</span> {
+  <span class="pr">padding</span>:     <span class="vl">12px 16px</span>;
+  <span class="pr">border-left</span>: <span class="vl">3px solid #5b8af5</span>;
+}
+
+<span class="cm">/* HTML:
+  &lt;ul class="menyu"&gt;
+    &lt;li&gt;Seçilir ✓&lt;/li&gt;         ← birbaşa uşaq
+    &lt;li&gt;Seçilir ✓&lt;/li&gt;         ← birbaşa uşaq
+      &lt;ul&gt;
+        &lt;li&gt;SEÇİLMİR ✗&lt;/li&gt;    ← nəvə, birbaşa uşaq deyil
+      &lt;/ul&gt;
+  &lt;/ul&gt;
+*/</span>
+
+<span class="cm">/* Praktik istifadə — yalnız birinci səviyyə başlıqlar */</span>
+<span class="kw">.kart &gt; h3</span> { <span class="pr">font-size</span>: <span class="vl">1.2rem</span>; <span class="pr">color</span>: <span class="vl">#fff</span>; }
+<span class="kw">.kart &gt; p</span>  { <span class="pr">color</span>: <span class="vl">#aaa</span>; }</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">👶 Child &gt; — yalnız birbaşa uşaqlar</div>
+      <div class="child-demo" style="background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;">
+        <p>Birbaşa uşaq p — SEÇİLİR (.child-demo &gt; p) ✓</p>
+        <div style="background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:12px;margin-top:8px;">
+          <p>div içindəki p — SEÇİLMİR ✗</p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 3. ADJACENT SIBLING -->
+    <h3>3. Bitişik Qardaş Kombinator (Adjacent Sibling) — <span class="comb-icon">+</span></h3>
+    <p>
+      Bir elementin <strong>dərhal ardınca gələn</strong> qardaş elementini seçir.
+      Yalnız bir element seçilir — həm eyni valideyni olmalı, həm də dərhal bitişik.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>Adjacent Sibling  +</span>
+      </div>
+      <pre><span class="cm">/* h2-nin dərhal ardınca gələn p-ni seç */</span>
+<span class="kw">h2 + p</span> {
+  <span class="pr">font-size</span>:   <span class="vl">1.1rem</span>;
+  <span class="pr">color</span>:       <span class="vl">#3ecf8e</span>;
+  <span class="pr">font-weight</span>: <span class="vl">500</span>;
+}
+
+<span class="cm">/* HTML:
+  &lt;h2&gt;Başlıq&lt;/h2&gt;
+  &lt;p&gt;Seçilir ✓ — dərhal ardınca gəlir&lt;/p&gt;
+  &lt;p&gt;SEÇİLMİR ✗ — bitişik deyil&lt;/p&gt;
+*/</span>
+
+<span class="cm">/* Klassik istifadə: checkbox-un etiketi */</span>
+<span class="kw">input[type="checkbox"] + label</span> {
+  <span class="pr">cursor</span>:      <span class="vl">pointer</span>;
+  <span class="pr">user-select</span>: <span class="vl">none</span>;
+}
+<span class="kw">input[type="checkbox"]:checked + label</span> {
+  <span class="pr">color</span>:           <span class="vl">#3ecf8e</span>;
+  <span class="pr">text-decoration</span>: <span class="vl">line-through</span>;
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">➕ Adjacent Sibling — h4 + p</div>
+      <div class="adj-demo">
+        <h4 style="color:#fff;margin:0 0 10px;">Bu h4-dür</h4>
+        <p style="margin:0 0 8px;">Bu p dərhal h4 sonrasındadır — SEÇİLİR ✓ (yaşıl)</p>
+        <p style="margin:0;color:var(--text-muted);">Bu p isə bitişik deyil — SEÇİLMİR ✗</p>
+      </div>
+    </div>
+
+
+    <!-- 4. GENERAL SIBLING -->
+    <h3>4. Ümumi Qardaş Kombinator (General Sibling) — <span class="comb-icon">~</span></h3>
+    <p>
+      Bir elementin <strong>eyni valideyni olan, sonrasında gələn bütün qardaş</strong> elementlərini seçir.
+      Bitişik olmaq məcburiyyəti yoxdur.
+    </p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>General Sibling  ~</span>
+      </div>
+      <pre><span class="cm">/* h2-dən sonra gələn bütün p-ləri seç */</span>
+<span class="kw">h2 ~ p</span> {
+  <span class="pr">color</span>:       <span class="vl">#b47df5</span>;
+  <span class="pr">padding-left</span>:<span class="vl">12px</span>;
+}
+
+<span class="cm">/* HTML:
+  &lt;h2&gt;Başlıq&lt;/h2&gt;
+  &lt;p&gt;Seçilir ✓&lt;/p&gt;
+  &lt;div&gt;Div — seçilmir&lt;/div&gt;
+  &lt;p&gt;Bu da seçilir ✓&lt;/p&gt;
+  &lt;p&gt;Bu da seçilir ✓&lt;/p&gt;
+*/</span>
+
+<span class="cm">/* Praktik: checkbox toggle ilə bütün sibling elementləri gizlət/göstər */</span>
+<span class="kw">#menyu-toggle:checked ~ .nav</span> {
+  <span class="pr">display</span>: <span class="vl">block</span>;
+}
+<span class="kw">#menyu-toggle:not(:checked) ~ .nav</span> {
+  <span class="pr">display</span>: <span class="vl">none</span>;
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">〜 General Sibling — h4 ~ p</div>
+      <div class="gen-demo">
+        <h4>Bu h4-dür (başlanğıc nöqtəsi)</h4>
+        <p style="margin:4px 0;">Birinci qardaş p — SEÇİLİR ✓</p>
+        <span style="display:block;color:var(--text-muted);font-size:.88rem;padding:4px 0;">span elementi — seçilmir (p deyil)</span>
+        <p style="margin:4px 0;">İkinci qardaş p — SEÇİLİR ✓</p>
+        <p style="margin:4px 0;">Üçüncü qardaş p — SEÇİLİR ✓</p>
+      </div>
+    </div>
+
+
+    <!-- FƏRQ CƏDVƏLİ -->
+    <h3>4 Kombinator — Müqayisəli Cədvəl</h3>
+    <div style="overflow-x:auto;">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Operator</th><th>Ad</th><th>Nəyi seçir</th><th>Nümunə</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code> </code> (boşluq)</td>
+            <td>Descendant (Nəsil)</td>
+            <td>İçindəki <em>bütün</em> uyğun elementlər (istənilən dərinlikdə)</td>
+            <td><code>div p</code></td>
+          </tr>
+          <tr>
+            <td><code>&gt;</code></td>
+            <td>Child (Birbaşa uşaq)</td>
+            <td>Yalnız <em>birinci səviyyə</em> uşaqlar</td>
+            <td><code>ul &gt; li</code></td>
+          </tr>
+          <tr>
+            <td><code>+</code></td>
+            <td>Adjacent Sibling (Bitişik qardaş)</td>
+            <td>Dərhal ardınca gələn <em>bir</em> qardaş</td>
+            <td><code>h2 + p</code></td>
+          </tr>
+          <tr>
+            <td><code>~</code></td>
+            <td>General Sibling (Ümumi qardaş)</td>
+            <td>Sonrasında gələn <em>bütün</em> qardaşlar</td>
+            <td><code>h2 ~ p</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card card-tip">
+      <div class="card-title">✅ Real Layihə Nümunəsi — CSS-only menyu</div>
+      <p>Checkbox + <code>~</code> kombinatoru ilə JavaScript olmadan açılan/bağlanan menyu yaratmaq olar:
+      <code>input:checked ~ nav { display: block; }</code> — bu klassik CSS-only toggle üsuludur.</p>
+    </div>
+
+    <div class="card card-error">
+      <div class="card-title">🚫 Yoxdur: Valideyn Selektoru (köhnə CSS-də)</div>
+      <p>
+        Uzun müddət CSS-də <em>valideyn</em> seçmək mümkün deyildi — yəni "içi şəkil olan div" kimi sorğu yazılmırdı.
+        Bu problemi <code>:has()</code> selektoru həll etdi (növbəti bölmə).
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 6 — :has() SELECTOR
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="has-selector">
+    <div class="section-header">
+      <div class="section-icon icon-purple">🔍</div>
+      <div>
+        <h2>:has() — Valideyn Selektoru</h2>
+        <p>CSS-in ən güclü yeni selektoru — "içi X olan Y" sual forması</p>
+      </div>
+    </div>
+
+    <p>
+      <code>:has()</code> — bir elementin <strong>içindəki elementlərə əsaslanaraq</strong> həmin elementi seçməyə imkan verir.
+      Uzun illər CSS-də olmayan "valideyn selektoru" problemi artıq həll edilib.
+      <strong>2023-cü ildən bütün müasir brauzerlər dəstəkləyir.</strong>
+    </p>
+
+    <div class="card card-info">
+      <div class="card-title">💡 Brauzer Dəstəyi</div>
+      <p>Chrome 105+, Firefox 121+, Safari 15.4+. IE-də işləmir. Köhnə brauzerlər üçün JavaScript ilə fallback lazım ola bilər.</p>
+    </div>
+
+    <h3>Əsas sintaksis</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:has() sintaksisi</span>
+      </div>
+      <pre><span class="cm">/* İçində img olan hər div-i seç */</span>
+<span class="kw">div</span><span class="ps">:has(img)</span> {
+  <span class="pr">border</span>:  <span class="vl">2px solid #3ecf8e</span>;
+  <span class="pr">padding</span>: <span class="vl">0</span>;         <span class="cm">/* şəkil varsa padding lazım deyil */</span>
+}
+
+<span class="cm">/* İçində :checked input olan label */</span>
+<span class="kw">label</span><span class="ps">:has(input:checked)</span> {
+  <span class="pr">color</span>:       <span class="vl">#3ecf8e</span>;
+  <span class="pr">font-weight</span>: <span class="vl">700</span>;
+}
+
+<span class="cm">/* İçindəki h2-nin mətni boşsa section-u gizlət */</span>
+<span class="kw">section</span><span class="ps">:has(h2:empty)</span> {
+  <span class="pr">display</span>: <span class="vl">none</span>;
+}
+
+<span class="cm">/* Sonrakı qardaşını seçmək: A-nın ardınca B gəlirsə A-nı seç */</span>
+<span class="kw">h2</span><span class="ps">:has(+ p)</span> {
+  <span class="pr">margin-bottom</span>: <span class="vl">4px</span>;   <span class="cm">/* p varsa boşluğu azalt */</span>
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🔍 Canlı Nümunə — :has() ilə kart stilləri</div>
+      <div class="has-demo">
+        <div class="has-card">
+          <div style="height:60px;background:var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:.85rem;">Şəkilsiz kart</div>
+          <p style="margin:10px 0 0;font-size:.88rem;color:var(--text-muted);">Normal stil</p>
+        </div>
+        <div class="has-card">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='80' viewBox='0 0 200 80'%3E%3Crect width='200' height='80' fill='%231d3a2f'/%3E%3Ctext x='100' y='45' text-anchor='middle' fill='%233ecf8e' font-size='14' font-family='sans-serif'%3E🖼 Şəkil mövcuddur%3C/text%3E%3C/svg%3E" alt="demo şəkil" />
+          <p class="has-img-label">:has(img) — yaşıl sərhəd ✓</p>
+        </div>
+        <div class="has-card">
+          <label>
+            <input type="checkbox" id="hc1"/>
+            Seçimi işarələ
+          </label>
+          <p class="has-check-label" style="display:none;" id="hc1-label">:has(input:checked) aktiv ✓</p>
+        </div>
+        <div class="has-card">
+          <label>
+            <input type="checkbox" id="hc2" checked/>
+            Artıq seçili
+          </label>
+          <p class="has-check-label">:has(input:checked) aktiv ✓</p>
+        </div>
+      </div>
+      <script>
+        const hc1 = document.getElementById('hc1');
+        const hc1Label = document.getElementById('hc1-label');
+        if(hc1) hc1.addEventListener('change', () => {
+          hc1Label.style.display = hc1.checked ? 'block' : 'none';
+        });
+      </script>
+    </div>
+
+    <h3>:has() ilə mürəkkəb nümunələr</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:has() — mürəkkəb nümunələr</span>
+      </div>
+      <pre><span class="cm">/* 1. İçi boş olmayan form sahəsi */</span>
+<span class="kw">input</span><span class="ps">:not(:placeholder-shown)</span> {
+  <span class="pr">border-color</span>: <span class="vl">#3ecf8e</span>;
+}
+
+<span class="cm">/* 2. Xətalı input olan form */</span>
+<span class="kw">form</span><span class="ps">:has(input:invalid)</span> <span class="kw">.göndər-düymə</span> {
+  <span class="pr">opacity</span>: <span class="vl">0.5</span>;
+  <span class="pr">cursor</span>:  <span class="vl">not-allowed</span>;
+  <span class="pr">pointer-events</span>: <span class="vl">none</span>;
+}
+
+<span class="cm">/* 3. Ən azı 3 uşağı olan ul */</span>
+<span class="kw">ul</span><span class="ps">:has(li:nth-child(3))</span> {
+  <span class="pr">column-count</span>: <span class="vl">2</span>;    <span class="cm">/* 3+ element varsa 2 sütun yap */</span>
+}
+
+<span class="cm">/* 4. Video olan section tam genişlikdə */</span>
+<span class="kw">section</span><span class="ps">:has(video)</span> {
+  <span class="pr">max-width</span>: <span class="vl">100%</span>;
+  <span class="pr">padding</span>:   <span class="vl">0</span>;
+}
+
+<span class="cm">/* 5. :has() + :not() kombinasiyası */</span>
+<span class="kw">.kart</span><span class="ps">:has(img):not(:has(.başlıq))</span> {
+  <span class="pr">padding-top</span>: <span class="vl">0</span>; <span class="cm">/* şəkli var amma başlığı yoxdur */</span>
+}</pre>
+    </div>
+
+    <div class="card card-tip">
+      <div class="card-title">✅ :has() niyə inqilabçıdır?</div>
+      <p>Əvvəllər bunları etmək üçün JavaScript lazım idi — indi sırf CSS ilə mümkündür. <code>form:has(input:invalid)</code> kimi selektorlar form validasiyasını tamamilə CSS-ə köçürməyə imkan verir.</p>
+    </div>
+
+    <div class="card card-error">
+      <div class="card-title">🚫 :has() içinə pseudo-element yazma</div>
+      <p><code>div:has(::before)</code> işləmir — <code>:has()</code> yalnız <em>real elementləri</em> arqument kimi qəbul edir, pseudo elementlər deyil.</p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 7 — :not() SELECTOR
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="not-selector">
+    <div class="section-header">
+      <div class="section-icon icon-orange">🚫</div>
+      <div>
+        <h2>:not() — İstisna Selektoru</h2>
+        <p>"Bundan başqa hamısını seç" — məntiqi dəfedici selektor</p>
+      </div>
+    </div>
+
+    <p>
+      <code>:not()</code> — arqumentdə verilən selektora <strong>uyğun olmayan</strong> elementləri seçir.
+      CSS3-də yalnız sadə selektor qəbul edirdi; <strong>CSS4 ilə mürəkkəb selektorlar</strong> da daxil edildi.
+    </p>
+
+    <h3>Əsas sintaksis</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:not() sintaksisi</span>
+      </div>
+      <pre><span class="cm">/* .aktiv class-ı olmayan bütün li-lər */</span>
+<span class="kw">li</span><span class="ps">:not(.aktiv)</span> {
+  <span class="pr">opacity</span>: <span class="vl">0.5</span>;
+}
+
+<span class="cm">/* Son elementdən başqa hamısına alt xətt */</span>
+<span class="kw">li</span><span class="ps">:not(:last-child)</span> {
+  <span class="pr">border-bottom</span>: <span class="vl">1px solid #2a3045</span>;
+}
+
+<span class="cm">/* p olmayan elementlər */</span>
+<span class="kw">div &gt; *</span><span class="ps">:not(p)</span> {
+  <span class="pr">margin-bottom</span>: <span class="vl">8px</span>;
+}
+
+<span class="cm">/* disabled olmayan düymələr */</span>
+<span class="kw">button</span><span class="ps">:not(:disabled)</span><span class="ps">:hover</span> {
+  <span class="pr">background</span>: <span class="vl">#5b8af5</span>;
+  <span class="pr">color</span>:       <span class="vl">#fff</span>;
+}</pre>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🚫 Canlı Nümunə — li:not(.xüsusi)</div>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">.xüsusi class-ı olmayan elementlər solğun göstərilir</p>
+      <ul class="not-list">
+        <li>Adi element — :not(.xüsusi) seçilir (solğun)</li>
+        <li class="xüsusi">Xüsusi element — class var, seçilmir ✓</li>
+        <li>Adi element — :not(.xüsusi) seçilir (solğun)</li>
+        <li class="xüsusi">Xüsusi element — class var, seçilmir ✓</li>
+        <li>Adi element — :not(.xüsusi) seçilir (solğun)</li>
+      </ul>
+    </div>
+
+    <div class="demo-box">
+      <div class="demo-label">🔘 Canlı Nümunə — button:not(:disabled):hover</div>
+      <div class="not-btn-group">
+        <button class="not-btn">Aktiv düymə</button>
+        <button class="not-btn">Aktiv düymə 2</button>
+        <button class="not-btn" disabled>Disabled (hover yoxdur)</button>
+        <button class="not-btn">Aktiv düymə 3</button>
+      </div>
+    </div>
+
+    <h3>CSS4 — Çoxlu arqument</h3>
+    <p>Müasir CSS-də <code>:not()</code> içinə vergüllə ayrılmış bir neçə selektor yazmaq olar:</p>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:not() — çoxlu arqument (CSS4)</span>
+      </div>
+      <pre><span class="cm">/* ❌ CSS3 — yalnız bir selektor mümkün idi */</span>
+<span class="kw">li</span><span class="ps">:not(.aktiv)</span><span class="ps">:not(.seçili)</span><span class="ps">:not(:first-child)</span> { ... }
+
+<span class="cm">/* ✅ CSS4 — çox daha oxunaqlı (Chrome 88+, Firefox 84+, Safari 9+) */</span>
+<span class="kw">li</span><span class="ps">:not(.aktiv, .seçili, :first-child)</span> {
+  <span class="pr">opacity</span>: <span class="vl">0.4</span>;
+}
+
+<span class="cm">/* Praktik: h1, h2, h3 olmayan bütün mətn elementləri */</span>
+<span class="kw">:not(h1, h2, h3, h4, h5, h6)</span> {
+  <span class="pr">max-width</span>:  <span class="vl">65ch</span>;
+  <span class="pr">line-height</span>:<span class="vl">1.7</span>;
+}</pre>
+    </div>
+
+    <h3>:not() ilə kombinasiyalar</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> style.css</span>
+        <span>:not() + digər selektorlar</span>
+      </div>
+      <pre><span class="cm">/* 1. :not() + :hover — disabled hoverı blokladı */</span>
+<span class="kw">button</span><span class="ps">:not(:disabled)</span><span class="ps">:hover</span> {
+  <span class="pr">transform</span>: <span class="vl">translateY(-2px)</span>;
+}
+
+<span class="cm">/* 2. :not() + :nth-child — son 2-dən başqa hamısı */</span>
+<span class="kw">li</span><span class="ps">:not(:nth-last-child(-n+2))</span> {
+  <span class="pr">border-bottom</span>: <span class="vl">1px solid #2a3045</span>;
+}
+
+<span class="cm">/* 3. :not() + :has() — şəkilsiz kartlar */</span>
+<span class="kw">.kart</span><span class="ps">:not(:has(img))</span> {
+  <span class="pr">padding</span>: <span class="vl">24px</span>;
+}
+
+<span class="cm">/* 4. :not() + attribute — href-i olmayan linklər */</span>
+<span class="kw">a</span><span class="ps">:not([href])</span> {
+  <span class="pr">color</span>:  <span class="vl">#666</span>;
+  <span class="pr">cursor</span>: <span class="vl">default</span>;
+}
+
+<span class="cm">/* 5. Form validasiyası — boş olmayan, keçərli sahələr */</span>
+<span class="kw">input</span><span class="ps">:not(:placeholder-shown)</span><span class="ps">:not(:focus)</span><span class="ps">:valid</span> {
+  <span class="pr">border-color</span>: <span class="vl">#3ecf8e</span>;
+  <span class="pr">background</span>:   <span class="vl">rgba(62,207,142,.05)</span>;
+}</pre>
+    </div>
+
+    <div class="card card-warn">
+      <div class="card-title">⚠️ :not() Spesifiklik Davranışı</div>
+      <p>
+        <code>:not()</code> arqumentinin özü spesifikliyə təsir edir.
+        <code>:not(.klass)</code> = <code>.klass</code> qədər spesifik (0,1,0).
+        <code>:not(#id)</code> = <code>#id</code> qədər spesifik (1,0,0) — ehtiyatla istifadə et!
+      </p>
+    </div>
+
+    <div class="card card-error">
+      <div class="card-title">🚫 :not() içinə pseudo-element yazma</div>
+      <p><code>p:not(::first-line)</code> etibarsız yazılışdır. <code>:not()</code> yalnız selektorlar qəbul edir, pseudo elementlər (<code>::</code>) deyil.</p>
+    </div>
+
+    <h3>:not() vs CSS Spesifikliyi — Qısa İzah</h3>
+
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> izah</span>
+        <span>Spesifiklik hesabı</span>
+      </div>
+      <pre><span class="cm">/*
+  Spesifiklik = (ID, Class, Element)
+
+  p                  → (0, 0, 1)
+  p:not(.x)         → (0, 1, 1)  ← .x-in spesifikliyini əlavə edir
+  p:not(#id)        → (1, 0, 1)  ← #id-nin spesifikliyini əlavə edir
+  p:not(:first-child)→ (0, 1, 1)  ← pseudo-class kimi sayılır
+
+  ❗ Buna görə :not(#id) yazanda sonradan override etmək çətinləşir!
+*/</span></pre>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 8 — BUGS & ERRORS (köhnə section 5)
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="bugs">
+    <div class="section-header">
+      <div class="section-icon icon-orange">🐛</div>
+      <div>
+        <h2>Ümumi Xətalar &amp; Buqlar</h2>
+        <p>Tələbələrin ən çox düşdüyü tələlər</p>
+      </div>
+    </div>
+
+    <ul class="bug-list">
+
+      <li data-icon="❌">
+        <strong>content xassəsi unudulub</strong><br/>
+        <code>::before</code> / <code>::after</code> elementlərini yazmaq, amma <code>content: ""</code> qoymamaq. Element görünməyəcək.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Yanlış — heç nə görünməyəcək */</span>
+<span class="kw">.element</span><span class="ps">::before</span> {
+  <span class="pr">background</span>: <span class="vl">red</span>;
+  <span class="pr">width</span>: <span class="vl">10px</span>;
+}
+
+<span class="cm">/* ✅ Düzgün */</span>
+<span class="kw">.element</span><span class="ps">::before</span> {
+  <span class="pr">content</span>:    <span class="vl">""</span>;       <span class="cm">/* mütləq! */</span>
+  <span class="pr">display</span>:    <span class="vl">block</span>;
+  <span class="pr">background</span>: <span class="vl">red</span>;
+  <span class="pr">width</span>:      <span class="vl">10px</span>;
+  <span class="pr">height</span>:     <span class="vl">10px</span>;
+}</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>outline:none yazıb alternativsiz qalmaq</strong><br/>
+        <code>:focus</code> stilini silmək əlçatanlığı pozur. Həmişə öz fokus stilini yaz.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Yanlış — klaviatura istifadəçiləri itirilir */</span>
+<span class="kw">*</span><span class="ps">:focus</span> { <span class="pr">outline</span>: <span class="vl">none</span>; }
+
+<span class="cm">/* ✅ Düzgün — öz stilini qur */</span>
+<span class="kw">*</span><span class="ps">:focus-visible</span> {
+  <span class="pr">outline</span>:        <span class="vl">none</span>;
+  <span class="pr">box-shadow</span>:     <span class="vl">0 0 0 3px rgba(91,138,245,.5)</span>;
+  <span class="pr">border-radius</span>:  <span class="vl">4px</span>;
+}</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>nth-child ilə nth-of-type qarışdırmaq</strong><br/>
+        Mürəkkəb HTML strukturunda <code>:nth-child(2)</code> istənilən elementi seçməyə bilər.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* HTML:
+  &lt;section&gt;
+    &lt;h2&gt;Başlıq&lt;/h2&gt;    ← 1-ci uşaq
+    &lt;p&gt;Mətn 1&lt;/p&gt;       ← 2-ci uşaq
+    &lt;p&gt;Mətn 2&lt;/p&gt;       ← 3-cü uşaq
+  &lt;/section&gt;
+*/</span>
+
+<span class="cm">/* ❌ İkinci p-ni seçmək istəyirik, amma belə olur: */</span>
+<span class="kw">p</span><span class="ps">:nth-child(2)</span>  <span class="cm">/* ← birinci p-ni seçir (2-ci uşaq) */</span>
+<span class="kw">p</span><span class="ps">:nth-child(3)</span>  <span class="cm">/* ← ikinci p-ni seçir (3-cü uşaq) */</span>
+
+<span class="cm">/* ✅ Düzgün yol — p-lər arasında say */</span>
+<span class="kw">p</span><span class="ps">:nth-of-type(2)</span>  <span class="cm">/* ← ikinci p — doğru! */</span></pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>LVHA sırası pozulub</strong><br/>
+        Link stilləri yanlış sıralandıqda <code>:visited</code> və ya <code>:hover</code> işləmir.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Yanlış sıra — :hover işləməyə bilər */</span>
+<span class="kw">a</span><span class="ps">:hover</span>   { <span class="pr">color</span>: <span class="vl">green</span>; }
+<span class="kw">a</span><span class="ps">:link</span>    { <span class="pr">color</span>: <span class="vl">blue</span>;  }
+<span class="kw">a</span><span class="ps">:visited</span> { <span class="pr">color</span>: <span class="vl">purple</span>;}
+<span class="kw">a</span><span class="ps">:active</span>  { <span class="pr">color</span>: <span class="vl">red</span>;   }
+
+<span class="cm">/* ✅ Düzgün: L → V → H → A  (LoVe HAte) */</span>
+<span class="kw">a</span><span class="ps">:link</span>    { <span class="pr">color</span>: <span class="vl">blue</span>;   }
+<span class="kw">a</span><span class="ps">:visited</span> { <span class="pr">color</span>: <span class="vl">purple</span>; }
+<span class="kw">a</span><span class="ps">:hover</span>   { <span class="pr">color</span>: <span class="vl">green</span>;  }
+<span class="kw">a</span><span class="ps">:active</span>  { <span class="pr">color</span>: <span class="vl">red</span>;    }</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>:: əvəzinə : yazmaq (pseudo element)</strong><br/>
+        Köhnə sintaksis hələ işləsə də, standart ikiqat iki nöqtə <code>::</code>-dir.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* Köhnə sintaksis — hələ işləyir amma tövsiyə olunmur */</span>
+<span class="kw">p</span><span class="ps">:before</span>       { <span class="pr">content</span>: <span class="vl">"▶"</span>; }
+<span class="kw">p</span><span class="ps">:first-letter</span> { <span class="pr">font-size</span>: <span class="vl">2em</span>; }
+
+<span class="cm">/* ✅ Standart CSS3 sintaksisi */</span>
+<span class="kw">p</span><span class="ps">::before</span>       { <span class="pr">content</span>: <span class="vl">"▶"</span>; }
+<span class="kw">p</span><span class="ps">::first-letter</span> { <span class="pr">font-size</span>: <span class="vl">2em</span>; }</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>CSS dəyişən adı böyük-kiçik hərflərə həssasdır</strong><br/>
+        <code>--Rəng</code> ilə <code>--rəng</code> fərqli dəyişənlərdir!
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Bu iki dəyişən FƏRQLIDIR */</span>
+:root {
+  <span class="vr">--Rəng</span>: <span class="vl">blue</span>;
+  <span class="vr">--rəng</span>: <span class="vl">red</span>;
+}
+
+.element { <span class="pr">color</span>: <span class="vl">var(</span><span class="vr">--Rəng</span><span class="vl">)</span>; } <span class="cm">/* blue */</span>
+.digər   { <span class="pr">color</span>: <span class="vl">var(</span><span class="vr">--rəng</span><span class="vl">)</span>; } <span class="cm">/* red */</span>
+
+<span class="cm">/* ✅ Konvensiya: həmişə kiçik hərf + tire */</span>
+:root { <span class="vr">--əsas-rəng</span>: <span class="vl">blue</span>; }</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>CSS dəyişəni hesablamada birbaşa istifadə</strong><br/>
+        Rəqəm dəyişənlərini vahidlə birlikdə hesablamaq üçün <code>calc()</code> lazımdır.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Yanlış — işləmir */</span>
+:root { <span class="vr">--cərçivə</span>: <span class="vl">16</span>; }
+.element { <span class="pr">padding</span>: <span class="vl">var(</span><span class="vr">--cərçivə</span><span class="vl">)px</span>; } <span class="cm">/* BU İŞLƏMİR! */</span>
+
+<span class="cm">/* ✅ Düzgün seçim 1 — vahidi dəyişəndə saxla */</span>
+:root { <span class="vr">--cərçivə</span>: <span class="vl">16px</span>; }
+.element { <span class="pr">padding</span>: <span class="vl">var(</span><span class="vr">--cərçivə</span><span class="vl">)</span>; }
+
+<span class="cm">/* ✅ Düzgün seçim 2 — calc() istifadə et */</span>
+:root { <span class="vr">--bazis</span>: <span class="vl">16</span>; }
+.element { <span class="pr">padding</span>: <span class="vl">calc(var(</span><span class="vr">--bazis</span><span class="vl">) * 1px)</span>; }</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>:hover mobil cihazlarda etibarlı deyil</strong><br/>
+        Touch ekranlarda <code>:hover</code> "yapışır" — bir dəfə toxunanda aktivləşib qalır.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ✅ Yalnız hover cihazlarda :hover tətbiq et */</span>
+<span class="kw">@media (hover: hover)</span> {
+  <span class="kw">.kart</span><span class="ps">:hover</span> {
+    <span class="pr">transform</span>: <span class="vl">scale(1.03)</span>;
+  }
+}
+
+<span class="cm">/* Touch cihazlar üçün :active istifadə et */</span>
+<span class="kw">.kart</span><span class="ps">:active</span> {
+  <span class="pr">transform</span>: <span class="vl">scale(0.97)</span>;
+}</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>&gt; ilə boşluq (space) qarışdırmaq</strong><br/>
+        <code>ul > li</code> yalnız birbaşa uşaqları seçir; <code>ul li</code> bütün nəsilləri seçir. Yanlış seçim içiçə menyuları da stilə alır.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Alt menyu li-lərinə də təsir edir */</span>
+<span class="kw">.nav li</span> { <span class="pr">padding</span>: <span class="vl">12px</span>; }
+
+<span class="cm">/* ✅ Yalnız birinci səviyyə li-lər */</span>
+<span class="kw">.nav &gt; li</span> { <span class="pr">padding</span>: <span class="vl">12px</span>; }
+<span class="kw">.nav &gt; li &gt; ul &gt; li</span> { <span class="pr">padding</span>: <span class="vl">6px 12px</span>; }</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>+ ilə ~ qarışdırmaq</strong><br/>
+        <code>h2 + p</code> yalnız <em>dərhal bitişik</em> bir p-ni seçir; <code>h2 ~ p</code> isə <em>sonrasındakı bütün</em> p-ləri seçir.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* Bunlar fərqlidir! */</span>
+<span class="kw">h2 + p</span>  <span class="cm">/* ← yalnız h2-nin dərhal ardınca gələn p */</span>
+<span class="kw">h2 ~ p</span>  <span class="cm">/* ← h2-dən sonra gələn bütün p-lər */</span></pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>:has() köhnə brauzerdə işləmir</strong><br/>
+        IE, köhnə Chrome/Firefox versiyaları <code>:has()</code>-i dəstəkləmir. Kritik UI üçün JS fallback lazımdır.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ✅ @supports ilə dəstəyi yoxla */</span>
+<span class="kw">@supports selector(:has(img))</span> {
+  <span class="kw">div</span><span class="ps">:has(img)</span> {
+    <span class="pr">border</span>: <span class="vl">2px solid green</span>;
+  }
+}
+
+<span class="cm">/* JS fallback */</span>
+<span class="kw">if</span> (!CSS.supports(<span class="vl">'selector(:has(img))'</span>)) {
+  <span class="cm">// köhnə brauzer — JS ilə ekvivalenti yap</span>
+}</pre>
+        </div>
+      </li>
+
+      <li data-icon="❌">
+        <strong>:not() içinə pseudo-element yazmaq</strong><br/>
+        <code>p:not(::first-line)</code> etibarsız yazılışdır — <code>:not()</code> yalnız selektorlar qəbul edir.
+        <div class="code-wrap" style="margin-top:10px;">
+          <pre><span class="cm">/* ❌ Yanlış */</span>
+<span class="kw">p</span><span class="ps">:not(::first-line)</span> { ... }   <span class="cm">/* etibarsız */</span>
+
+<span class="cm">/* ✅ :not() yalnız real selektor qəbul edir */</span>
+<span class="kw">p</span><span class="ps">:not(.xüsusi)</span>        { ... }   <span class="cm">/* düzgün */</span>
+<span class="kw">p</span><span class="ps">:not(:first-child)</span>   { ... }   <span class="cm">/* düzgün */</span></pre>
+        </div>
+      </li>
+
+    </ul>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SECTION 9 — REFERENCE TABLE
+  ════════════════════════════════════════════════════ -->
+  <section class="section" id="reference">
+    <div class="section-header">
+      <div class="section-icon icon-blue">📋</div>
+      <div>
+        <h2>Sürətli İstinad Cədvəli</h2>
+        <p>Bütün selektorların qısa icmalı</p>
+      </div>
+    </div>
+
+    <h3>Combinator Selektorlar</h3>
+    <div style="overflow-x:auto;">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Operator</th><th>Ad</th><th>Nəyi seçir</th><th>Nümunə</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>A B</code></td><td>Descendant (Nəsil)</td><td>A-nın içindəki bütün B-lər (istənilən dərinlik)</td><td><code>div p</code></td></tr>
+          <tr><td><code>A &gt; B</code></td><td>Child (Birbaşa uşaq)</td><td>A-nın yalnız birbaşa uşağı olan B-lər</td><td><code>ul &gt; li</code></td></tr>
+          <tr><td><code>A + B</code></td><td>Adjacent Sibling (Bitişik)</td><td>A-nın dərhal ardınca gələn bir qardaş B</td><td><code>h2 + p</code></td></tr>
+          <tr><td><code>A ~ B</code></td><td>General Sibling (Ümumi)</td><td>A-dan sonra eyni valideyni olan bütün B-lər</td><td><code>h2 ~ p</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>:has() və :not() Selektorlar</h3>
+    <div style="overflow-x:auto;">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Selektor</th><th>Nə edir</th><th>Nümunə</th><th>Brauzer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>:has()</code></td><td>İçi X olan elementi seç (valideyn seçici)</td><td><code>div:has(img)</code></td><td>Chrome 105+ / FF 121+ / Safari 15.4+</td></tr>
+          <tr><td><code>:not()</code></td><td>Arqumentə uyğun gəlməyənləri seç</td><td><code>li:not(.aktiv)</code></td><td>Bütün müasir brauzerlər</td></tr>
+          <tr><td><code>:not(A, B)</code></td><td>Çoxlu istisna (CSS4)</td><td><code>:not(h1,h2,h3)</code></td><td>Chrome 88+ / FF 84+</td></tr>
+          <tr><td><code>:has(A):not(:has(B))</code></td><td>A var, B yoxdur</td><td><code>.kart:has(img):not(:has(.başlıq))</code></td><td>Chrome 105+</td></tr>
+          <tr><td><code>:is()</code></td><td>Qrup seçici — siyahıdan birini seç</td><td><code>:is(h1,h2,h3)</code></td><td>Bütün müasir brauzerlər</td></tr>
+          <tr><td><code>:where()</code></td><td>:is() kimi amma spesifik deyil (0,0,0)</td><td><code>:where(h1,h2)</code></td><td>Chrome 88+ / FF 78+</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Pseudo Selectors</h3>
+    <div style="overflow-x:auto;">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Selektor</th><th>Nə edir</th><th>Nümunə</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>:hover</code></td><td>Siçan üzərdəykən</td><td><code>a:hover</code></td></tr>
+          <tr><td><code>:focus</code></td><td>Fokuslanmış element</td><td><code>input:focus</code></td></tr>
+          <tr><td><code>:focus-visible</code></td><td>Klaviatura fokusunda</td><td><code>button:focus-visible</code></td></tr>
+          <tr><td><code>:active</code></td><td>Klik anı</td><td><code>button:active</code></td></tr>
+          <tr><td><code>:visited</code></td><td>Ziyarət edilmiş link</td><td><code>a:visited</code></td></tr>
+          <tr><td><code>:link</code></td><td>Ziyarətsiz link</td><td><code>a:link</code></td></tr>
+          <tr><td><code>:disabled</code></td><td>Deaktiv form elementi</td><td><code>button:disabled</code></td></tr>
+          <tr><td><code>:enabled</code></td><td>Aktiv form elementi</td><td><code>input:enabled</code></td></tr>
+          <tr><td><code>:checked</code></td><td>Seçili checkbox/radio</td><td><code>input:checked</code></td></tr>
+          <tr><td><code>:required</code></td><td>Məcburi sahə</td><td><code>input:required</code></td></tr>
+          <tr><td><code>:valid</code></td><td>Doğru daxiletmə</td><td><code>input:valid</code></td></tr>
+          <tr><td><code>:invalid</code></td><td>Yanlış daxiletmə</td><td><code>input:invalid</code></td></tr>
+          <tr><td><code>:empty</code></td><td>Boş element</td><td><code>p:empty</code></td></tr>
+          <tr><td><code>:not()</code></td><td>İstisna</td><td><code>li:not(.aktiv)</code></td></tr>
+          <tr><td><code>:is()</code></td><td>Qrup seçici</td><td><code>:is(h1,h2,h3)</code></td></tr>
+          <tr><td><code>:has()</code></td><td>Valideyn seçici</td><td><code>div:has(img)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Pseudo Elements</h3>
+    <div style="overflow-x:auto;">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Element</th><th>Nə edir</th><th>content lazımdır?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>::before</code></td><td>Əvvələ məzmun əlavə et</td><td>✅ Bəli</td></tr>
+          <tr><td><code>::after</code></td><td>Sonuna məzmun əlavə et</td><td>✅ Bəli</td></tr>
+          <tr><td><code>::first-line</code></td><td>İlk sətri seç</td><td>❌ Xeyr</td></tr>
+          <tr><td><code>::first-letter</code></td><td>İlk hərfi seç</td><td>❌ Xeyr</td></tr>
+          <tr><td><code>::selection</code></td><td>Seçilmiş mətn</td><td>❌ Xeyr</td></tr>
+          <tr><td><code>::placeholder</code></td><td>Input placeholder</td><td>❌ Xeyr</td></tr>
+          <tr><td><code>::marker</code></td><td>List marker (nöqtə/rəqəm)</td><td>❌ Xeyr</td></tr>
+          <tr><td><code>::backdrop</code></td><td>Dialog arxa fonu</td><td>❌ Xeyr</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>nth Selektorlar</h3>
+    <div style="overflow-x:auto;">
+      <table class="ref-table">
+        <thead>
+          <tr><th>Selektor</th><th>Seçilən elementlər</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>:first-child</code></td><td>İlk uşaq element</td></tr>
+          <tr><td><code>:last-child</code></td><td>Son uşaq element</td></tr>
+          <tr><td><code>:nth-child(n)</code></td><td>n-ci uşaq element</td></tr>
+          <tr><td><code>:nth-child(odd)</code></td><td>Tək sıralı elementlər (1,3,5...)</td></tr>
+          <tr><td><code>:nth-child(even)</code></td><td>Cüt sıralı elementlər (2,4,6...)</td></tr>
+          <tr><td><code>:nth-child(3n)</code></td><td>Hər 3-cü element (3,6,9...)</td></tr>
+          <tr><td><code>:nth-child(3n+1)</code></td><td>3-cü+1: 1, 4, 7, 10...</td></tr>
+          <tr><td><code>:nth-child(-n+3)</code></td><td>Yalnız ilk 3 element</td></tr>
+          <tr><td><code>:nth-child(n+4)</code></td><td>4-cüdən sonra hamısı</td></tr>
+          <tr><td><code>:nth-last-child(n)</code></td><td>Sondan n-ci element</td></tr>
+          <tr><td><code>:nth-of-type(n)</code></td><td>Eyni tipli elementlər arasında n-ci</td></tr>
+          <tr><td><code>:first-of-type</code></td><td>Eyni tipli ilk element</td></tr>
+          <tr><td><code>:last-of-type</code></td><td>Eyni tipli son element</td></tr>
+          <tr><td><code>:only-child</code></td><td>Yeganə uşaq element</td></tr>
+          <tr><td><code>:only-of-type</code></td><td>Tipinin yeganə elementi</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>CSS Variables — Sintaksis xülasəsi</h3>
+    <div class="code-wrap">
+      <div class="code-label">
+        <span><span class="code-dot d-red"></span><span class="code-dot d-orange"></span><span class="code-dot d-green"></span> xülasə</span>
+      </div>
+      <pre><span class="cm">/* Elan — mütləq -- ilə başlamalı */</span>
+:root { <span class="vr">--ad</span>: <span class="vl">dəyər</span>; }
+
+<span class="cm">/* İstifadə */</span>
+.el { <span class="pr">xassə</span>: <span class="vl">var(</span><span class="vr">--ad</span><span class="vl">)</span>; }
+
+<span class="cm">/* Ehtiyat dəyərlə */</span>
+.el { <span class="pr">xassə</span>: <span class="vl">var(</span><span class="vr">--ad</span><span class="vl">, ehtiyat-dəyər)</span>; }
+
+<span class="cm">/* JS ilə dəyiş */</span>
+document.documentElement.style.<span class="vl">setProperty('--ad', 'dəyər')</span>;
+
+<span class="cm">/* JS ilə oxu */</span>
+<span class="vl">getComputedStyle</span>(document.documentElement).<span class="vl">getPropertyValue('--ad')</span>;</pre>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>CSS Dərsliyi — Pseudo Selectors · Pseudo Elements · Variables · nth · Combinators · :has() · :not()</p>
+    <p style="margin-top:6px;">Azərbaycan dilindəki CSS dərsliyi · <span style="color:var(--accent)">DejaVu Sans</span> fontu ilə hazırlanmışdır</p>
+  </footer>
+
+</div><!-- .page-wrap -->
+
+</body>
+</html>

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 25 · Promise-lər — JavaScript Asinxron Proqramlaşdırma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0E141B;
+    --surface: #161F29;
+    --surface-2: #1D2833;
+    --border: #2A3642;
+    --text: #EDF1F5;
+    --text-muted: #93A1AF;
+    --pending: #E8A94C;
+    --pending-soft: rgba(232,169,76,0.14);
+    --fulfilled: #3FBE8E;
+    --fulfilled-soft: rgba(63,190,142,0.14);
+    --rejected: #E96565;
+    --rejected-soft: rgba(233,101,101,0.14);
+    --accent: #7C9CFF;
+    --accent-soft: rgba(124,156,255,0.14);
+    --radius: 14px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--accent-soft); color: var(--text); }
+
+  a{ color: var(--accent); }
+
+  img, svg{ max-width: 100%; }
+
+  h1,h2,h3{
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 0.5em 0;
+  }
+
+  .wrap{
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+    background: linear-gradient(180deg, rgba(14,20,27,0.98), rgba(14,20,27,0.9));
+  }
+  .breadcrumb{
+    display:flex; align-items:center; gap:10px;
+    font-size: 13px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 14px;
+  }
+  .breadcrumb .badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--pending); color: #241a06;
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+    letter-spacing: 0;
+  }
+
+  /* ---------- Table of contents (sticky pill nav) ---------- */
+  .toc-scroll{
+    display: flex; gap: 8px; overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .toc-scroll::-webkit-scrollbar{ height: 4px; }
+  .toc-scroll::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 4px; }
+  .toc-pill{
+    flex: 0 0 auto;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 7px 13px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .toc-pill:hover, .toc-pill.active{
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{ padding: 44px 0 20px; }
+  .hero h1{
+    font-size: clamp(32px, 6vw, 48px);
+    background: linear-gradient(90deg, var(--text), var(--accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero .tagline{
+    font-size: 17px; color: var(--text-muted); max-width: 60ch; margin-bottom: 28px;
+  }
+  .hero .topics{
+    display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 34px;
+  }
+  .topic-chip{
+    font-family: var(--font-mono); font-size: 12.5px;
+    padding: 5px 11px; border-radius: 7px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
+  }
+
+  /* ---------- Interactive lifecycle lab ---------- */
+  .lab{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 12px;
+  }
+  .lab-top{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 18px;
+  }
+  .lab-title{ font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); }
+  .lab-state-box{
+    display:flex; align-items:center; gap:9px;
+    font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+  }
+  .lab-dot{
+    width: 12px; height:12px; border-radius:50%;
+    background: var(--pending);
+    box-shadow: 0 0 0 5px var(--pending-soft);
+    transition: all 0.3s ease;
+  }
+  .lab-dot.dot-fulfilled{ background: var(--fulfilled); box-shadow: 0 0 0 5px var(--fulfilled-soft); }
+  .lab-dot.dot-rejected{ background: var(--rejected); box-shadow: 0 0 0 5px var(--rejected-soft); }
+  #labState{ color: var(--pending); }
+  #labState.state-fulfilled{ color: var(--fulfilled); }
+  #labState.state-rejected{ color: var(--rejected); }
+
+  .lab-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 16px; }
+  .btn{
+    font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+    padding: 11px 16px; border-radius: 9px; border: 1px solid transparent;
+    cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease;
+    min-height: 44px;
+  }
+  .btn:active{ transform: scale(0.97); }
+  .btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+  .btn-fulfilled{ background: var(--fulfilled-soft); color: var(--fulfilled); border-color: rgba(63,190,142,0.35); }
+  .btn-rejected{ background: var(--rejected-soft); color: var(--rejected); border-color: rgba(233,101,101,0.35); }
+  .btn-reset{ background: var(--surface-2); color: var(--text-muted); border-color: var(--border); }
+
+  .lab-console{
+    background: #0A0F14; border: 1px solid var(--border); border-radius: 9px;
+    padding: 14px 16px; font-family: var(--font-mono); font-size: 13px;
+    min-height: 96px; max-height: 180px; overflow-y: auto;
+  }
+  .lab-console p{ margin: 0 0 6px 0; color: var(--text); }
+  .lab-console p:last-child{ margin-bottom: 0; }
+  .console-hint{ color: var(--text-muted); font-style: italic; }
+  .log-then{ color: var(--fulfilled); }
+  .log-catch{ color: var(--rejected); }
+  .log-finally{ color: var(--accent); }
+
+  /* ---------- Sections ---------- */
+  .section{ padding: 46px 0; border-top: 1px solid var(--border); }
+  .section-tag{
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+  }
+  .section h2{ font-size: clamp(22px, 4vw, 28px); margin-bottom: 14px; }
+  .section p{ color: #C9D2DA; margin: 0 0 16px 0; }
+  .section p strong{ color: var(--text); }
+
+  /* ---------- Code blocks ---------- */
+  pre{
+    position: relative;
+    background: #0A0F14;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    overflow-x: auto;
+    margin: 0 0 18px 0;
+  }
+  code{
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: #DCE4EA;
+    white-space: pre;
+    line-height: 1.7;
+  }
+  .cm{ color: #6A7885; font-style: italic; }
+  .kw{ color: #C792EA; }
+  .fn{ color: #82AAFF; }
+  .str{ color: #C3E88D; }
+  .num{ color: #F78C6C; }
+  .copy-btn{
+    position: absolute; top: 10px; right: 10px;
+    font-family: var(--font-mono); font-size: 11px;
+    background: var(--surface-2); color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 9px; cursor: pointer;
+  }
+  .copy-btn:hover{ color: var(--text); }
+
+  /* ---------- Callouts ---------- */
+  .callout{
+    border-radius: 10px; padding: 14px 16px; margin: 0 0 18px 0;
+    font-size: 14.5px; border: 1px solid transparent;
+  }
+  .callout strong{ display:block; margin-bottom: 4px; font-family: var(--font-display); font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .callout-note{ background: var(--accent-soft); border-color: rgba(124,156,255,0.3); }
+  .callout-note strong{ color: var(--accent); }
+  .callout-warning{ background: var(--pending-soft); border-color: rgba(232,169,76,0.3); }
+  .callout-warning strong{ color: var(--pending); }
+  .callout-danger{ background: var(--rejected-soft); border-color: rgba(233,101,101,0.3); }
+  .callout-danger strong{ color: var(--rejected); }
+  .callout-tip{ background: var(--fulfilled-soft); border-color: rgba(63,190,142,0.3); }
+  .callout-tip strong{ color: var(--fulfilled); }
+
+  /* ---------- State cards (pending/fulfilled/rejected) ---------- */
+  .state-grid{
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;
+  }
+  .state-card{
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; border-top: 3px solid var(--border);
+  }
+  .state-card.pending{ border-top-color: var(--pending); }
+  .state-card.fulfilled{ border-top-color: var(--fulfilled); }
+  .state-card.rejected{ border-top-color: var(--rejected); }
+  .state-card h3{ font-size: 15px; margin-bottom: 6px; }
+  .state-card.pending h3{ color: var(--pending); }
+  .state-card.fulfilled h3{ color: var(--fulfilled); }
+  .state-card.rejected h3{ color: var(--rejected); }
+  .state-card p{ font-size: 13.5px; color: var(--text-muted); margin: 0; }
+
+  /* ---------- Bug cards with reveal ---------- */
+  .bug-card{
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; margin-bottom: 16px;
+  }
+  .bug-card h3{ font-size: 16px; margin-bottom: 10px; display:flex; align-items:center; gap: 8px; }
+  .bug-card h3 .tag-bad{ font-size: 11px; font-family: var(--font-mono); background: var(--rejected-soft); color: var(--rejected); padding: 3px 8px; border-radius: 5px; }
+  .bug-card p{ font-size: 14px; margin-bottom: 12px; }
+  .bug-card pre{ margin-bottom: 10px; }
+  details{
+    margin-top: 8px;
+    border: 1px dashed var(--border);
+    border-radius: 9px;
+    padding: 2px 14px;
+  }
+  details[open]{ border-color: rgba(63,190,142,0.4); background: rgba(63,190,142,0.05); }
+  summary{
+    cursor: pointer; font-family: var(--font-mono); font-size: 13px;
+    color: var(--fulfilled); padding: 10px 0; list-style: none;
+  }
+  summary::-webkit-details-marker{ display:none; }
+  summary::before{ content: "▸ "; }
+  details[open] summary::before{ content: "▾ "; }
+  details .inner{ padding-bottom: 12px; }
+
+  /* ---------- Checklist ---------- */
+  .checklist{ list-style: none; padding: 0; margin: 0 0 6px 0; }
+  .checklist li{
+    display:flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border);
+    font-size: 14.5px; color: #C9D2DA;
+  }
+  .checklist li:last-child{ border-bottom: none; }
+  .checklist li::before{
+    content: "✓"; flex: 0 0 auto;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--fulfilled-soft); color: var(--fulfilled);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  .checklist li strong{ color: var(--text); }
+
+  /* ---------- Table ---------- */
+  .table-wrap{ overflow-x: auto; margin-bottom: 18px; }
+  table{ width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 560px; }
+  th, td{ text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); }
+  th{ font-family: var(--font-mono); color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  td code{ font-size: 12.5px; background: var(--surface-2); padding: 2px 6px; border-radius: 5px; }
+  tr:last-child td{ border-bottom: none; }
+
+  /* ---------- Footer ---------- */
+  footer{
+    padding: 40px 0 60px; border-top: 1px solid var(--border);
+    color: var(--text-muted); font-size: 13.5px; text-align: center;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 640px){
+    .state-grid{ grid-template-columns: 1fr; }
+    .lab-actions{ flex-direction: column; }
+    .lab-actions .btn{ width: 100%; }
+    .section{ padding: 34px 0; }
+    code{ font-size: 12.5px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="breadcrumb">
+      <span class="badge">25</span>
+      <span>JavaScript Əsasları · Asinxron Proqramlaşdırma</span>
+    </div>
+    <nav class="toc-scroll" id="toc">
+      <a class="toc-pill" href="#nedir">Promise nədir?</a>
+      <a class="toc-pill" href="#new-promise">new Promise()</a>
+      <a class="toc-pill" href="#then">.then()</a>
+      <a class="toc-pill" href="#catch">.catch()</a>
+      <a class="toc-pill" href="#finally">.finally()</a>
+      <a class="toc-pill" href="#all">Promise.all()</a>
+      <a class="toc-pill" href="#sehvler">Səhvlər</a>
+      <a class="toc-pill" href="#best">Best practices</a>
+      <a class="toc-pill" href="#nuanslar">Nüanslar</a>
+      <a class="toc-pill" href="#xulase">Xülasə</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Promise-lər</h1>
+    <p class="tagline">Asinxron JavaScript-in ürəyi. Bu dərsdə <code>new Promise()</code>, <code>.then()</code>, <code>.catch()</code>, <code>.finally()</code> və <code>Promise.all()</code>-un necə işlədiyini, ən çox buraxılan səhvləri və nələrə diqqət etməli olduğunuzu addım-addım öyrənəcəksiniz.</p>
+    <div class="topics">
+      <span class="topic-chip">pending → fulfilled / rejected</span>
+      <span class="topic-chip">microtask queue</span>
+      <span class="topic-chip">chaining</span>
+      <span class="topic-chip">fail-fast</span>
+    </div>
+
+    <div class="lab">
+      <div class="lab-top">
+        <span class="lab-title">// canlı simulyasiya — klikləyin və izləyin</span>
+        <div class="lab-state-box">
+          <span class="lab-dot" id="labDot"></span>
+          <span id="labState">pending</span>
+        </div>
+      </div>
+      <div class="lab-actions">
+        <button class="btn btn-fulfilled" id="btnResolve">resolve() çağır</button>
+        <button class="btn btn-rejected" id="btnReject">reject() çağır</button>
+        <button class="btn btn-reset" id="btnReset">Sıfırla</button>
+      </div>
+      <div class="lab-console" id="labConsole">
+        <p class="console-hint">// Yuxarıdakı düymələrdən birinə klikləyin və Promise-in həyat dövrünü canlı izləyin</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 1. PROMISE NƏDİR ================= -->
+<section class="section" id="nedir">
+  <div class="wrap">
+    <div class="section-tag">Əsas anlayış</div>
+    <h2>Promise nədir?</h2>
+    <p><strong>Promise</strong> — nəticəsi hələ məlum olmayan, gələcəkdə (adətən asinxron şəkildə) ya uğurla tamamlanacaq, ya da xəta ilə başa çatacaq bir əməliyyatın nəticəsini təmsil edən JavaScript obyektidir. Sadə dillə desək: "Bu iş bitəndə sənə nəticəni verəcəyəm" vədidir.</p>
+    <p>Hər Promise öz həyatı boyunca yalnız <strong>üç haldan birində</strong> ola bilər:</p>
+
+    <div class="state-grid">
+      <div class="state-card pending">
+        <h3>● Pending</h3>
+        <p>Başlanğıc haldır. Əməliyyat hələ davam edir, nə uğur, nə də xəta baş verib.</p>
+      </div>
+      <div class="state-card fulfilled">
+        <h3>✓ Fulfilled</h3>
+        <p>Əməliyyat uğurla bitib. <code>resolve()</code> çağırılıb, nəticə hazırdır.</p>
+      </div>
+      <div class="state-card rejected">
+        <h3>✕ Rejected</h3>
+        <p>Əməliyyat xəta ilə bitib. <code>reject()</code> çağırılıb, xəta səbəbi ötürülüb.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-note">
+      <strong>Vacib qayda</strong>
+      Promise "settled" (yəni fulfilled və ya rejected) olduqdan sonra öz halını BİR DƏHA DƏYİŞƏ BİLMƏZ. <code>resolve()</code> yenidən çağırılsa belə, heç bir təsiri olmaz — yalnız ilk çağırış hesaba alınır. Bu, Promise-in immutable (dəyişməz) təbiətidir.
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2. NEW PROMISE ================= -->
+<section class="section" id="new-promise">
+  <div class="wrap">
+    <div class="section-tag">Yaratmaq</div>
+    <h2>new Promise()</h2>
+    <p>Yeni Promise <code>new Promise(executor)</code> konstruktoru ilə yaradılır. <code>executor</code> — iki arqument qəbul edən funksiyadır: <code>resolve</code> və <code>reject</code>. Siz əməliyyatınızın nəticəsinə görə bunlardan birini çağırırsınız.</p>
+
+    <pre><code><span class="kw">const</span> sorgu = <span class="kw">new</span> <span class="fn">Promise</span>((resolve, reject) => {
+  <span class="cm">// "executor" funksiyası — DƏRHAL, sinxron şəkildə işə düşür</span>
+  <span class="fn">setTimeout</span>(() => {
+    <span class="kw">const</span> ugurlu = <span class="kw">true</span>;
+    <span class="kw">if</span> (ugurlu) {
+      resolve(<span class="str">"Server cavab verdi ✅"</span>);
+    } <span class="kw">else</span> {
+      reject(<span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Şəbəkə xətası ❌"</span>));
+    }
+  }, <span class="num">1000</span>);
+});</code></pre>
+
+    <div class="callout callout-warning">
+      <strong>Nüans</strong>
+      "Executor" funksiyası (yəni <code>(resolve, reject) => {...}</code> hissəsi) <strong>dərhal və sinxron</strong> şəkildə işə düşür — <code>new Promise()</code> sətri icra olunan kimi. Yalnız <code>resolve</code>/<code>reject</code> içindəki asinxron kod (məsələn, <code>setTimeout</code> və ya şəbəkə sorğusu) gecikir. Yəni <code>new Promise()</code> yaratmaq əməliyyatı özü "gözlətmir".
+    </div>
+  </div>
+</section>
+
+<!-- ================= 3. THEN ================= -->
+<section class="section" id="then">
+  <div class="wrap">
+    <div class="section-tag">Nəticəni götürmək</div>
+    <h2>.then()</h2>
+    <p><code>.then(onFulfilled, onRejected)</code> Promise uğurla (və ya istəyə görə, xətayla) bitəndə işə düşəcək funksiyaları qeyd edir. Praktikada adətən yalnız birinci arqument istifadə olunur, xətalar üçün isə ayrıca <code>.catch()</code> yazılır.</p>
+
+    <pre><code>sorgu
+  .<span class="fn">then</span>(nəticə => {
+    <span class="fn">console</span>.log(nəticə); <span class="cm">// "Server cavab verdi ✅"</span>
+    <span class="kw">return</span> nəticə.toUpperCase();
+  })
+  .<span class="fn">then</span>(boyukHerflerle => {
+    <span class="fn">console</span>.log(boyukHerflerle);
+  });</code></pre>
+
+    <p>Ən vacib xüsusiyyət: <strong>hər <code>.then()</code> özü YENİ bir Promise qaytarır</strong> — məhz buna görə <code>.then().then().then()</code> şəklində zəncirvarı (chaining) yazmaq mümkündür. Əgər <code>.then()</code> daxilində sadə dəyər <code>return</code> edilsə, bu dəyər növbəti <code>.then()</code>-ə ötürülür. Əgər başqa bir Promise <code>return</code> edilsə, zəncir onun nəticələnməsini gözləyir (yastılanma / flattening baş verir).</p>
+
+    <div class="callout callout-tip">
+      <strong>Praktik məsləhət</strong>
+      <code>.then()</code> daxilində mütləq <code>return</code> edin. Return unudulsa, növbəti <code>.then()</code>-ə <code>undefined</code> ötürülür və zəncir "qırılır" — bu, ən çox rast gəlinən səhvlərdən biridir (aşağıda ətraflı bax).
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4. CATCH ================= -->
+<section class="section" id="catch">
+  <div class="wrap">
+    <div class="section-tag">Xətaları tutmaq</div>
+    <h2>.catch()</h2>
+    <p><code>.catch(onRejected)</code> — əslində <code>.then(undefined, onRejected)</code> üçün rahat qısaltmadır (syntactic sugar). Zəncirdə <strong>istənilən əvvəlki addımda</strong> baş verən xətanı tutur — təkcə bilavasitə özündən öncəki <code>.then()</code>-i deyil.</p>
+
+    <pre><code>sorgu
+  .<span class="fn">then</span>(nəticə => {
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Emal zamanı xəta baş verdi"</span>);
+  })
+  .<span class="fn">then</span>(başqaNəticə => {
+    <span class="cm">// Bura HEÇ VAXT çatmayacaq, çünki yuxarıda xəta atıldı</span>
+  })
+  .<span class="fn">catch</span>(xəta => {
+    <span class="fn">console</span>.error(<span class="str">"Tutuldu:"</span>, xəta.message);
+    <span class="cm">// Tutuldu: Emal zamanı xəta baş verdi</span>
+  });</code></pre>
+
+    <div class="callout callout-note">
+      <strong>Necə işləyir?</strong>
+      Zəncirdə bir yerdə xəta atılan (və ya <code>reject()</code> çağırılan) kimi, JavaScript avtomatik olaraq bütün aradakı <code>.then()</code>-ləri ötürüb, ən yaxın <code>.catch()</code>-ə "tullanır". Buna görə uzun zəncirlərdə tək bir <code>.catch()</code> kifayət edir.
+    </div>
+  </div>
+</section>
+
+<!-- ================= 5. FINALLY ================= -->
+<section class="section" id="finally">
+  <div class="wrap">
+    <div class="section-tag">Təmizlik</div>
+    <h2>.finally()</h2>
+    <p><code>.finally(onFinally)</code> — Promise necə nəticələnməsindən asılı olmayaraq (istər fulfilled, istər rejected) <strong>həmişə</strong> işə düşür. Funksiya heç bir arqument qəbul etmir, çünki məqsədi nəticə ilə işləmək deyil, təmizlik (cleanup) işləridir.</p>
+
+    <pre><code>göstərYuklenmeIkonu();
+
+sorgu
+  .<span class="fn">then</span>(nəticə => renderEt(nəticə))
+  .<span class="fn">catch</span>(xəta => gosterXetaMesaji(xəta))
+  .<span class="fn">finally</span>(() => {
+    gizletYuklenmeIkonu(); <span class="cm">// nəticədən asılı olmayaraq işləyir</span>
+  });</code></pre>
+
+    <div class="callout callout-tip">
+      <strong>Nə üçün faydalıdır?</strong>
+      "Loading" ikonunu gizlətmək, bağlantını bağlamaq, resurs təmizləmək kimi işləri həm <code>.then()</code>, həm də <code>.catch()</code> içində təkrar yazmaq əvəzinə, birdəfəlik <code>.finally()</code>-də yazmaq kifayətdir. Bu, kodun təkrarlanmasının qarşısını alır.
+    </div>
+  </div>
+</section>
+
+<!-- ================= 6. PROMISE.ALL ================= -->
+<section class="section" id="all">
+  <div class="wrap">
+    <div class="section-tag">Paralel icra</div>
+    <h2>Promise.all()</h2>
+    <p><code>Promise.all(iterable)</code> bir massiv (və ya digər iterable) daxilindəki bütün Promise-lərin <strong>eyni vaxtda (paralel)</strong> tamamlanmasını gözləyir və tək bir Promise qaytarır.</p>
+
+    <pre><code><span class="kw">const</span> istifadeciler = <span class="fn">fetch</span>(<span class="str">"/api/istifadeciler"</span>);
+<span class="kw">const</span> mehsullar    = <span class="fn">fetch</span>(<span class="str">"/api/mehsullar"</span>);
+<span class="kw">const</span> sifarisler   = <span class="fn">fetch</span>(<span class="str">"/api/sifarisler"</span>);
+
+<span class="fn">Promise</span>.<span class="fn">all</span>([istifadeciler, mehsullar, sifarisler])
+  .<span class="fn">then</span>(([res1, res2, res3]) => {
+    <span class="cm">// Nəticələr GÖNDƏRİLDİYİ SIRA ilə qayıdır,</span>
+    <span class="cm">// hansının daha tez bitdiyindən asılı olmayaraq</span>
+  })
+  .<span class="fn">catch</span>(xəta => {
+    <span class="cm">// İSTƏNİLƏN biri rədd olunsa, bura düşür</span>
+  });</code></pre>
+
+    <div class="callout callout-danger">
+      <strong>Fail-fast davranışı</strong>
+      Əgər massivdəki Promise-lərdən <strong>YALNIZ BİRİ</strong> rədd olunarsa (reject), <code>Promise.all()</code> dərhal rədd olunur — digərlərinin nəticəsini gözləmir. Diqqət: digər Promise-lər arxa planda icra olunmağa davam edir, sadəcə onların nəticəsi artıq sizə lazım olmur.
+    </div>
+
+    <p>Bu "hamısı və ya heç biri" davranışı hər zaman istənilən nəticə deyil. Ona görə oxşar, lakin fərqli davranan qohum metodları tanımaq vacibdir:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Metod</th><th>Nə vaxt bitir</th><th>Davranışı</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Promise.all()</code></td><td>Hamısı bitəndə</td><td>Biri rədd olunsa, dərhal rədd olunur (fail-fast)</td></tr>
+          <tr><td><code>Promise.allSettled()</code></td><td>Hamısı bitəndə</td><td>Heç vaxt rədd olunmur, hər birinin nəticəsini (status: "fulfilled"/"rejected") qaytarır</td></tr>
+          <tr><td><code>Promise.race()</code></td><td>Birincisi bitəndə</td><td>İlk nəticələnən (uğur və ya xəta, fərq etməz) qalib gəlir</td></tr>
+          <tr><td><code>Promise.any()</code></td><td>İlk uğurlu olanda</td><td>İlk fulfilled olanı qaytarır; hamısı rədd olunsa, xəta verir</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 7. SƏHVLƏR / BUGLAR ================= -->
+<section class="section" id="sehvler">
+  <div class="wrap">
+    <div class="section-tag">Diqqət edin</div>
+    <h2>Ən çox edilən səhvlər və buglar</h2>
+    <p>Aşağıda başlanğıc və orta səviyyəli developerlərin Promise-lərlə işləyərkən ən tez-tez etdiyi səhvlər verilib. Hər kartda əvvəlcə problemi görün, sonra "Düzgün həll"ə klikləyərək düzəlişi açın.</p>
+
+    <div class="bug-card">
+      <h3><span class="tag-bad">Bug</span> .catch() əlavə etməməklə "unhandled rejection"</h3>
+      <p>Xəta baş verə biləcək zəncirin sonunda <code>.catch()</code> olmadıqda, xəta "tutulmamış" qalır və brauzer konsolunda "Uncaught (in promise)" xəbərdarlığı görünür.</p>
+      <pre><code>sorgu.<span class="fn">then</span>(nəticə => {
+  <span class="fn">isle</span>(nəticə);
+}); <span class="cm">// .catch() yoxdur!</span></code></pre>
+      <details>
+        <summary>Düzgün həllə bax</summary>
+        <div class="inner">
+          <pre><code>sorgu
+  .<span class="fn">then</span>(nəticə => {
+    <span class="fn">isle</span>(nəticə);
+  })
+  .<span class="fn">catch</span>(xəta => {
+    <span class="fn">console</span>.error(<span class="str">"Xəta:"</span>, xəta);
+  });</code></pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="bug-card">
+      <h3><span class="tag-bad">Bug</span> .then() daxilində return etməyi unutmaq</h3>
+      <p>Əgər <code>.then()</code> içində nəticə <code>return</code> edilmirsə, növbəti <code>.then()</code>-ə <code>undefined</code> ötürülür.</p>
+      <pre><code>sorgu
+  .<span class="fn">then</span>(nəticə => {
+    nəticə.toUpperCase(); <span class="cm">// return YOXDUR</span>
+  })
+  .<span class="fn">then</span>(deyer => {
+    <span class="fn">console</span>.log(deyer); <span class="cm">// undefined 😕</span>
+  });</code></pre>
+      <details>
+        <summary>Düzgün həllə bax</summary>
+        <div class="inner">
+          <pre><code>sorgu
+  .<span class="fn">then</span>(nəticə => {
+    <span class="kw">return</span> nəticə.toUpperCase();
+  })
+  .<span class="fn">then</span>(deyer => {
+    <span class="fn">console</span>.log(deyer); <span class="cm">// düzgün dəyər</span>
+  });</code></pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="bug-card">
+      <h3><span class="tag-bad">Bug</span> Promise-ləri lazımsız yerə "nest" etmək</h3>
+      <p>Callback-hell-i Promise-lərlə təkrarlamaq — chaining əvəzinə iç-içə yazmaq, kodu oxunmaz edir.</p>
+      <pre><code>getIstifadeci(id).<span class="fn">then</span>(istifadeci => {
+  getSifarisler(istifadeci.id).<span class="fn">then</span>(sifarisler => {
+    getOdenisler(sifarisler[<span class="num">0</span>].id).<span class="fn">then</span>(odenis => {
+      <span class="fn">console</span>.log(odenis); <span class="cm">// "piramida" strukturu</span>
+    });
+  });
+});</code></pre>
+      <details>
+        <summary>Düzgün həllə bax</summary>
+        <div class="inner">
+          <pre><code>getIstifadeci(id)
+  .<span class="fn">then</span>(istifadeci => getSifarisler(istifadeci.id))
+  .<span class="fn">then</span>(sifarisler => getOdenisler(sifarisler[<span class="num">0</span>].id))
+  .<span class="fn">then</span>(odenis => <span class="fn">console</span>.log(odenis))
+  .<span class="fn">catch</span>(xəta => <span class="fn">console</span>.error(xəta));</code></pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="bug-card">
+      <h3><span class="tag-bad">Bug</span> Artıq Promise olanı yenidən new Promise() ilə bükmək</h3>
+      <p>Bu, "Promise constructor antipattern" adlanır. <code>fetch()</code> artıq Promise qaytarır — onu yenidən bükməyə ehtiyac yoxdur.</p>
+      <pre><code><span class="kw">function</span> <span class="fn">getMelumat</span>() {
+  <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Promise</span>((resolve, reject) => {
+    <span class="fn">fetch</span>(<span class="str">"/api/melumat"</span>)
+      .<span class="fn">then</span>(res => resolve(res))
+      .<span class="fn">catch</span>(err => reject(err));
+  });
+}</code></pre>
+      <details>
+        <summary>Düzgün həllə bax</summary>
+        <div class="inner">
+          <pre><code><span class="kw">function</span> <span class="fn">getMelumat</span>() {
+  <span class="kw">return</span> <span class="fn">fetch</span>(<span class="str">"/api/melumat"</span>); <span class="cm">// artıq Promise-dir</span>
+}</code></pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="bug-card">
+      <h3><span class="tag-bad">Bug</span> setTimeout daxilində atılan xətanı tutmamaq</h3>
+      <p>Asinxron callback (məsələn <code>setTimeout</code>) içində birbaşa <code>throw</code> etmək Promise tərəfindən <strong>avtomatik tutulmur</strong> — çünki bu, artıq executor-un sinxron icra dövrəsindən kənardadır.</p>
+      <pre><code><span class="kw">new</span> <span class="fn">Promise</span>((resolve, reject) => {
+  <span class="fn">setTimeout</span>(() => {
+    <span class="kw">throw</span> <span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Bu tutulmayacaq!"</span>);
+  }, <span class="num">1000</span>);
+});</code></pre>
+      <details>
+        <summary>Düzgün həllə bax</summary>
+        <div class="inner">
+          <pre><code><span class="kw">new</span> <span class="fn">Promise</span>((resolve, reject) => {
+  <span class="fn">setTimeout</span>(() => {
+    reject(<span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"İndi düzgün tutulacaq"</span>));
+  }, <span class="num">1000</span>);
+});</code></pre>
+        </div>
+      </details>
+    </div>
+
+    <div class="bug-card">
+      <h3><span class="tag-bad">Bug</span> Promise.all-ın "hamısı və ya heç biri" olduğunu unutmaq</h3>
+      <p>3 sorğudan biri uğursuz olanda, digər 2-si uğurlu olsa belə, <code>Promise.all()</code> HAMISINI rədd edilmiş sayır və nəticələrini itirirsiniz.</p>
+      <pre><code><span class="fn">Promise</span>.<span class="fn">all</span>([sorgu1, sorgu2, sorgu3])
+  .<span class="fn">then</span>(nəticələr => { <span class="cm">/* ... */</span> })
+  .<span class="fn">catch</span>(xəta => {
+    <span class="cm">// Yalnız 1 sorğu xəta versə belə, HAMISI itir</span>
+  });</code></pre>
+      <details>
+        <summary>Düzgün həllə bax</summary>
+        <div class="inner">
+          <pre><code><span class="fn">Promise</span>.<span class="fn">allSettled</span>([sorgu1, sorgu2, sorgu3])
+  .<span class="fn">then</span>(nəticələr => {
+    nəticələr.<span class="fn">forEach</span>(n => {
+      <span class="kw">if</span> (n.status === <span class="str">"fulfilled"</span>) <span class="fn">console</span>.log(n.value);
+      <span class="kw">else</span> <span class="fn">console</span>.warn(n.reason);
+    });
+  });</code></pre>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 8. BEST PRACTICES ================= -->
+<section class="section" id="best">
+  <div class="wrap">
+    <div class="section-tag">Tövsiyələr</div>
+    <h2>Nəyi etsək daha yaxşı olar</h2>
+    <ul class="checklist">
+      <li>Hər zəncirin sonunda <strong>mütləq <code>.catch()</code></strong> yazın (və ya <code>try/catch</code> ilə <code>async/await</code> istifadə edin) — "unhandled rejection" heç vaxt olmasın.</li>
+      <li><code>.then()</code> daxilində dəyəri <strong>həmişə <code>return</code> edin</strong>, əks halda zəncir "qırılır" və <code>undefined</code> yayılır.</li>
+      <li>Artıq Promise qaytaran funksiyanı (<code>fetch</code>, kitabxana metodları) <strong>yenidən <code>new Promise()</code> ilə bükməyin</strong> — bu, lazımsız mürəkkəblikdir (antipattern).</li>
+      <li>Bir-birindən asılı olmayan bir neçə asinxron işi <strong>ardıcıl <code>await</code> etmək əvəzinə, <code>Promise.all()</code> ilə paralel işə salın</strong> — sürəti artırır.</li>
+      <li>Hamısının nəticəsini bilmək istədiyiniz, amma biri uğursuz olsa belə davam etmək istədiyiniz halda <strong><code>Promise.allSettled()</code></strong> seçin, <code>Promise.all()</code> yox.</li>
+      <li>Xəta obyektlərini həmişə <strong><code>Error</code> instansiyası</strong> kimi atın (sadə string yox) — bu, stack trace və debug imkanı verir.</li>
+      <li>Təmizlik (loading gizlətmə, bağlantı bağlama) əməliyyatlarını <strong><code>.finally()</code></strong>-də toplayın, <code>.then()</code> və <code>.catch()</code>-də təkrarlamayın.</li>
+      <li>Kod oxunaqlılığı üçün, Promise-in məntiqini başa düşdükdən sonra mürəkkəb zəncirlərdə <strong><code>async/await</code></strong>-ə keçməyi düşünün — o, Promise üzərində qurulmuş sintaktik şəkərdir.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 9. NÜANSLAR ================= -->
+<section class="section" id="nuanslar">
+  <div class="wrap">
+    <div class="section-tag">Dərinə enək</div>
+    <h2>Diqqət ediləsi nüanslar</h2>
+    <p>Bunlar Promise-ləri "işlədə bilmək"lə "həqiqətən başa düşmək" arasındakı fərqi yaradan detallardır.</p>
+
+    <details>
+      <summary>Microtask queue: niyə .then() setTimeout-dan da tez işə düşür?</summary>
+      <div class="inner">
+        <p>JavaScript-in event loop-unda iki növbə var: <strong>microtask queue</strong> (Promise callback-ləri, <code>.then/.catch/.finally</code>) və <strong>macrotask queue</strong> (<code>setTimeout</code>, <code>setInterval</code>, UI hadisələri). Cari sinxron kod bitən kimi, event loop əvvəlcə <strong>bütün microtask-ları</strong> tamamlayır, yalnız sonra növbəti macrotask-a keçir. Ona görə <code>Promise.resolve().then(...)</code> həmişə <code>setTimeout(..., 0)</code>-dan ÖNCƏ işə düşür — nə qədər "0 saniyə" desəniz də.</p>
+        <pre><code><span class="fn">console</span>.log(<span class="str">"1"</span>);
+<span class="fn">setTimeout</span>(() => <span class="fn">console</span>.log(<span class="str">"2"</span>), <span class="num">0</span>);
+<span class="fn">Promise</span>.<span class="fn">resolve</span>().<span class="fn">then</span>(() => <span class="fn">console</span>.log(<span class="str">"3"</span>));
+<span class="fn">console</span>.log(<span class="str">"4"</span>);
+<span class="cm">// Nəticə: 1, 4, 3, 2</span></code></pre>
+      </div>
+    </details>
+
+    <details>
+      <summary>Settled Promise dəyişməzdir (immutable)</summary>
+      <div class="inner">
+        <p>Bir dəfə <code>fulfilled</code> və ya <code>rejected</code> olan Promise əbədilik o haldadır. <code>resolve()</code> və ya <code>reject()</code>-in ikinci çağırışı sadəcə nəzərə alınmır — heç bir xəta da vermir, sadəcə heç nə etmir.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Zəncirdəki xəta ən yaxın .catch()-ə "tullanır"</summary>
+      <div class="inner">
+        <p>Bir <code>.then()</code> daxilində <code>throw</code> edilən xəta, avtomatik olaraq həmin Promise-i rədd edilmiş vəziyyətə salır və nəzarəti zəncirdəki ilk <code>.catch()</code>-ə ötürür — aradakı bütün <code>.then()</code>-lər ötürülür. Amma diqqət: <code>.then(uğur, xəta)</code> formasında yazılmış İKİNCİ arqument yalnız ƏVVƏLKİ Promise-in rədd olunmasını tutur, öz "uğur" funksiyasının İÇİNDƏ atılan xətanı YOX.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Promise.all-da "uğursuz olanlar" yox olmur, sadəcə nəzərə alınmır</summary>
+      <div class="inner">
+        <p><code>Promise.all()</code> ilk rədd olunanı görən kimi dərhal rədd olunsa da, digər Promise-lər arxa planda icra olunmağa davam edir (məsələn, şəbəkə sorğuları geri çağırılmır). Sadəcə onların nəticəsi artıq sizin kodunuza ötürülmür — bu, resurs sızması demək deyil, amma yaddan çıxarılmamalıdır.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>async funksiyanı executor kimi istifadə etməyin</summary>
+      <div class="inner">
+        <p><code>new Promise(async (resolve, reject) => {...})</code> yazmaq antipatterndir. Əgər async executor daxilində xəta atılarsa, bu xəta <code>reject()</code>-ə çevrilmir — sükutla "udulur" (unhandled rejection). Executor-u həmişə sinxron (adi) funksiya kimi saxlayın.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= 10. XÜLASƏ / CHEAT SHEET ================= -->
+<section class="section" id="xulase">
+  <div class="wrap">
+    <div class="section-tag">Sürətli baxış</div>
+    <h2>Xülasə cədvəli</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Metod</th><th>Vəzifəsi</th><th>Nə vaxt istifadə edin</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>new Promise()</code></td><td>Əl ilə asinxron Promise yaratmaq</td><td>Callback-based API-ni Promise-ə çevirərkən</td></tr>
+          <tr><td><code>.then()</code></td><td>Uğurlu nəticəni götürmək / zəncirləmək</td><td>Hər addımda nəticə üzərində işləmək lazım olanda</td></tr>
+          <tr><td><code>.catch()</code></td><td>Zəncirdəki istənilən xətanı tutmaq</td><td>Zəncirin sonunda, həmişə</td></tr>
+          <tr><td><code>.finally()</code></td><td>Nəticədən asılı olmayan təmizlik</td><td>Loading gizlətmək, resurs bağlamaq</td></tr>
+          <tr><td><code>Promise.all()</code></td><td>Hamısını paralel gözləmək, biri düşərsə hamısı düşür</td><td>Bütün nəticələr vacib olanda</td></tr>
+          <tr><td><code>Promise.allSettled()</code></td><td>Hamısını gözləmək, uğursuzluq olsa belə</td><td>Qismən nəticələr də dəyərli olanda</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-note">
+      <strong>Növbəti addım</strong>
+      Promise-ləri anladıqdan sonra, təbii davam <code>async/await</code> sintaksisini öyrənməkdir — o, məhz bu gün öyrəndiyiniz Promise mexanizminin üzərində qurulub, sadəcə daha oxunaqlı formada.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Dərs 25 · Promise-lər — JavaScript Asinxron Proqramlaşdırma
+  </div>
+</footer>
+
+<script>
+  // ---------- Copy buttons for code blocks ----------
+  document.querySelectorAll('pre').forEach(pre => {
+    const codeEl = pre.querySelector('code');
+    if (!codeEl) return;
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Kopyala';
+    btn.addEventListener('click', () => {
+      const text = codeEl.innerText;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Kopyalandı ✓';
+          setTimeout(() => { btn.textContent = 'Kopyala'; }, 1500);
+        }).catch(() => {
+          btn.textContent = 'Xəta';
+          setTimeout(() => { btn.textContent = 'Kopyala'; }, 1500);
+        });
+      }
+    });
+    pre.appendChild(btn);
+  });
+
+  // ---------- Interactive Promise lifecycle lab ----------
+  const dot = document.getElementById('labDot');
+  const stateLabel = document.getElementById('labState');
+  const consoleEl = document.getElementById('labConsole');
+  const btnResolve = document.getElementById('btnResolve');
+  const btnReject = document.getElementById('btnReject');
+  const btnReset = document.getElementById('btnReset');
+
+  function log(text, cls){
+    const p = document.createElement('p');
+    p.textContent = text;
+    if (cls) p.className = cls;
+    consoleEl.appendChild(p);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+
+  function resetLab(){
+    dot.className = 'lab-dot';
+    stateLabel.textContent = 'pending';
+    stateLabel.className = '';
+    consoleEl.innerHTML = '<p class="console-hint">// Yuxarıdakı düymələrdən birinə klikləyin və Promise-in həyat dövrünü canlı izləyin</p>';
+    btnResolve.disabled = false;
+    btnReject.disabled = false;
+  }
+
+  function settle(kind){
+    btnResolve.disabled = true;
+    btnReject.disabled = true;
+    consoleEl.innerHTML = '';
+    log('// Sinxron kod davam edir, Promise hələ pending qalır...');
+
+    if (kind === 'fulfilled'){
+      dot.className = 'lab-dot dot-fulfilled';
+      stateLabel.textContent = 'fulfilled';
+      stateLabel.className = 'state-fulfilled';
+    } else {
+      dot.className = 'lab-dot dot-rejected';
+      stateLabel.textContent = 'rejected';
+      stateLabel.className = 'state-rejected';
+    }
+
+    setTimeout(() => {
+      if (kind === 'fulfilled'){
+        log('✔ .then() microtask kimi işə düşdü → nəticə: "Uğurlu cavab"', 'log-then');
+      } else {
+        log('✘ .catch() microtask kimi işə düşdü → xəta: "Bir şey səhv getdi"', 'log-catch');
+      }
+      setTimeout(() => {
+        log('◆ .finally() işə düşdü → təmizlik gedir (loading gizlədilir)...', 'log-finally');
+      }, 550);
+    }, 550);
+  }
+
+  btnResolve.addEventListener('click', () => settle('fulfilled'));
+  btnReject.addEventListener('click', () => settle('rejected'));
+  btnReset.addEventListener('click', resetLab);
+
+  // ---------- Scroll-spy for TOC ----------
+  const sections = document.querySelectorAll('.section');
+  const pills = document.querySelectorAll('.toc-pill');
+  const map = {};
+  pills.forEach(p => { map[p.getAttribute('href').slice(1)] = p; });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        pills.forEach(p => p.classList.remove('active'));
+        const pill = map[entry.target.id];
+        if (pill){
+          pill.classList.add('active');
+          pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

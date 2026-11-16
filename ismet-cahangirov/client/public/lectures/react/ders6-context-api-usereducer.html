@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 6 — Context API, useReducer və Prop Drilling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F6FA;
+    --bg-elevated: #FFFFFF;
+    --bg-sunken: #ECEEF5;
+    --text: #1B1B2F;
+    --text-muted: #5A5D72;
+    --accent: #6C4FF2;
+    --accent-soft: #EDE9FF;
+    --accent-2: #00A389;
+    --accent-2-soft: #DFF7F1;
+    --danger: #E2445C;
+    --danger-soft: #FDE7EA;
+    --border: #E1E3EC;
+    --code-bg: #1B1B2F;
+    --code-text: #ECEBF5;
+    --shadow: 0 10px 28px rgba(27,27,47,0.08);
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --font-display: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    --tok-keyword: #6C4FF2;
+    --tok-hook: #00A389;
+    --tok-string: #C77D19;
+    --tok-comment: #8B8FA3;
+    --tok-number: #D6455D;
+    --tok-tag: #2E6FE0;
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] {
+    --bg: #14141F;
+    --bg-elevated: #1D1E2C;
+    --bg-sunken: #191926;
+    --text: #ECEBF5;
+    --text-muted: #9799B0;
+    --accent: #9B8CFF;
+    --accent-soft: #2A2247;
+    --accent-2: #2DD4BF;
+    --accent-2-soft: #12332E;
+    --danger: #FF6B81;
+    --danger-soft: #3A1D26;
+    --border: #2C2D40;
+    --code-bg: #0E0E17;
+    --code-text: #E4E2F5;
+    --shadow: 0 10px 34px rgba(0,0,0,0.45);
+    --tok-keyword: #9B8CFF;
+    --tok-hook: #2DD4BF;
+    --tok-string: #F2B84B;
+    --tok-comment: #6E7191;
+    --tok-number: #FF6B81;
+    --tok-tag: #6FA8FF;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.65;
+    transition: background 0.35s ease, color 0.35s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  a { color: var(--accent); }
+  p { margin: 0 0 14px; color: var(--text); }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ---------- Layout shell ---------- */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .header-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .header-title { font-size: clamp(22px, 3vw, 30px); }
+  .header-sub { color: var(--text-muted); font-size: 14.5px; margin-top: 6px; max-width: 560px; }
+  .header-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .meta-pill {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    color: var(--text-muted);
+  }
+
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.3s ease;
+    white-space: nowrap;
+  }
+  .theme-toggle:hover { transform: translateY(-1px); }
+  .theme-toggle:active { transform: translateY(0); }
+
+  .live-note {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+  .live-note-inner {
+    margin-top: 16px;
+    background: var(--accent-soft);
+    border: 1px dashed var(--accent);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+  .live-note-inner strong { color: var(--accent); }
+
+  /* Mobile pill nav (sticky, horizontal scroll) */
+  .mobile-nav {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 49;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .mobile-nav a {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    text-decoration: none;
+    color: var(--text-muted);
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    margin-right: 8px;
+  }
+  .mobile-nav a.active { color: var(--accent); border-color: var(--accent); }
+
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 34px 28px 90px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 44px;
+    align-items: start;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+  .sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .sidebar nav a {
+    display: block;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    border-left: 2px solid transparent;
+    margin-bottom: 2px;
+    transition: all 0.15s ease;
+  }
+  .sidebar nav a:hover { background: var(--bg-sunken); color: var(--text); }
+  .sidebar nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+  main { min-width: 0; }
+
+  section.lesson-section {
+    scroll-margin-top: 96px;
+    margin-bottom: 56px;
+  }
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    background: var(--accent-2-soft);
+    border-radius: 999px;
+    padding: 4px 12px;
+    margin-bottom: 12px;
+  }
+  .section-tag.tag-theory { color: var(--accent); background: var(--accent-soft); }
+  .section-tag.tag-bug { color: var(--danger); background: var(--danger-soft); }
+
+  h2.section-title { font-size: clamp(20px, 2.6vw, 26px); margin-bottom: 16px; }
+  h3.sub-title { font-size: 17px; margin: 28px 0 10px; color: var(--text); }
+
+  .card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+
+  /* ---------- Callouts ---------- */
+  .callout {
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin: 18px 0;
+    border: 1px solid var(--border);
+    font-size: 14.5px;
+  }
+  .callout-title { font-weight: 700; font-family: var(--font-display); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .callout-warning { background: var(--danger-soft); border-color: var(--danger); }
+  .callout-warning .callout-title { color: var(--danger); }
+  .callout-success { background: var(--accent-2-soft); border-color: var(--accent-2); }
+  .callout-success .callout-title { color: var(--accent-2); }
+  .callout-info { background: var(--accent-soft); border-color: var(--accent); }
+  .callout-info .callout-title { color: var(--accent); }
+
+  /* ---------- Code blocks ---------- */
+  .code-wrap { margin: 16px 0 22px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
+  .code-tab {
+    background: var(--bg-sunken);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  pre.code-block {
+    margin: 0;
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 13.2px;
+    line-height: 1.6;
+  }
+  pre.code-block code { white-space: pre; }
+  .tok-keyword { color: var(--tok-keyword); font-weight: 600; }
+  .tok-hook { color: var(--tok-hook); font-weight: 600; }
+  .tok-string { color: var(--tok-string); }
+  .tok-comment { color: var(--tok-comment); font-style: italic; }
+  .tok-number { color: var(--tok-number); }
+  .tok-tag { color: var(--tok-tag); }
+
+  /* ---------- Table ---------- */
+  .table-wrap { overflow-x: auto; margin: 16px 0 22px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--bg-elevated); }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); background: var(--bg-sunken); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ---------- Diagrams ---------- */
+  .diagram-card { text-align: center; }
+  .diagram-card svg { max-width: 100%; height: auto; }
+  .diagram-caption { font-size: 13px; color: var(--text-muted); margin-top: 10px; }
+
+  /* ---------- Bug / practice grids ---------- */
+  .bug-grid, .practice-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .bug-item, .practice-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+  }
+  .bug-item { border-left: 3px solid var(--danger); }
+  .practice-item { border-left: 3px solid var(--accent-2); }
+  .bug-item h4, .practice-item h4 { font-size: 15px; margin-bottom: 8px; }
+  .bug-item .label, .practice-item .label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-top: 10px;
+    display: block;
+  }
+  .bug-item p, .practice-item p { font-size: 13.5px; margin: 4px 0 0; }
+
+  /* ---------- FAQ ---------- */
+  details.faq-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  details.faq-item summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 15.5px;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  details.faq-item summary::-webkit-details-marker { display: none; }
+  details.faq-item summary::after {
+    content: '+';
+    font-size: 20px;
+    color: var(--accent);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+  details.faq-item[open] summary::after { transform: rotate(45deg); }
+  details.faq-item .faq-answer { margin-top: 12px; font-size: 14.5px; color: var(--text-muted); }
+  details.faq-item .faq-answer p:last-child { margin-bottom: 0; }
+
+  /* ---------- Interactive demos ---------- */
+  .demo-panel {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    margin: 18px 0 24px;
+  }
+  .demo-label {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: block;
+  }
+  .demo-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 720px) { .demo-grid { grid-template-columns: 1fr 1fr; } }
+
+  .product-btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .product-btn {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    cursor: pointer;
+    color: var(--text);
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .product-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  .cart-list { list-style: none; padding: 0; margin: 0 0 12px; min-height: 40px; }
+  .cart-list li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cart-empty { color: var(--text-muted); font-size: 13.5px; font-style: italic; }
+  .cart-total { display: flex; justify-content: space-between; font-weight: 700; padding-top: 10px; font-size: 14.5px; }
+  .clear-btn {
+    margin-top: 12px;
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+  .clear-btn:hover { background: var(--danger-soft); }
+
+  .action-log {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    height: 210px;
+    overflow-y: auto;
+    line-height: 1.7;
+  }
+  .action-log .log-line { opacity: 0; animation: fadeIn 0.25s ease forwards; margin-bottom: 4px; }
+  .action-log .log-type { color: var(--tok-hook); }
+  .action-log .log-state { color: var(--text-muted); }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .diagram-toggle { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+  .diagram-toggle button {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .diagram-toggle button.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .diagram-view { display: none; }
+  .diagram-view.active { display: block; }
+
+  /* ---------- Checklist ---------- */
+  .checklist { list-style: none; padding: 0; margin: 14px 0; }
+  .checklist li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .checklist li::before {
+    content: '☐';
+    color: var(--accent);
+    font-size: 16px;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+
+  footer.site-footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 28px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.2s ease;
+    z-index: 60;
+  }
+  .back-to-top.visible { opacity: 1; pointer-events: auto; }
+  .back-to-top:hover { transform: translateY(-2px); }
+
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .mobile-nav { display: flex; }
+  }
+  @media (max-width: 560px) {
+    .header-inner { padding: 16px 18px; }
+    .layout { padding: 24px 18px 70px; }
+    .card { padding: 18px; }
+    pre.code-block { font-size: 12px; padding: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div>
+      <span class="eyebrow">React Kursu · Dərs 6</span>
+      <h1 class="header-title">Context API, useReducer və Prop Drilling</h1>
+      <p class="header-sub">Komponentlər arasında props ötürmədən qlobal state idarə etməyi öyrənirik — nəzəriyyədən praktikaya, bütün tələ və xətaları ilə birlikdə.</p>
+      <div class="header-meta">
+        <span class="meta-pill">⏱ ~2.5 saat</span>
+        <span class="meta-pill">🎯 Tapşırıq: Dark/Light Mode Context</span>
+        <span class="meta-pill">📦 Ön şərt: useState, useEffect</span>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Tema rejimini dəyiş">
+      <span id="themeIcon">🌙</span>
+      <span id="themeLabel">Qaranlıq rejim</span>
+    </button>
+  </div>
+  <div class="live-note">
+    <div class="live-note-inner">
+      💡 <strong>Sınayın:</strong> yuxarı sağdakı düyməni klikləyin. Bütün səhifənin rəngi, kod bloklarının rəngi, hər şey bir anda dəyişəcək — heç bir prop heç yerə ötürülmədi. Məhz bunu bu dərsdə <strong>Context API</strong> vasitəsilə necə qurduğumuzu öyrənəcəyik.
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Bölmələr"></nav>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Bu dərsdə</div>
+    <nav id="sidebarNav"></nav>
+  </aside>
+
+  <main>
+
+    <!-- 1. GİRİŞ -->
+    <section class="lesson-section" id="giris">
+      <span class="section-tag tag-theory">📘 Nəzəri hissə</span>
+      <h2 class="section-title">1. Giriş</h2>
+      <div class="card">
+        <p>Bu dərsdə React tətbiqlərində <strong>state paylaşma</strong> probleminin iki əsas həllini öyrənəcəyik: <strong>Context API</strong> və <strong>useReducer</strong>. Hər ikisi də "state böyüdükcə komponentləri necə təmiz saxlayaq" sualına cavab verir, sadəcə fərqli tərəflərdən.</p>
+        <p>Dərs iki hissədən ibarətdir:</p>
+        <ul>
+          <li><strong>Nəzəri hissə (~60 dəq):</strong> Prop drilling problemi, Context API-nin quruluşu, useReducer hook-u, useReducer və useState arasındakı fərq, qlobal state prinsipləri.</li>
+          <li><strong>Praktiki hissə (~90 dəq):</strong> Dark/Light tema üçün real Context yaratmaq və səbət (cart) state-ini useReducer ilə idarə etmək.</li>
+        </ul>
+        <div class="callout callout-info">
+          <div class="callout-title">📎 Ön şərtlər</div>
+          <p>Bu dərsi başa düşmək üçün <code>useState</code>, <code>useEffect</code> və komponentlərin bir-birinə <code>props</code> ötürməsi haqqında əsas biliyiniz olmalıdır. Əgər bu mövzularda özünüzü əmin hiss etmirsinizsə, əvvəlki dərslərə qayıtmaq faydalı olar.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. PROP DRILLING -->
+    <section class="lesson-section" id="prop-drilling">
+      <span class="section-tag tag-theory">📘 Nəzəri hissə</span>
+      <h2 class="section-title">2. Prop Drilling Problemi</h2>
+      <div class="card">
+        <p><strong>Prop drilling</strong> — bir state-i komponent ağacının yuxarısından çox aşağıdakı bir komponentə çatdırmaq üçün, aralıqdakı bütün komponentlərdən <em>məcburi</em> keçirməyə deyilir. Aralıq komponentlərin həmin data ilə heç bir işi olmasa belə, onu sadəcə "ötürmək" üçün qəbul etməli olurlar.</p>
+
+        <h3 class="sub-title">Nümunə: pis ssenari</h3>
+        <p>Tutaq ki, istifadəçi məlumatını yalnız ən dərində yerləşən <code>Avatar</code> komponentində göstərmək istəyirik. Amma <code>Layout</code>, <code>Sidebar</code> və <code>UserPanel</code> komponentləri bu data ilə heç nə etmir — sadəcə ötürücü rolundadırlar:</p>
+
+        <div class="code-wrap">
+          <div class="code-tab"><span>App.jsx — prop drilling nümunəsi</span><button class="copy-btn" data-code-id="prop-drilling-bad">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="prop-drilling-bad"></code></pre>
+        </div>
+
+        <p>Diqqət edin: <code>user</code> propu 4 səviyyədən keçir, amma yalnız birinci (<code>App</code>) və sonuncu (<code>Avatar</code>) komponent onunla real işləyir. <code>Layout</code>, <code>Sidebar</code> və <code>UserPanel</code> yalnız "kuryer" rolunu oynayır.</p>
+
+        <div class="diagram-card">
+          <div class="diagram-toggle" role="tablist" aria-label="Diaqram seçimi">
+            <button class="active" data-target="diagram-drilling" type="button">Prop Drilling</button>
+            <button data-target="diagram-context" type="button">Context API</button>
+          </div>
+
+          <div class="diagram-view active" id="diagram-drilling">
+            <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Prop drilling diaqramı: user propu App-dan Avatar-a qədər hər komponentdən keçir">
+              <defs>
+                <marker id="arrowDrill" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 Z" fill="var(--danger)"></path>
+                </marker>
+              </defs>
+              <g font-family="var(--font-mono)" font-size="12">
+                <rect x="20" y="20" width="120" height="46" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+                <text x="80" y="48" text-anchor="middle" fill="var(--text)">App</text>
+
+                <line x1="80" y1="66" x2="80" y2="98" stroke="var(--danger)" stroke-width="2" marker-end="url(#arrowDrill)"></line>
+                <text x="95" y="86" fill="var(--danger)">user</text>
+
+                <rect x="20" y="98" width="120" height="46" rx="10" fill="var(--bg-sunken)" stroke="var(--border)"></rect>
+                <text x="80" y="126" text-anchor="middle" fill="var(--text-muted)">Layout</text>
+
+                <line x1="80" y1="144" x2="80" y2="176" stroke="var(--danger)" stroke-width="2" marker-end="url(#arrowDrill)"></line>
+                <text x="95" y="164" fill="var(--danger)">user</text>
+
+                <rect x="20" y="176" width="120" height="46" rx="10" fill="var(--bg-sunken)" stroke="var(--border)"></rect>
+                <text x="80" y="204" text-anchor="middle" fill="var(--text-muted)">Sidebar</text>
+
+                <line x1="80" y1="222" x2="80" y2="254" stroke="var(--danger)" stroke-width="2" marker-end="url(#arrowDrill)"></line>
+                <text x="95" y="242" fill="var(--danger)">user</text>
+
+                <rect x="20" y="254" width="120" height="40" rx="10" fill="var(--bg-sunken)" stroke="var(--border)"></rect>
+                <text x="80" y="279" text-anchor="middle" fill="var(--text-muted)">UserPanel</text>
+
+                <line x1="140" y1="277" x2="380" y2="277" stroke="var(--danger)" stroke-width="2" marker-end="url(#arrowDrill)"></line>
+                <text x="260" y="270" fill="var(--danger)">user (yalnız burada işlədilir)</text>
+
+                <rect x="380" y="254" width="140" height="40" rx="10" fill="var(--accent-2-soft)" stroke="var(--accent-2)"></rect>
+                <text x="450" y="279" text-anchor="middle" fill="var(--text)">Avatar ✅</text>
+
+                <text x="250" y="30" fill="var(--text-muted)" font-size="11">3 komponent user-i sadəcə "daşıyır", istifadə etmir</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="diagram-view" id="diagram-context">
+            <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Context API diaqramı: Provider dəyəri birbaşa istənilən dərinlikdəki komponentə ötürür">
+              <defs>
+                <marker id="arrowCtx" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"></path>
+                </marker>
+              </defs>
+              <g font-family="var(--font-mono)" font-size="12">
+                <rect x="250" y="16" width="140" height="46" rx="10" fill="var(--accent)" stroke="var(--accent)"></rect>
+                <text x="320" y="44" text-anchor="middle" fill="#fff">ThemeProvider</text>
+
+                <rect x="20" y="110" width="110" height="42" rx="10" fill="var(--bg-sunken)" stroke="var(--border)" stroke-dasharray="3 3"></rect>
+                <text x="75" y="136" text-anchor="middle" fill="var(--text-muted)">Layout</text>
+
+                <rect x="150" y="180" width="110" height="42" rx="10" fill="var(--bg-sunken)" stroke="var(--border)" stroke-dasharray="3 3"></rect>
+                <text x="205" y="206" text-anchor="middle" fill="var(--text-muted)">Sidebar</text>
+
+                <rect x="30" y="240" width="120" height="42" rx="10" fill="var(--accent-2-soft)" stroke="var(--accent-2)"></rect>
+                <text x="90" y="266" text-anchor="middle" fill="var(--text)">Header ✅</text>
+
+                <rect x="270" y="240" width="120" height="42" rx="10" fill="var(--accent-2-soft)" stroke="var(--accent-2)"></rect>
+                <text x="330" y="266" text-anchor="middle" fill="var(--text)">UserPanel ✅</text>
+
+                <rect x="470" y="150" width="130" height="42" rx="10" fill="var(--accent-2-soft)" stroke="var(--accent-2)"></rect>
+                <text x="535" y="176" text-anchor="middle" fill="var(--text)">Footer ✅</text>
+
+                <path d="M320,62 C220,110 130,180 95,240" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrowCtx)"></path>
+                <path d="M320,62 C330,130 335,190 330,240" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrowCtx)"></path>
+                <path d="M355,62 C440,90 500,110 530,150" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrowCtx)"></path>
+
+                <text x="320" y="98" text-anchor="middle" fill="var(--text-muted)" font-size="11">useContext() birbaşa oxuyur</text>
+              </g>
+            </svg>
+          </div>
+          <p class="diagram-caption">Context ilə Provider dəyəri istənilən dərinlikdəki komponentə birbaşa "yayımlanır" (broadcast) — aralıq komponentlər ondan xəbərsiz qalır.</p>
+        </div>
+
+        <h3 class="sub-title">Prop drilling nə vaxt real problemdir?</h3>
+        <p>Hər prop ötürmə "pis" deyil — 1-2 səviyyəlik ötürmə tamamilə normaldır və Context-ə ehtiyac yoxdur. Problem böyüyür, çünki:</p>
+        <ul>
+          <li>Ağac 3-4 səviyyədən dərin olanda kod oxunması çətinləşir.</li>
+          <li>Aralıq komponentləri refaktor etmək (adını dəyişmək, yerini dəyişmək) prop zəncirini qırır.</li>
+          <li>Data haradan gəldiyini izləmək çətinləşir ("bu <code>user</code> harada təyin olunub?").</li>
+          <li>Aralıq komponentlərin propType-larına lazımsız "keçici" sahələr əlavə olunur.</li>
+        </ul>
+        <div class="callout callout-info">
+          <div class="callout-title">💡 Alternativ: composition (children pattern)</div>
+          <p>Context yeganə həll deyil. Bəzən komponentləri <code>children</code> prop-u ilə "yerləşdirmək" (composition) prop drilling-i tamamilə aradan qaldırır, çünki aralıq komponent uşaq elementi tanımır, sadəcə göstərir. Context əsasən <em>geniş yayılmış, "qlobal" sayılan</em> data (tema, dil, autentifikasiya) üçün ən yaxşı seçimdir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. CONTEXT API -->
+    <section class="lesson-section" id="context-api">
+      <span class="section-tag tag-theory">📘 Nəzəri hissə</span>
+      <h2 class="section-title">3. Context API-nin Quruluşu</h2>
+      <div class="card">
+        <p>Context API üç hissədən ibarətdir, və hər biri müəyyən bir işi görür:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hissə</th><th>Vəzifəsi</th></tr></thead>
+            <tbody>
+              <tr><td><code>createContext()</code></td><td>Yeni bir "kanal" yaradır — bu kanal vasitəsilə data ötürüləcək.</td></tr>
+              <tr><td><code>&lt;Context.Provider&gt;</code></td><td>Ağacın müəyyən hissəsini bürüyür və ona dəyər (<code>value</code>) verir. Bu dəyər dəyişəndə, bürünmüş bütün ağac yenidən oxuya bilər.</td></tr>
+              <tr><td><code>useContext()</code></td><td>İstənilən dərinlikdəki komponentdə Provider-in verdiyi dəyəri birbaşa oxumaq üçün istifadə olunan hook.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-title">Addım-addım: ThemeContext</h3>
+        <p>Aşağıda məhz bu səhifədəki tema toggle-ının arxasında duran pattern-in React versiyasını görürsünüz:</p>
+
+        <div class="code-wrap">
+          <div class="code-tab"><span>ThemeContext.jsx</span><button class="copy-btn" data-code-id="theme-context">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="theme-context"></code></pre>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-tab"><span>App.jsx</span><button class="copy-btn" data-code-id="theme-app">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="theme-app"></code></pre>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-tab"><span>Header.jsx — istənilən dərinlikdə istifadə</span><button class="copy-btn" data-code-id="theme-header">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="theme-header"></code></pre>
+        </div>
+
+        <p><code>Header</code> komponenti <code>App</code>-dan heç bir prop almadan birbaşa <code>useTheme()</code> çağırır. Aralarında istənilən sayda komponent ola bilər — fərqi yoxdur.</p>
+
+        <div class="callout callout-success">
+          <div class="callout-title">✅ Niyə custom hook (<code>useTheme</code>)?</div>
+          <p>Hər yerdə <code>useContext(ThemeContext)</code> yazmaq əvəzinə, öz hook-unuzu yaratmaq iki üstünlük verir: (1) Provider-dən kənarda istifadə edilərsə, aydın xəta mesajı ata bilirsiniz; (2) gələcəkdə context-in daxili strukturunu dəyişsəniz, yalnız bir yerdə — hook daxilində — düzəliş etmək kifayətdir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. useReducer -->
+    <section class="lesson-section" id="use-reducer">
+      <span class="section-tag tag-theory">📘 Nəzəri hissə</span>
+      <h2 class="section-title">4. useReducer Hook-u</h2>
+      <div class="card">
+        <p><code>useReducer</code> — mürəkkəb state məntiqini idarə etmək üçün <code>useState</code>-in alternatividir. Onun məntiqi Redux-dan gəlir: state-i birbaşa dəyişmək əvəzinə, siz nə <strong>baş verdiyini</strong> (action) bildirirsiniz, "reducer" funksiyası isə həmin action-a əsasən <strong>yeni state</strong> hesablayır.</p>
+
+        <div class="code-wrap">
+          <div class="code-tab"><span>Sintaksis</span></div>
+          <pre class="code-block"><code data-code-id="reducer-syntax"></code></pre>
+        </div>
+
+        <ul>
+          <li><strong>reducer</strong> — <code>(state, action) => yeniState</code> imzasına malik sırf (pure) funksiya. Heç vaxt köhnə state-i mutasiya etmir, hər zaman <em>yeni</em> obyekt qaytarır.</li>
+          <li><strong>initialState</strong> — başlanğıc state dəyəri.</li>
+          <li><strong>state</strong> — hazırkı state (oxumaq üçün).</li>
+          <li><strong>dispatch</strong> — action "göndərmək" üçün funksiya: <code>dispatch({ type: "ADD_ITEM", payload: {...} })</code>.</li>
+        </ul>
+
+        <h3 class="sub-title">Nümunə: səbət (cart) reducer</h3>
+        <div class="code-wrap">
+          <div class="code-tab"><span>cartReducer.js</span><button class="copy-btn" data-code-id="cart-reducer">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="cart-reducer"></code></pre>
+        </div>
+
+        <p>Diqqət: <code>switch</code>-in hər <code>case</code>-i state-i mutasiya etmir — <code>{ ...state, items }</code> kimi <strong>tamamilə yeni obyekt</strong> qaytarır. Bu, React-in dəyişikliyi görməsi üçün vacibdir.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">📎 Action necə "göndərilir"?</div>
+          <p><code>dispatch({ type: "ADD_ITEM", payload: product })</code> çağırıldıqda React avtomatik olaraq reducer funksiyasını <code>(cariState, bu_action)</code> ilə çağırır, qaytarılan nəticəni yeni state kimi saxlayır və komponenti yenidən render edir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. useState vs useReducer -->
+    <section class="lesson-section" id="usestate-vs-usereducer">
+      <span class="section-tag tag-theory">📘 Nəzəri hissə</span>
+      <h2 class="section-title">5. useReducer vs useState — Nə Vaxt Hansı?</h2>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Meyar</th><th>useState</th><th>useReducer</th></tr></thead>
+            <tbody>
+              <tr><td>Sadəlik</td><td>Tək, asılı olmayan dəyərlər üçün ən sadə seçim</td><td>Bir qədər daha çox kod (reducer + action-lar) tələb edir</td></tr>
+              <tr><td>State-in forması</td><td>Bir neçə bir-birindən asılı olmayan sahə üçün yaxşı</td><td>Çoxlu, bir-biri ilə bağlı sahələr üçün ideal (məs. səbət: items + total)</td></tr>
+              <tr><td>Keçid məntiqi</td><td>Component daxilinə səpələnir</td><td>Bir yerdə — reducer funksiyasında — mərkəzləşir</td></tr>
+              <tr><td>Test edilə bilmə</td><td>Component-dən ayırıb test etmək çətindir</td><td>Reducer sırf funksiyadır — <code>expect(reducer(state, action))</code> ilə asanlıqla test olunur</td></tr>
+              <tr><td>Debug</td><td>Dəyişikliyi izləmək üçün əlavə log lazımdır</td><td>Hər dəyişiklik adlandırılmış bir action-dır — log etmək təbii gəlir</td></tr>
+              <tr><td>Növbəti state əvvəlkindən asılıdırsa</td><td><code>setState(prev =&gt; ...)</code> ilə mümkündür, amma mürəkkəbləşdikcə qarışır</td><td>Action adları ilə niyyət aydın ifadə olunur (məs. <code>INCREMENT</code>, <code>RESET</code>)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-success">
+          <div class="callout-title">✅ Qısa qayda</div>
+          <p>Əgər state-in 3-dən çox bir-biri ilə bağlı sahəsi varsa, yaxud "növbəti state necə hesablanır?" sualının cavabı bir neçə şərtdən asılıdırsa — <code>useReducer</code>-ə keçin. Sadə bayraq, mətn sahəsi və ya say üçün <code>useState</code> tamamilə kifayətdir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Qlobal state prinsipləri -->
+    <section class="lesson-section" id="qlobal-prinsipler">
+      <span class="section-tag tag-theory">📘 Nəzəri hissə</span>
+      <h2 class="section-title">6. Qlobal State İdarəetməsinin Əsas Prinsipləri</h2>
+      <div class="card">
+        <ul>
+          <li><strong>Single source of truth:</strong> hər data parçasının yalnız bir "əsl mənbəyi" olmalıdır — onu bir neçə yerdə dublikat saxlamayın.</li>
+          <li><strong>Immutability (dəyişməzlik):</strong> state-i heç vaxt birbaşa mutasiya etməyin (<code>state.items.push(...)</code> YOX). Həmişə yeni obyekt/massiv qaytarın (<code>[...state.items, yeni]</code>).</li>
+          <li><strong>Unidirectional data flow:</strong> data yuxarıdan aşağı axır (props/context), hadisələr (action-lar) aşağıdan yuxarı axır (dispatch/callback). Bu axını qarışdırmayın.</li>
+          <li><strong>Minimal state:</strong> yalnız həqiqətən lazım olanı state-də saxlayın. Başqa state-lərdən hesablana bilən dəyərləri (məs. cəmi, say) render zamanı hesablayın, ayrıca state kimi saxlamayın.</li>
+          <li><strong>Separation of concerns:</strong> state məntiqini (reducer) UI-dan ayırın — bu, həm oxunaqlılığı, həm test edilə bilməni artırır.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 7. PRAKTIKI: Theme -->
+    <section class="lesson-section" id="praktiki-tema">
+      <span class="section-tag">🛠 Praktiki hissə</span>
+      <h2 class="section-title">7. Praktiki: Tema (Dark/Light) Context-i</h2>
+      <div class="card">
+        <p>İndi addım-addım quraq:</p>
+        <ol>
+          <li><strong>Context yaradın</strong> — <code>createContext(null)</code> ilə boş kanal açın.</li>
+          <li><strong>Provider komponenti yazın</strong> — daxilində <code>useState</code> ilə temanı saxlayın, dəyişdirmək üçün funksiya yazın.</li>
+          <li><strong>Dəyəri <code>useMemo</code> ilə "sabitləyin"</strong> — hər render-də yeni obyekt yaratmasın (səbəbini "Xətalar" bölməsində görəcəyik).</li>
+          <li><strong>Custom hook yazın</strong> (<code>useTheme</code>) — Provider-dən kənar istifadəni yaxalasın.</li>
+          <li><strong>Tətbiqi Provider ilə bürüyün</strong> — adətən ən yuxarı səviyyədə, <code>App.jsx</code>-da.</li>
+          <li><strong>İstənilən komponentdə istifadə edin</strong> — <code>const { theme, toggleTheme } = useTheme()</code>.</li>
+        </ol>
+        <p>3-cü addımın koda uyğun tam nümunəsi 3-cü bölmədə (Context API-nin Quruluşu) verilib. CSS tərəfində isə tema adətən bir <code>data-theme</code> atributu və CSS dəyişənləri (custom properties) ilə tətbiq olunur — məhz bu səhifədə istifadə etdiyimiz üsul budur:</p>
+        <div class="code-wrap">
+          <div class="code-tab"><span>CSS dəyişənləri ilə tema</span><button class="copy-btn" data-code-id="theme-css">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="theme-css"></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. PRAKTIKI: Cart -->
+    <section class="lesson-section" id="praktiki-cart">
+      <span class="section-tag">🛠 Praktiki hissə</span>
+      <h2 class="section-title">8. Praktiki: Səbət (Cart) State-i useReducer ilə</h2>
+      <div class="card">
+        <p>Context və useReducer çox vaxt birlikdə işlədilir: <code>useReducer</code> mürəkkəb state məntiqini idarə edir, <code>Context</code> isə bu state-i bütün ağaca ötürür — beləliklə heç bir <code>props</code> lazım olmur.</p>
+
+        <div class="code-wrap">
+          <div class="code-tab"><span>CartContext.jsx</span><button class="copy-btn" data-code-id="cart-context">Kopyala</button></div>
+          <pre class="code-block"><code data-code-id="cart-context"></code></pre>
+        </div>
+
+        <h3 class="sub-title">Canlı demo — reducer necə işləyir?</h3>
+        <p>Aşağıdakı mini-demo yuxarıdakı <code>cartReducer</code>-in eyni məntiqini vanilla JavaScript-də təkrarlayır. Məhsul əlavə edin və sağdakı "action log"-da hər <code>dispatch</code> çağırışının necə yeni state yaratdığını izləyin:</p>
+
+        <div class="demo-panel">
+          <span class="demo-label">⚡ İnteraktiv: Cart Reducer Simulyasiyası</span>
+          <div class="demo-grid">
+            <div>
+              <div class="product-btn-row">
+                <button class="product-btn" data-product-id="1" data-product-name="🎧 Qulaqcıq" data-product-price="25">🎧 Qulaqcıq — 25 AZN</button>
+                <button class="product-btn" data-product-id="2" data-product-name="⌨️ Klaviatura" data-product-price="60">⌨️ Klaviatura — 60 AZN</button>
+                <button class="product-btn" data-product-id="3" data-product-name="🖱 Mouse" data-product-price="15">🖱 Mouse — 15 AZN</button>
+              </div>
+              <ul class="cart-list" id="cartList"></ul>
+              <div class="cart-total"><span>Cəmi:</span><span id="cartTotal">0 AZN</span></div>
+              <button class="clear-btn" id="clearCartBtn" type="button">CLEAR_CART dispatch et</button>
+            </div>
+            <div>
+              <div class="action-log" id="actionLog"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-title">📎 Bu demo nəyi göstərir?</div>
+          <p>Hər klik bir <code>dispatch({ type: ... })</code> çağırışıdır. Reducer köhnə state-i heç vaxt dəyişmir — hər dəfə <em>tam yeni</em> bir state obyekti qaytarır, React da yalnız bunun əsasında UI-ı yeniləyir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. TAPŞIRIQ -->
+    <section class="lesson-section" id="tapsiriq">
+      <span class="section-tag">🎯 Tapşırıq</span>
+      <h2 class="section-title">9. Tapşırıq: Dark/Light Mode Toggle Bütün Tətbiq Üzrə</h2>
+      <div class="card">
+        <p>Öz React tətbiqinizdə (və ya kiçik bir nümunə layihədə) aşağıdakıları həyata keçirin:</p>
+        <h3 class="sub-title">Tələblər</h3>
+        <ul class="checklist">
+          <li><code>ThemeContext.jsx</code> faylında <code>createContext</code>, <code>ThemeProvider</code> və <code>useTheme</code> custom hook-unu yazın.</li>
+          <li><code>App.jsx</code>-da bütün tətbiqi <code>ThemeProvider</code> ilə bürüyün.</li>
+          <li>Ən azı <strong>3 fərqli komponentdə</strong> (məs. <code>Header</code>, <code>Sidebar</code>, <code>Footer</code>) heç bir prop qəbul etmədən <code>useTheme()</code> vasitəsilə temaya müraciət edin.</li>
+          <li>Toggle düyməsi ilə <code>light</code> ↔ <code>dark</code> arasında keçid təmin edin.</li>
+          <li>Temanı CSS dəyişənləri (custom properties) və ya conditional <code>className</code> ilə tətbiq edin.</li>
+          <li>Provider-in <code>value</code> obyektini <code>useMemo</code> ilə optimallaşdırın.</li>
+        </ul>
+        <h3 class="sub-title">Bonus (əlavə xal üçün)</h3>
+        <ul class="checklist">
+          <li>Seçilmiş temanı emoji/ikon ilə göstərin (🌙 / ☀️).</li>
+          <li>İlkin temanı <code>window.matchMedia('(prefers-color-scheme: dark)')</code> ilə sistem seçiminə uyğun təyin edin.</li>
+          <li>Tema dəyişəndə keçidə yumşaq CSS <code>transition</code> əlavə edin.</li>
+        </ul>
+        <div class="callout callout-warning">
+          <div class="callout-title">⚠️ Diqqət</div>
+          <p>Tapşırıqda <strong>heç bir komponentə <code>theme</code> propu manual ötürülməməlidir</strong>. Əgər hər hansı komponentdə <code>&lt;Sidebar theme={theme} /&gt;</code> kimi bir şey görürsünüzsə, deməli, Context düzgün istifadə olunmayıb.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. XƏTALAR -->
+    <section class="lesson-section" id="xetalar">
+      <span class="section-tag tag-bug">⚠️ Ola bilən xətalar və buglar</span>
+      <h2 class="section-title">10. Tez Rast Gəlinən Xətalar</h2>
+      <div class="bug-grid">
+
+        <div class="bug-item">
+          <h4>1. Provider unudulur</h4>
+          <p>Komponent <code>useContext</code> çağırır, amma ağac heç bir Provider ilə bürünməyib. Nəticədə context dəyəri <code>createContext()</code>-də verilən default (adətən <code>null</code>) olur, komponent isə səssizcə səhv işləyir.</p>
+          <span class="label">Həll</span>
+          <p>Custom hook daxilində <code>if (!context) throw new Error(...)</code> yoxlaması qoyun ki, xəta erkən və aydın görünsün.</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>2. Hər render-də yeni value obyekti</h4>
+          <p><code>&lt;Context.Provider value={{ theme, toggleTheme }}&gt;</code> yazsanız, hər render-də <strong>yeni</strong> obyekt yaranır — bu, dəyər dəyişməsə belə, bütün consumer-lərin yenidən render olunmasına səbəb olur.</p>
+          <span class="label">Həll</span>
+          <p><code>useMemo(() =&gt; ({ theme, toggleTheme }), [theme])</code> ilə dəyəri yalnız <code>theme</code> dəyişəndə yenidən yaradın.</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>3. State-in birbaşa mutasiyası</h4>
+          <p>Reducer daxilində <code>state.items.push(...)</code> və ya <code>state.count++</code> kimi birbaşa dəyişiklik etmək — React dəyişikliyi tanımır, çünki obyektin referansı eyni qalır.</p>
+          <span class="label">Həll</span>
+          <p>Həmişə yeni obyekt/massiv qaytarın: <code>{ ...state, items: [...state.items, item] }</code>.</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>4. Default dəyər olmadan createContext()</h4>
+          <p><code>createContext()</code> boş çağırılanda TypeScript layihələrində tip xətaları, JS layihələrində isə "undefined-a müraciət" xətaları yarana bilər.</p>
+          <span class="label">Həll</span>
+          <p>Ya mənalı bir default dəyər verin, ya da <code>null</code> verib custom hook-da yoxlayın (yuxarıdakı 1-ci bənd kimi).</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>5. dispatch-i sinxron zənn etmək</h4>
+          <p><code>dispatch(action)</code> çağırdıqdan dərhal sonra <code>state</code>-i oxuyub "yeniləndi" güman etmək — React state yeniləmələri batch (toplu) şəkildə, növbəti render-də tətbiq olunur.</p>
+          <span class="label">Həll</span>
+          <p>Yeni dəyərə əsaslanan məntiqi <code>useEffect</code> daxilində və ya reducer-in özündə həyata keçirin, dispatch-dən dərhal sonra deyil.</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>6. switch-də break/return unudulması</h4>
+          <p>Reducer-in <code>switch</code> blokunda bir <code>case</code>-dən <code>return</code> etməsəniz, icra növbəti <code>case</code>-ə "sızır" (fall-through) və gözlənilməz state yaranır.</p>
+          <span class="label">Həll</span>
+          <p>Hər <code>case</code>-i mütləq <code>return</code> ilə bitirin, defensiv olaraq <code>default: return state;</code> həmişə əlavə edin.</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>7. Nested Provider-lərin sırası</h4>
+          <p>Bir-birindən asılı olan Context-ləri (məs. <code>AuthProvider</code> daxilindən <code>theme</code>-ə görə fərqli render) səhv sırada yerləşdirmək gözlənilməz nəticələrə səbəb ola bilər.</p>
+          <span class="label">Həll</span>
+          <p>Provider-lərin iyerarxiyasını (hansı hansından asılıdır) əvvəlcədən planlaşdırın, lazım gələrsə bir <code>AppProviders</code> komponentində birləşdirin.</p>
+        </div>
+
+        <div class="bug-item">
+          <h4>8. Hook-un şərtli çağırılması</h4>
+          <p><code>if</code> blokunun içində və ya erkən <code>return</code>-dən sonra <code>useContext</code>/<code>useReducer</code> çağırmaq — React Hooks qaydalarını pozur və "Rendered more hooks than expected" xətası verir.</p>
+          <span class="label">Həll</span>
+          <p>Bütün hook-ları həmişə komponentin ən yuxarısında, şərtsiz çağırın; şərti məntiqi hook-dan <em>sonra</em> yazın.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 11. BEST PRACTICES -->
+    <section class="lesson-section" id="yaxsi-teskribeler">
+      <span class="section-tag">✅ Yaxşı təcrübələr</span>
+      <h2 class="section-title">11. Nələri Etsək Daha Yaxşı Olar</h2>
+      <div class="practice-grid">
+
+        <div class="practice-item">
+          <h4>Həmişə custom hook yaradın</h4>
+          <p>Komponentlərdə birbaşa <code>useContext(ThemeContext)</code> yazmaq əvəzinə, <code>useTheme()</code> kimi öz hook-unuzu yazın. Bu, həm xəta yoxlamasını, həm gələcək dəyişiklikləri asanlaşdırır.</p>
+        </div>
+
+        <div class="practice-item">
+          <h4>Context-i "concern"ə görə bölün</h4>
+          <p>Bir nəhəng <code>AppContext</code> yaratmaq əvəzinə, <code>ThemeContext</code>, <code>AuthContext</code>, <code>CartContext</code> kimi ayrı-ayrı, kiçik context-lər yaradın — yalnız əlaqədar komponentlər yenidən render olunur.</p>
+        </div>
+
+        <div class="practice-item">
+          <h4>Provider value-nu memoize edin</h4>
+          <p><code>useMemo</code> (obyekt üçün) və <code>useCallback</code> (funksiyalar üçün) istifadə edərək Provider-in <code>value</code> propunu hər render-də yenidən yaratmaqdan çəkinin.</p>
+        </div>
+
+        <div class="practice-item">
+          <h4>Reducer və action-ları ayırın</h4>
+          <p>Reducer funksiyasını və action tiplərini (<code>const CART_ACTIONS = {...}</code>) ayrı fayla çıxarın. Bu, həm test etməyi, həm oxunaqlılığı artırır və "sehrli sətir" (magic string) xətalarının qarşısını alır.</p>
+        </div>
+
+        <div class="practice-item">
+          <h4>Reducer-i sırf funksiya saxlayın</h4>
+          <p>Reducer daxilində API çağırışı, <code>setTimeout</code> və ya digər yan effektlər (side effects) etməyin — bu, onu test edilməz və proqnozlaşdırılmaz edir. Yan effektləri <code>useEffect</code>-də saxlayın.</p>
+        </div>
+
+        <div class="practice-item">
+          <h4>Nə vaxt Redux/Zustand-a keçməli olduğunuzu bilin</h4>
+          <p>Əgər state tez-tez dəyişir, çoxlu komponent onu oxuyur və performans kritikdirsə, seçici (selector) əsaslı kitabxanalar (Zustand, Redux) daha yaxşı miqyaslanır. Bunu FAQ bölməsində ətraflı müzakirə edirik.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 12. FAQ -->
+    <section class="lesson-section" id="faq">
+      <span class="section-tag">❓ Tez-tez verilən suallar</span>
+      <h2 class="section-title">12. FAQ</h2>
+
+      <details class="faq-item" open>
+        <summary>Context nə vaxt Redux/Zustand-ı əvəz edə bilər, nə vaxt yox?</summary>
+        <div class="faq-answer">
+          <p><strong>Context yaxşı işləyir:</strong> az dəyişən, "qlobal sayılan" data üçün — tema, dil, autentifikasiya olunmuş istifadəçi məlumatı. Kiçik-orta ölçülü tətbiqlərdə əlavə kitabxana quraşdırmadan qlobal state lazım olanda.</p>
+          <p><strong>Redux/Zustand daha uyğundur:</strong> state tez-tez dəyişəndə və yalnız müəyyən komponentlərin yenilənməsi vacib olanda — çünki bu kitabxanalar <em>selector</em> vasitəsilə yalnız lazımi hissəni "abunə edən" komponentləri render edir, halbuki Context-də dəyər dəyişdikdə bütün consumer-lər (memoizasiya olmasa) yenidən render olunur. Həmçinin böyük komandalarda konvensiya, DevTools və time-travel debugging lazım olanda bu kitabxanalar üstünlük verir.</p>
+          <p>Qısaca: <strong>Context — "dependency injection" mexanizmidir, əsl state-idarəetmə kitabxanası deyil.</strong> <code>useReducer + Context</code> birləşməsi kiçik-orta layihələrdə Redux-a bənzər bir pattern verə bilər, amma performans üçün incə tənzimləmə imkanları məhduddur.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>useReducer-in useState-dən üstünlüyü nədir?</summary>
+        <div class="faq-answer">
+          <p>Əsas üstünlük — <strong>mürəkkəb, çoxsahəli state keçidlərini bir yerdə mərkəzləşdirməkdir</strong>. Bir neçə sahə bir-biri ilə bağlı olanda (məs. səbətdə <code>items</code> dəyişəndə <code>totalPrice</code> də yenilənməlidir), reducer bu məntiqi bir funksiyada saxlayır və hər action üçün "nə baş verdiyini" adlandırılmış şəkildə (<code>ADD_ITEM</code>, <code>CLEAR_CART</code>) ifadə edir.</p>
+          <p>Bundan başqa reducer sırf (pure) funksiya olduğu üçün komponentdən asılı olmadan asanlıqla test edilə bilir, və dəyişiklik tarixçəsini (action log) izləmək təbii şəkildə mümkün olur — məhz yuxarıdakı canlı demoda gördüyünüz kimi.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary>Çoxlu Context istifadə etmək performansa təsir edirmi?</summary>
+        <div class="faq-answer">
+          <p>Diqqətli olmaq lazımdır, amma məsələ adətən "neçə context" deyil, <strong>"value necə yaradılır"</strong> sualındadır. Bir Context-in <code>value</code>-su dəyişəndə, <code>React.memo</code> istifadə edilməyibsə, bütün həmin Context-i oxuyan komponentlər yenidən render olunur.</p>
+          <p>Praktikada, <strong>bir neçə kiçik, "concern"ə görə bölünmüş context</strong> (<code>ThemeContext</code>, <code>AuthContext</code>, <code>CartContext</code>) — bir nəhəng, hər şeyi özündə saxlayan tək context-dən daha yaxşı performans verir, çünki yalnız əlaqədar komponentlər yenilənir. Əsl performans probleminin mənbəyi isə çox vaxt Provider-in <code>value</code> obyektini <code>useMemo</code> olmadan hər render-də yenidən yaratmaqdır (10-cu bölmədəki 2-ci xətaya baxın).</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- 13. YEKUN -->
+    <section class="lesson-section" id="yekun">
+      <span class="section-tag tag-theory">📘 Yekun</span>
+      <h2 class="section-title">13. Yekun</h2>
+      <div class="card">
+        <p>Bu dərsdə öyrəndik ki:</p>
+        <ul>
+          <li><strong>Prop drilling</strong> — data-nı lazımsız yerə çoxlu aralıq komponentdən keçirməkdir, və dərin ağaclarda kodun oxunaqlılığını azaldır.</li>
+          <li><strong>Context API</strong> (<code>createContext</code> + <code>Provider</code> + <code>useContext</code>) qlobal sayılan data-nı prop ötürmədən istənilən dərinlikdəki komponentə çatdırır.</li>
+          <li><strong>useReducer</strong> mürəkkəb, çoxsahəli state məntiqini bir yerdə — sırf reducer funksiyasında — mərkəzləşdirir.</li>
+          <li><strong>Context + useReducer</strong> birləşməsi kiçik-orta tətbiqlərdə Redux-a bənzər bir qlobal state pattern-i verir.</li>
+          <li>Performans üçün Provider-in <code>value</code>-sunu <code>useMemo</code>/<code>useCallback</code> ilə sabitləmək, context-ləri concern-ə görə bölmək vacibdir.</li>
+        </ul>
+        <div class="callout callout-success">
+          <div class="callout-title">🎯 İndi nə etməli?</div>
+          <p>9-cu bölmədəki tapşırığı tamamlayın: öz tətbiqinizdə heç bir prop ötürmədən işləyən, tam funksional Dark/Light Mode Context qurun. Növbəti dərsdə bu bilikləri Redux Toolkit ilə müqayisə edəcəyik.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  Dərs 6 — Context API, useReducer və Prop Drilling · React Kursu
+</footer>
+
+<button class="back-to-top" id="backToTop" aria-label="Yuxarı qayıt" type="button">↑</button>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============ THEME TOGGLE ============ */
+  var root = document.documentElement;
+  var themeToggle = document.getElementById('themeToggle');
+  var themeIcon = document.getElementById('themeIcon');
+  var themeLabel = document.getElementById('themeLabel');
+
+  function applyTheme(mode) {
+    if (mode === 'dark') {
+      root.setAttribute('data-theme', 'dark');
+      themeIcon.textContent = '☀️';
+      themeLabel.textContent = 'İşıqlı rejim';
+    } else {
+      root.removeAttribute('data-theme');
+      themeIcon.textContent = '🌙';
+      themeLabel.textContent = 'Qaranlıq rejim';
+    }
+  }
+
+  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var currentTheme = prefersDark ? 'dark' : 'light';
+  applyTheme(currentTheme);
+
+  themeToggle.addEventListener('click', function () {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(currentTheme);
+  });
+
+  /* ============ CODE SNIPPETS ============ */
+  var CODE = {
+    'prop-drilling-bad':
+"function App() {\n" +
+"  const [user, setUser] = useState({ name: \"Aysel\", role: \"admin\" });\n" +
+"  return <Layout user={user} />;\n" +
+"}\n\n" +
+"function Layout({ user }) {\n" +
+"  return (\n" +
+"    <div className=\"layout\">\n" +
+"      <Sidebar user={user} />\n" +
+"      <MainContent user={user} />\n" +
+"    </div>\n" +
+"  );\n" +
+"}\n\n" +
+"function Sidebar({ user }) {\n" +
+"  return <UserPanel user={user} />;\n" +
+"}\n\n" +
+"function UserPanel({ user }) {\n" +
+"  return <Avatar user={user} />;\n" +
+"}\n\n" +
+"function Avatar({ user }) {\n" +
+"  return <img src={user.avatarUrl} alt={user.name} />;\n" +
+"}",
+
+    'theme-context':
+"import { createContext, useContext, useState, useMemo } from \"react\";\n\n" +
+"const ThemeContext = createContext(null);\n\n" +
+"export function ThemeProvider({ children }) {\n" +
+"  const [theme, setTheme] = useState(\"light\");\n\n" +
+"  const toggleTheme = () => {\n" +
+"    setTheme((prev) => (prev === \"light\" ? \"dark\" : \"light\"));\n" +
+"  };\n\n" +
+"  // value-nu memoize edirik ki, hər render-də yeni obyekt yaranmasın\n" +
+"  const value = useMemo(() => ({ theme, toggleTheme }), [theme]);\n\n" +
+"  return (\n" +
+"    <ThemeContext.Provider value={value}>\n" +
+"      {children}\n" +
+"    </ThemeContext.Provider>\n" +
+"  );\n" +
+"}\n\n" +
+"export function useTheme() {\n" +
+"  const context = useContext(ThemeContext);\n" +
+"  if (!context) {\n" +
+"    throw new Error(\"useTheme hook ThemeProvider daxilində istifadə olunmalıdır\");\n" +
+"  }\n" +
+"  return context;\n" +
+"}",
+
+    'theme-app':
+"import { ThemeProvider } from \"./ThemeContext\";\n" +
+"import Header from \"./Header\";\n" +
+"import Sidebar from \"./Sidebar\";\n" +
+"import Footer from \"./Footer\";\n\n" +
+"function App() {\n" +
+"  return (\n" +
+"    <ThemeProvider>\n" +
+"      <Header />\n" +
+"      <Sidebar />\n" +
+"      <Footer />\n" +
+"    </ThemeProvider>\n" +
+"  );\n" +
+"}\n\n" +
+"export default App;",
+
+    'theme-header':
+"import { useTheme } from \"./ThemeContext\";\n\n" +
+"function Header() {\n" +
+"  const { theme, toggleTheme } = useTheme();\n\n" +
+"  return (\n" +
+"    <header className={`header header--${theme}`}>\n" +
+"      <h1>Mənim Tətbiqim</h1>\n" +
+"      <button onClick={toggleTheme}>\n" +
+"        {theme === \"light\" ? \"🌙 Qaranlıq rejim\" : \"☀️ İşıqlı rejim\"}\n" +
+"      </button>\n" +
+"    </header>\n" +
+"  );\n" +
+"}",
+
+    'reducer-syntax':
+"const [state, dispatch] = useReducer(reducer, initialState);\n\n" +
+"// reducer: (state, action) => yeniState\n" +
+"// dispatch({ type: \"ACTION_ADI\", payload: {...} });",
+
+    'cart-reducer':
+"export const CART_ACTIONS = {\n" +
+"  ADD_ITEM: \"ADD_ITEM\",\n" +
+"  REMOVE_ITEM: \"REMOVE_ITEM\",\n" +
+"  UPDATE_QUANTITY: \"UPDATE_QUANTITY\",\n" +
+"  CLEAR_CART: \"CLEAR_CART\",\n" +
+"};\n\n" +
+"export const initialCartState = {\n" +
+"  items: [],\n" +
+"  totalPrice: 0,\n" +
+"};\n\n" +
+"export function cartReducer(state, action) {\n" +
+"  switch (action.type) {\n" +
+"    case CART_ACTIONS.ADD_ITEM: {\n" +
+"      const existing = state.items.find((item) => item.id === action.payload.id);\n" +
+"      const items = existing\n" +
+"        ? state.items.map((item) =>\n" +
+"            item.id === action.payload.id\n" +
+"              ? { ...item, quantity: item.quantity + 1 }\n" +
+"              : item\n" +
+"          )\n" +
+"        : [...state.items, { ...action.payload, quantity: 1 }];\n\n" +
+"      return { ...state, items, totalPrice: calculateTotal(items) };\n" +
+"    }\n\n" +
+"    case CART_ACTIONS.REMOVE_ITEM: {\n" +
+"      const items = state.items.filter((item) => item.id !== action.payload.id);\n" +
+"      return { ...state, items, totalPrice: calculateTotal(items) };\n" +
+"    }\n\n" +
+"    case CART_ACTIONS.UPDATE_QUANTITY: {\n" +
+"      const items = state.items.map((item) =>\n" +
+"        item.id === action.payload.id\n" +
+"          ? { ...item, quantity: Math.max(1, action.payload.quantity) }\n" +
+"          : item\n" +
+"      );\n" +
+"      return { ...state, items, totalPrice: calculateTotal(items) };\n" +
+"    }\n\n" +
+"    case CART_ACTIONS.CLEAR_CART:\n" +
+"      return initialCartState;\n\n" +
+"    default:\n" +
+"      return state;\n" +
+"  }\n" +
+"}\n\n" +
+"function calculateTotal(items) {\n" +
+"  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);\n" +
+"}",
+
+    'cart-context':
+"import { createContext, useContext, useReducer } from \"react\";\n" +
+"import { cartReducer, initialCartState, CART_ACTIONS } from \"./cartReducer\";\n\n" +
+"const CartContext = createContext(null);\n\n" +
+"export function CartProvider({ children }) {\n" +
+"  const [state, dispatch] = useReducer(cartReducer, initialCartState);\n\n" +
+"  const addItem = (product) =>\n" +
+"    dispatch({ type: CART_ACTIONS.ADD_ITEM, payload: product });\n\n" +
+"  const removeItem = (id) =>\n" +
+"    dispatch({ type: CART_ACTIONS.REMOVE_ITEM, payload: { id } });\n\n" +
+"  const value = { ...state, addItem, removeItem };\n\n" +
+"  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;\n" +
+"}\n\n" +
+"export function useCart() {\n" +
+"  const context = useContext(CartContext);\n" +
+"  if (!context) {\n" +
+"    throw new Error(\"useCart hook CartProvider daxilində çağırılmalıdır\");\n" +
+"  }\n" +
+"  return context;\n" +
+"}",
+
+    'theme-css':
+"/* Hər iki temanın rəngləri CSS dəyişəni kimi təyin olunur */\n" +
+":root {\n" +
+"  --bg: #F5F6FA;\n" +
+"  --text: #1B1B2F;\n" +
+"}\n\n" +
+"[data-theme=\"dark\"] {\n" +
+"  --bg: #14141F;\n" +
+"  --text: #ECEBF5;\n" +
+"}\n\n" +
+"body {\n" +
+"  background: var(--bg);\n" +
+"  color: var(--text);\n" +
+"  transition: background 0.3s ease, color 0.3s ease;\n" +
+"}\n\n" +
+"// JS tərəfdə:\n" +
+"document.documentElement.setAttribute(\"data-theme\", \"dark\");"
+  };
+
+  /* ============ MINI SYNTAX HIGHLIGHTER ============ */
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  var TOKEN_PATTERN = /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")|(\b(?:const|let|var|function|return|import|export|from|default|if|else|switch|case|break|new|class|extends|typeof|null|true|false|async|await|throw|try|catch|of|in)\b)|(\buse[A-Z]\w*\b)|(\b\d+(?:\.\d+)?\b)|(<\/?[A-Za-z][\w.]*)/gm;
+
+  function highlightJS(code) {
+    var result = '';
+    var lastIndex = 0;
+    var m;
+    TOKEN_PATTERN.lastIndex = 0;
+    while ((m = TOKEN_PATTERN.exec(code)) !== null) {
+      result += escapeHtml(code.slice(lastIndex, m.index));
+      if (m[1]) result += '<span class="tok-comment">' + escapeHtml(m[1]) + '</span>';
+      else if (m[2]) result += '<span class="tok-comment">' + escapeHtml(m[2]) + '</span>';
+      else if (m[3]) result += '<span class="tok-string">' + escapeHtml(m[3]) + '</span>';
+      else if (m[4]) result += '<span class="tok-keyword">' + escapeHtml(m[4]) + '</span>';
+      else if (m[5]) result += '<span class="tok-hook">' + escapeHtml(m[5]) + '</span>';
+      else if (m[6]) result += '<span class="tok-number">' + escapeHtml(m[6]) + '</span>';
+      else if (m[7]) result += '<span class="tok-tag">' + escapeHtml(m[7]) + '</span>';
+      lastIndex = TOKEN_PATTERN.lastIndex;
+    }
+    result += escapeHtml(code.slice(lastIndex));
+    return result;
+  }
+
+  document.querySelectorAll('code[data-code-id]').forEach(function (el) {
+    var id = el.getAttribute('data-code-id');
+    if (CODE[id]) {
+      el.innerHTML = highlightJS(CODE[id]);
+    }
+  });
+
+  /* ============ COPY BUTTONS ============ */
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var id = btn.getAttribute('data-code-id');
+      var text = CODE[id] || '';
+      var done = function () {
+        var original = btn.textContent;
+        btn.textContent = 'Kopyalandı ✓';
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () {
+          fallbackCopy(text); done();
+        });
+      } else {
+        fallbackCopy(text); done();
+      }
+    });
+  });
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  /* ============ DIAGRAM TOGGLE ============ */
+  document.querySelectorAll('.diagram-toggle button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var target = btn.getAttribute('data-target');
+      document.querySelectorAll('.diagram-toggle button').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.diagram-view').forEach(function (v) { v.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+    });
+  });
+
+  /* ============ CART REDUCER DEMO ============ */
+  var CART_ACTIONS_DEMO = {
+    ADD_ITEM: 'ADD_ITEM',
+    CLEAR_CART: 'CLEAR_CART'
+  };
+  var demoState = { items: [] };
+
+  function calcTotal(items) {
+    return items.reduce(function (sum, item) { return sum + item.price * item.quantity; }, 0);
+  }
+
+  function cartDemoReducer(state, action) {
+    switch (action.type) {
+      case CART_ACTIONS_DEMO.ADD_ITEM: {
+        var existing = state.items.find(function (i) { return i.id === action.payload.id; });
+        var items;
+        if (existing) {
+          items = state.items.map(function (i) {
+            return i.id === action.payload.id ? Object.assign({}, i, { quantity: i.quantity + 1 }) : i;
+          });
+        } else {
+          items = state.items.concat([Object.assign({}, action.payload, { quantity: 1 })]);
+        }
+        return { items: items };
+      }
+      case CART_ACTIONS_DEMO.CLEAR_CART:
+        return { items: [] };
+      default:
+        return state;
+    }
+  }
+
+  var cartListEl = document.getElementById('cartList');
+  var cartTotalEl = document.getElementById('cartTotal');
+  var actionLogEl = document.getElementById('actionLog');
+
+  function renderCart() {
+    cartListEl.innerHTML = '';
+    if (demoState.items.length === 0) {
+      cartListEl.innerHTML = '<li class="cart-empty">Səbət boşdur — yuxarıdan məhsul əlavə edin</li>';
+    } else {
+      demoState.items.forEach(function (item) {
+        var li = document.createElement('li');
+        li.innerHTML = '<span>' + item.name + ' × ' + item.quantity + '</span><span>' + (item.price * item.quantity) + ' AZN</span>';
+        cartListEl.appendChild(li);
+      });
+    }
+    cartTotalEl.textContent = calcTotal(demoState.items) + ' AZN';
+  }
+
+  function logAction(actionText, stateText) {
+    var line = document.createElement('div');
+    line.className = 'log-line';
+    line.innerHTML = '<span class="log-type">dispatch</span>(' + actionText + ')<br><span class="log-state">→ state: ' + stateText + '</span>';
+    actionLogEl.insertBefore(line, actionLogEl.firstChild);
+    while (actionLogEl.children.length > 6) {
+      actionLogEl.removeChild(actionLogEl.lastChild);
+    }
+  }
+
+  function dispatchDemo(action) {
+    demoState = cartDemoReducer(demoState, action);
+    renderCart();
+    var stateSummary = '{ items: [' + demoState.items.map(function (i) { return i.name + ' ×' + i.quantity; }).join(', ') + '] }';
+    var actionSummary = '{ type: "' + action.type + '"' + (action.payload ? ', payload: {' + (action.payload.name || '') + '}' : '') + ' }';
+    logAction(actionSummary, stateSummary);
+  }
+
+  document.querySelectorAll('.product-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      dispatchDemo({
+        type: CART_ACTIONS_DEMO.ADD_ITEM,
+        payload: {
+          id: btn.getAttribute('data-product-id'),
+          name: btn.getAttribute('data-product-name'),
+          price: parseFloat(btn.getAttribute('data-product-price'))
+        }
+      });
+    });
+  });
+
+  document.getElementById('clearCartBtn').addEventListener('click', function () {
+    dispatchDemo({ type: CART_ACTIONS_DEMO.CLEAR_CART });
+  });
+
+  renderCart();
+
+  /* ============ TOC (sidebar + mobile) ============ */
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main .lesson-section'));
+  var sidebarNav = document.getElementById('sidebarNav');
+  var mobileNav = document.getElementById('mobileNav');
+
+  sections.forEach(function (sec) {
+    var titleEl = sec.querySelector('h2.section-title');
+    var title = titleEl ? titleEl.textContent.replace(/^\d+\.\s*/, '') : sec.id;
+
+    var a1 = document.createElement('a');
+    a1.href = '#' + sec.id;
+    a1.textContent = title;
+    sidebarNav.appendChild(a1);
+
+    var a2 = document.createElement('a');
+    a2.href = '#' + sec.id;
+    a2.textContent = title;
+    mobileNav.appendChild(a2);
+  });
+
+  var allLinks = document.querySelectorAll('.sidebar nav a, .mobile-nav a');
+
+  function setActive(id) {
+    allLinks.forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+    });
+  }
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          setActive(entry.target.id);
+        }
+      });
+    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+    sections.forEach(function (sec) { observer.observe(sec); });
+  }
+
+  /* ============ BACK TO TOP ============ */
+  var backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', function () {
+    backToTop.classList.toggle('visible', window.scrollY > 600);
+  });
+  backToTop.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+})();
+</script>
+</body>
+</html>

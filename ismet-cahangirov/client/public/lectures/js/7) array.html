@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JavaScript Array Dərsliyi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DejaVu+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ---------- DejaVu fallback (local + CDN) ---------- */
+    @font-face {
+      font-family: 'DejaVu';
+      src: url('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf') format('truetype');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'DejaVu';
+      src: url('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans-Bold.ttf') format('truetype');
+      font-weight: 700;
+    }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #181c27;
+      --surface2: #1e2436;
+      --border: #2a3050;
+      --accent: #4f8ef7;
+      --accent2: #7ee8a2;
+      --accent3: #f7c94f;
+      --accent4: #f76f8e;
+      --text: #dce3f5;
+      --text-muted: #7a8aaa;
+      --code-bg: #111827;
+      --code-border: #2d3a5a;
+      --warn-bg: #2a1e10;
+      --warn-border: #f7a24f;
+      --tip-bg: #0e2320;
+      --tip-border: #4fde9a;
+      --font: 'DejaVu', 'DejaVu Sans', 'Segoe UI', sans-serif;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, #0d1b3e 0%, #15234f 50%, #0d1b3e 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 40px 20px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(79,142,247,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(79,142,247,0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: clamp(28px, 6vw, 52px);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+    header h1 span { color: var(--accent); }
+    header p {
+      margin-top: 12px;
+      color: var(--text-muted);
+      font-size: clamp(14px, 2.5vw, 17px);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .header-tags {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .tag {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 3px 12px;
+      border-radius: 20px;
+    }
+
+    /* ===== NAV (TOC) ===== */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 10px 0;
+    }
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      transition: background .2s, color .2s;
+      white-space: nowrap;
+    }
+    nav a:hover { background: var(--surface2); color: var(--accent); }
+
+    /* ===== MAIN LAYOUT ===== */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* ===== SECTIONS ===== */
+    section {
+      margin-bottom: 64px;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 3px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    section h2 {
+      font-size: clamp(22px, 4vw, 30px);
+      color: #fff;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    section h2 .num {
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    .section-intro {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 28px;
+      border-left: 3px solid var(--border);
+      padding-left: 14px;
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      font-size: 18px;
+      color: #fff;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h3 .icon {
+      width: 28px; height: 28px;
+      background: rgba(79,142,247,0.15);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .card p { color: var(--text-muted); font-size: 15px; }
+
+    /* ===== CODE BLOCKS ===== */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: var(--radius-sm);
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--code-border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .code-header .dots { display: flex; gap: 6px; }
+    .code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #f76f8e; }
+    .dot-y { background: #f7c94f; }
+    .dot-g { background: #7ee8a2; }
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'DejaVu Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    pre code { background: none; padding: 0; border-radius: 0; }
+
+    /* Syntax colouring */
+    .kw   { color: #c792ea; }   /* keyword */
+    .fn   { color: #82aaff; }   /* function */
+    .str  { color: #c3e88d; }   /* string */
+    .num  { color: #f78c6c; }   /* number */
+    .cmt  { color: #546e7a; font-style: italic; } /* comment */
+    .mth  { color: #89ddff; }   /* method */
+    .var_ { color: #eeffff; }   /* variable */
+    .arr  { color: #f7c94f; }   /* array literal bracket */
+    .bool { color: #ff9cac; }   /* bool */
+    .out  { color: #7ee8a2; }   /* output / result */
+
+    /* ===== WARN / TIP BOXES ===== */
+    .warn {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-left: 4px solid var(--warn-border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .warn strong { color: var(--warn-border); }
+    .tip {
+      background: var(--tip-bg);
+      border: 1px solid var(--tip-border);
+      border-left: 4px solid var(--tip-border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .tip strong { color: var(--tip-border); }
+
+    /* ===== METHOD CARDS ===== */
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .method-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      transition: border-color .2s, transform .2s;
+    }
+    .method-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .method-name {
+      font-family: 'DejaVu Mono', monospace;
+      font-size: 15px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .method-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .method-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .badge-mut { background: rgba(247,111,142,0.15); color: var(--accent4); border: 1px solid rgba(247,111,142,0.3); }
+    .badge-imm { background: rgba(126,232,162,0.15); color: var(--accent2); border: 1px solid rgba(126,232,162,0.3); }
+
+    /* ===== TABLE ===== */
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: var(--surface2);
+      color: var(--accent);
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td code, th code {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'DejaVu Mono', monospace;
+      font-size: 13px;
+      color: var(--accent2);
+    }
+
+    /* ===== INLINE CODE ===== */
+    code {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-family: 'DejaVu Mono', 'Consolas', monospace;
+      font-size: 13px;
+      color: var(--accent2);
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* ===== SCROLL-TO-TOP ===== */
+    #totop {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(79,142,247,0.4);
+      transition: opacity .3s, transform .3s;
+      opacity: 0; transform: translateY(10px);
+      z-index: 999;
+    }
+    #totop.vis { opacity: 1; transform: translateY(0); }
+
+    /* ===== PROGRESS BAR ===== */
+    #prog {
+      position: fixed; top: 0; left: 0;
+      height: 3px;
+      background: var(--accent);
+      z-index: 9999;
+      transition: width .1s;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      header { padding: 28px 16px 24px; }
+      main { padding: 28px 14px 60px; }
+      .method-grid { grid-template-columns: 1fr; }
+      pre { font-size: 12px; padding: 14px; }
+      .card { padding: 16px; }
+      nav a { font-size: 12px; padding: 4px 8px; }
+    }
+
+    /* ===== ACCORDION (Detallı izah) ===== */
+    details {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin: 12px 0;
+    }
+    summary {
+      padding: 14px 18px;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      list-style: none;
+      user-select: none;
+    }
+    summary::before {
+      content: '▶';
+      color: var(--accent);
+      font-size: 11px;
+      transition: transform .2s;
+    }
+    details[open] summary::before { transform: rotate(90deg); }
+    details .det-body { padding: 0 18px 18px; }
+  </style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-badge">📚 JavaScript Dərsliyi</div>
+  <h1>JavaScript <span>Array</span> Əsasları<br>və Metodları</h1>
+  <p>Sıfırdan başlayaraq hər şeyi öyrən — sadə dildə, çoxlu nümunə ilə, real Bug-larla birlikdə</p>
+  <div class="header-tags">
+    <span class="tag">🟡 JavaScript</span>
+    <span class="tag">📦 Array</span>
+    <span class="tag">⚙️ Metodlar</span>
+    <span class="tag">🐛 Bug-lar</span>
+    <span class="tag">Azərbaycan dilində</span>
+  </div>
+</header>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <div class="nav-inner">
+    <a href="#sec1">1. Array nədir?</a>
+    <a href="#sec2">2. Yaratmaq</a>
+    <a href="#sec3">3. İndeks</a>
+    <a href="#sec4">4. Əsas metodlar</a>
+    <a href="#sec5">5. Axtarış</a>
+    <a href="#sec6">6. Çeviricilər</a>
+    <a href="#sec7">7. Dövrə</a>
+    <a href="#sec8">8. Sıralama</a>
+    <a href="#sec9">9. Bug-lar</a>
+    <a href="#sec10">10. Cədvəl</a>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main>
+
+<!-- ============================================================ -->
+<!-- SECTION 1 -->
+<!-- ============================================================ -->
+<section id="sec1">
+  <div class="section-label">Bölmə 01</div>
+  <h2><span class="num">1.</span> Array (Massiv) nədir?</h2>
+  <p class="section-intro">
+    Array — bir dəyişkən içərisində <strong>bir neçə dəyəri</strong> eyni anda saxlaya biləcəyin qutu kimidir.
+    Məsələn, 30 tələbənin adını ayrı-ayrı dəyişkənlərə yazmaq əvəzinə, hamısını bir array-da saxlaya bilərsən.
+  </p>
+
+  <div class="card">
+    <h3><span class="icon">🗃️</span> Real Həyatdan Nümunə</h3>
+    <p>Düşün ki, bir siyahı dəftərin var. Hər sətirə bir şey yazırsan: alma, armud, üzüm... Array tam olaraq budur — yaddaşda ardıcıl yerləşdirilmiş dəyərlər siyahısı.</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>array-neye-oxsayir.js</span>
+    </div>
+    <pre><code><span class="cmt">// Array olmadan — çox uzun, çox çətin:</span>
+<span class="kw">let</span> <span class="var_">tələbə1</span> = <span class="str">"Aytən"</span>;
+<span class="kw">let</span> <span class="var_">tələbə2</span> = <span class="str">"Bəhruz"</span>;
+<span class="kw">let</span> <span class="var_">tələbə3</span> = <span class="str">"Camal"</span>;
+<span class="cmt">// 30 tələbə üçün 30 dəyişkən? 😰</span>
+
+<span class="cmt">// Array ilə — asan, qısa, rahat:</span>
+<span class="kw">let</span> <span class="var_">tələbələr</span> = <span class="arr">[</span><span class="str">"Aytən"</span>, <span class="str">"Bəhruz"</span>, <span class="str">"Camal"</span>, <span class="str">"Damla"</span><span class="arr">]</span>;
+<span class="cmt">// Hamısı bir yerdə! ✅</span></code></pre>
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">💡</span> Array-in xüsusiyyətləri</h3>
+    <p>
+      ✔ Fərqli tip dəyərlər (string, number, boolean, başqa array) saxlaya bilər<br>
+      ✔ Ölçüsü dinamikdir — istənilən vaxt böyüyüb kiçilə bilər<br>
+      ✔ Hər elementə sıra nömrəsi ilə (indeks) müraciət edilir<br>
+      ✔ JavaScript-də array-lər obyekt tipindədir
+    </p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>qarisiq-array.js</span>
+    </div>
+    <pre><code><span class="cmt">// Array içinə hər cür dəyər qoya bilərsən:</span>
+<span class="kw">let</span> <span class="var_">qarışıq</span> = <span class="arr">[</span>
+  <span class="str">"Salam"</span>,        <span class="cmt">// string</span>
+  <span class="num">42</span>,             <span class="cmt">// number</span>
+  <span class="bool">true</span>,           <span class="cmt">// boolean</span>
+  <span class="kw">null</span>,           <span class="cmt">// null</span>
+  <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span><span class="arr">]</span>       <span class="cmt">// başqa array (iç-içə)</span>
+<span class="arr">]</span>;
+
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">qarışıq</span>);
+<span class="cmt">// ▶ ["Salam", 42, true, null, [1,2,3]]</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2 -->
+<!-- ============================================================ -->
+<section id="sec2">
+  <div class="section-label">Bölmə 02</div>
+  <h2><span class="num">2.</span> Array Necə Yaradılır?</h2>
+  <p class="section-intro">Array yaratmağın bir neçə üsulu var. Ən çox istifadə olunanı kvadrat mötərizə <code>[]</code> ilə yazmaq üsuludur.</p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>yaratmaq.js</span>
+    </div>
+    <pre><code><span class="cmt">// ✅ Üsul 1 — Literal sintaksis (tövsiyə olunur):</span>
+<span class="kw">let</span> <span class="var_">meyvələr</span> = <span class="arr">[</span><span class="str">"alma"</span>, <span class="str">"armud"</span>, <span class="str">"üzüm"</span><span class="arr">]</span>;
+
+<span class="cmt">// ✅ Üsul 2 — Boş array (sonradan element əlavə etmək üçün):</span>
+<span class="kw">let</span> <span class="var_">boşSiyahı</span> = <span class="arr">[]</span>;
+
+<span class="cmt">// ✅ Üsul 3 — new Array() konstruktoru:</span>
+<span class="kw">let</span> <span class="var_">rəqəmlər</span> = <span class="kw">new</span> <span class="fn">Array</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>);
+
+<span class="cmt">// ⚠️ DİQQƏT! new Array(5) — 5 elementli array DEYİL:</span>
+<span class="kw">let</span> <span class="var_">yanılma</span> = <span class="kw">new</span> <span class="fn">Array</span>(<span class="num">5</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">yanılma</span>);    <span class="cmt">// ▶ [ <5 empty items> ] ← boş yuva!</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">yanılma</span>.<span class="mth">length</span>); <span class="cmt">// ▶ 5  (amma içi boş)</span>
+
+<span class="cmt">// ✅ Array.of() — new Array()'nin qarışıqlığını aradan qaldırır:</span>
+<span class="kw">let</span> <span class="var_">düzgün</span> = <span class="fn">Array</span>.<span class="mth">of</span>(<span class="num">5</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">düzgün</span>);      <span class="cmt">// ▶ [5]  ✅ bir elementli array</span></code></pre>
+  </div>
+
+  <div class="warn">
+    <strong>⚠️ Tələ!</strong> <code>new Array(5)</code> yazdıqda JavaScript <strong>5 element olan array</strong> DEYIL, <strong>ölçüsü 5 olan boş array</strong> yaradır. Bu çox geniş yayılmış səhvdir. Həmişə literal sintaksisdən <code>[]</code> istifadə et.
+  </div>
+
+  <div class="card">
+    <h3><span class="icon">📏</span> Array uzunluğu — <code>.length</code></h3>
+    <p>Hər array-in <code>.length</code> xassəsi var. Bu, array-dəki <strong>elementlərın sayını</strong> verir. İndekslərlə fərqini anlamaq vacibdir:</p>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>length.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">rənglər</span> = <span class="arr">[</span><span class="str">"qırmızı"</span>, <span class="str">"yaşıl"</span>, <span class="str">"mavi"</span><span class="arr">]</span>;
+
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rənglər</span>.<span class="mth">length</span>); <span class="cmt">// ▶ 3  (3 element var)</span>
+
+<span class="cmt">// Son elementin indeksi həmişə length-1 olur:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rənglər</span>[<span class="var_">rənglər</span>.<span class="mth">length</span> - <span class="num">1</span>]); <span class="cmt">// ▶ "mavi"</span>
+
+<span class="cmt">// length dəyərini dəyişmək olar — amma diqqətli ol:</span>
+<span class="var_">rənglər</span>.<span class="mth">length</span> = <span class="num">1</span>;
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rənglər</span>); <span class="cmt">// ▶ ["qırmızı"]  ← digərləri silindi!</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3 -->
+<!-- ============================================================ -->
+<section id="sec3">
+  <div class="section-label">Bölmə 03</div>
+  <h2><span class="num">3.</span> İndeks — Elementlərə Müraciət</h2>
+  <p class="section-intro">
+    Array-in hər elementinin bir <strong>indeks nömrəsi</strong> var. Ən vacib məqam: <strong>indekslər 0-dan başlayır</strong>, 1-dən deyil!
+  </p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>indeks.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">şəhərlər</span> = <span class="arr">[</span><span class="str">"Bakı"</span>, <span class="str">"Gəncə"</span>, <span class="str">"Sumqayıt"</span>, <span class="str">"Lənkəran"</span><span class="arr">]</span>;
+<span class="cmt">//                  ↑         ↑          ↑           ↑</span>
+<span class="cmt">//               indeks:0   indeks:1   indeks:2    indeks:3</span>
+
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">şəhərlər</span>[<span class="num">0</span>]); <span class="cmt">// ▶ "Bakı"     ← birinci element</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">şəhərlər</span>[<span class="num">2</span>]); <span class="cmt">// ▶ "Sumqayıt"</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">şəhərlər</span>[<span class="num">9</span>]); <span class="cmt">// ▶ undefined  ← yoxdur, xəta deyil!</span>
+
+<span class="cmt">// Elementi dəyişmək:</span>
+<span class="var_">şəhərlər</span>[<span class="num">1</span>] = <span class="str">"Mingəçevir"</span>;
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">şəhərlər</span>); <span class="cmt">// ▶ ["Bakı","Mingəçevir","Sumqayıt","Lənkəran"]</span>
+
+<span class="cmt">// Yeni element əlavə etmək:</span>
+<span class="var_">şəhərlər</span>[<span class="num">4</span>] = <span class="str">"Şirvan"</span>;
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">şəhərlər</span>.<span class="mth">length</span>); <span class="cmt">// ▶ 5</span></code></pre>
+  </div>
+
+  <div class="warn">
+    <strong>⚠️ Klassik Səhv:</strong> Çox tələbə <code>şəhərlər[1]</code> yazdıqda "birinci şəhər"i gözləyir, amma cavab <code>"Gəncə"</code> olur. Çünki <strong>indekslər 0-dan başlayır!</strong> Birinci elementə <code>[0]</code> ilə müraciət edilir.
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>at-metodu.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">rəqəmlər</span> = <span class="arr">[</span><span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span><span class="arr">]</span>;
+
+<span class="cmt">// .at() metodu — mənfi indekslərə icazə verir:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">at</span>(<span class="num">0</span>));   <span class="cmt">// ▶ 10  (birinci)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">at</span>(-<span class="num">1</span>));  <span class="cmt">// ▶ 50  (sonuncu)  ← çox rahat!</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">at</span>(-<span class="num">2</span>));  <span class="cmt">// ▶ 40  (sondan ikinci)</span>
+
+<span class="cmt">// Köhnə üsulla sonuncu elementi almaq:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>[<span class="var_">rəqəmlər</span>.<span class="mth">length</span> - <span class="num">1</span>]); <span class="cmt">// ▶ 50 (daha uzun)</span></code></pre>
+  </div>
+
+  <div class="tip">
+    <strong>💡 Məsləhət:</strong> Sonuncu elementi almaq üçün köhnə üsul <code>arr[arr.length-1]</code> yerinə <code>arr.at(-1)</code> yazsan daha qısa və oxunaqlı olur. Bu modern JavaScript-dir.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4 -->
+<!-- ============================================================ -->
+<section id="sec4">
+  <div class="section-label">Bölmə 04</div>
+  <h2><span class="num">4.</span> Əsas Metodlar — Əlavə et, Sil, Kəs</h2>
+  <p class="section-intro">
+    Bu metodlar array-i birbaşa <strong>dəyişdirir</strong> (mutasiya edir). Onları öyrəndikdən sonra array-i istədiyin kimi idarə edə bilərsən.
+  </p>
+
+  <!-- push -->
+  <details>
+    <summary>📌 <code>push()</code> — Sona element əlavə et</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">Array-in <strong>sonuna</strong> bir və ya bir neçə element əlavə edir. Yeni <code>length</code> dəyərini qaytarır.</p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>push.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">sepet</span> = <span class="arr">[</span><span class="str">"alma"</span>, <span class="str">"armud"</span><span class="arr">]</span>;
+
+<span class="var_">sepet</span>.<span class="mth">push</span>(<span class="str">"üzüm"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sepet</span>); <span class="cmt">// ▶ ["alma","armud","üzüm"]</span>
+
+<span class="cmt">// Bir neçəsini birlikdə əlavə edə bilərsən:</span>
+<span class="var_">sepet</span>.<span class="mth">push</span>(<span class="str">"kivi"</span>, <span class="str">"ananas"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sepet</span>);
+<span class="cmt">// ▶ ["alma","armud","üzüm","kivi","ananas"]</span>
+
+<span class="cmt">// push() yeni uzunluğu qaytarır:</span>
+<span class="kw">let</span> <span class="var_">yeniUzunluq</span> = <span class="var_">sepet</span>.<span class="mth">push</span>(<span class="str">"portağal"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">yeniUzunluq</span>); <span class="cmt">// ▶ 6</span></code></pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- pop -->
+  <details>
+    <summary>📌 <code>pop()</code> — Sondan element sil</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">Array-in <strong>son elementini çıxarıb qaytarır</strong>. Array kiçilir.</p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>pop.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">növbə</span> = <span class="arr">[</span><span class="str">"Əli"</span>, <span class="str">"Vəli"</span>, <span class="str">"Anar"</span><span class="arr">]</span>;
+
+<span class="kw">let</span> <span class="var_">çıxan</span> = <span class="var_">növbə</span>.<span class="mth">pop</span>();
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">çıxan</span>);  <span class="cmt">// ▶ "Anar"  (çıxarılan)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">növbə</span>);  <span class="cmt">// ▶ ["Əli","Vəli"]</span>
+
+<span class="cmt">// Boş array-dən pop() çağırsan:</span>
+<span class="kw">let</span> <span class="var_">boş</span> = <span class="arr">[]</span>;
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">boş</span>.<span class="mth">pop</span>()); <span class="cmt">// ▶ undefined (xəta vermir)</span></code></pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- unshift -->
+  <details>
+    <summary>📌 <code>unshift()</code> — Əvvələ element əlavə et</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">Array-in <strong>əvvəlinə</strong> element əlavə edir. Qalan elementlər sağa sürüşür.</p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>unshift.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">sıra</span> = <span class="arr">[</span><span class="str">"B"</span>, <span class="str">"C"</span>, <span class="str">"D"</span><span class="arr">]</span>;
+
+<span class="var_">sıra</span>.<span class="mth">unshift</span>(<span class="str">"A"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sıra</span>); <span class="cmt">// ▶ ["A","B","C","D"]</span>
+
+<span class="cmt">// Bir neçə element:</span>
+<span class="var_">sıra</span>.<span class="mth">unshift</span>(<span class="str">"-1"</span>, <span class="str">"0"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sıra</span>); <span class="cmt">// ▶ ["-1","0","A","B","C","D"]</span></code></pre>
+      </div>
+      <div class="warn" style="margin-top:12px">
+        <strong>⚠️ Performans:</strong> <code>unshift()</code> bütün elementlərin indekslərini dəyişdirdiyi üçün böyük array-lərdə <code>push()</code>-a nisbətən yavaş işləyir.
+      </div>
+    </div>
+  </details>
+
+  <!-- shift -->
+  <details>
+    <summary>📌 <code>shift()</code> — Əvvəldən element sil</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">Array-in <strong>ilk elementini çıxarıb qaytarır</strong>. Qalan elementlər sola sürüşür.</p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>shift.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">növbə</span> = <span class="arr">[</span><span class="str">"Birinci"</span>, <span class="str">"İkinci"</span>, <span class="str">"Üçüncü"</span><span class="arr">]</span>;
+
+<span class="kw">let</span> <span class="var_">xidmətEdildi</span> = <span class="var_">növbə</span>.<span class="mth">shift</span>();
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">xidmətEdildi</span>); <span class="cmt">// ▶ "Birinci"</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">növbə</span>);        <span class="cmt">// ▶ ["İkinci","Üçüncü"]</span></code></pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- splice -->
+  <details>
+    <summary>📌 <code>splice()</code> — Ortadan əlavə et / sil</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">
+        <code>splice(başlanğıc, silinəcəkSayı, ...əlavəEdilənlər)</code> — Array-in istənilən yerindən element sil, əlavə et, və ya əvəzlə. <strong>Silinen elementləri qaytarır.</strong>
+      </p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>splice.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">aylar</span> = <span class="arr">[</span><span class="str">"Yan"</span>, <span class="str">"Fev"</span>, <span class="str">"Aprel"</span>, <span class="str">"May"</span><span class="arr">]</span>;
+<span class="cmt">//              0      1       2          3</span>
+<span class="cmt">// Mart-ı 2-ci indeksə əlavə etmək (heç nə silmədən):</span>
+<span class="var_">aylar</span>.<span class="mth">splice</span>(<span class="num">2</span>, <span class="num">0</span>, <span class="str">"Mart"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">aylar</span>);
+<span class="cmt">// ▶ ["Yan","Fev","Mart","Aprel","May"]  ✅</span>
+
+<span class="cmt">// 2-ci indeksdən 2 element silmək:</span>
+<span class="kw">let</span> <span class="var_">siliənlər</span> = <span class="var_">aylar</span>.<span class="mth">splice</span>(<span class="num">2</span>, <span class="num">2</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">siliənlər</span>); <span class="cmt">// ▶ ["Mart","Aprel"]</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">aylar</span>);     <span class="cmt">// ▶ ["Yan","Fev","May"]</span>
+
+<span class="cmt">// Əvəzlə — 1 elementi başqası ilə:</span>
+<span class="var_">aylar</span>.<span class="mth">splice</span>(<span class="num">0</span>, <span class="num">1</span>, <span class="str">"Yanvar"</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">aylar</span>); <span class="cmt">// ▶ ["Yanvar","Fev","May"]</span></code></pre>
+      </div>
+      <div class="tip" style="margin-top:12px">
+        <strong>💡 Yadda saxla:</strong> <code>splice(başlanğıc, 0, x)</code> → heç nə silmə, sadəcə əlavə et.<br>
+        <code>splice(başlanğıc, n)</code> → n ədəd element sil, heç nə əlavə etmə.
+      </div>
+    </div>
+  </details>
+
+  <!-- concat -->
+  <details>
+    <summary>📌 <code>concat()</code> — İki array-i birləşdir</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">İki və ya daha çox array-i birləşdirir. <strong>Orijinalları dəyişdirmir</strong> — yeni array qaytarır.</p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>concat.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">qızlar</span>  = <span class="arr">[</span><span class="str">"Aytən"</span>, <span class="str">"Damla"</span><span class="arr">]</span>;
+<span class="kw">let</span> <span class="var_">oğlanlar</span> = <span class="arr">[</span><span class="str">"Bəhruz"</span>, <span class="str">"Camal"</span><span class="arr">]</span>;
+
+<span class="kw">let</span> <span class="var_">hamısı</span> = <span class="var_">qızlar</span>.<span class="mth">concat</span>(<span class="var_">oğlanlar</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">hamısı</span>);
+<span class="cmt">// ▶ ["Aytən","Damla","Bəhruz","Camal"]</span>
+
+<span class="cmt">// Orijinallar dəyişmir:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">qızlar</span>); <span class="cmt">// ▶ ["Aytən","Damla"]  ✅ eyni</span>
+
+<span class="cmt">// Spread operatoru ilə eyni iş (modern üsul):</span>
+<span class="kw">let</span> <span class="var_">birlikdə</span> = <span class="arr">[</span>...<span class="var_">qızlar</span>, ...<span class="var_">oğlanlar</span><span class="arr">]</span>;
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">birlikdə</span>);
+<span class="cmt">// ▶ ["Aytən","Damla","Bəhruz","Camal"]</span></code></pre>
+      </div>
+    </div>
+  </details>
+
+  <!-- slice -->
+  <details>
+    <summary>📌 <code>slice()</code> — Parça kəs (kopyala)</summary>
+    <div class="det-body">
+      <p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">
+        <code>slice(başlanğıc, son)</code> — Array-in bir hissəsini <strong>kopyalayıb yeni array qaytarır</strong>. Orijinalı dəyişdirmir.
+        <br><strong>Son indeks daxil edilmir!</strong>
+      </p>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span>slice.js</span>
+        </div>
+        <pre><code><span class="kw">let</span> <span class="var_">hərflər</span> = <span class="arr">[</span><span class="str">"A"</span>, <span class="str">"B"</span>, <span class="str">"C"</span>, <span class="str">"D"</span>, <span class="str">"E"</span><span class="arr">]</span>;
+<span class="cmt">//              0    1    2    3    4</span>
+
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">hərflər</span>.<span class="mth">slice</span>(<span class="num">1</span>, <span class="num">3</span>)); <span class="cmt">// ▶ ["B","C"]  (1 və 2, 3 yox!)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">hərflər</span>.<span class="mth">slice</span>(<span class="num">2</span>));    <span class="cmt">// ▶ ["C","D","E"] (2-dən sona)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">hərflər</span>.<span class="mth">slice</span>(-<span class="num">2</span>));   <span class="cmt">// ▶ ["D","E"]  (sondan 2)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">hərflər</span>.<span class="mth">slice</span>());     <span class="cmt">// ▶ ["A","B","C","D","E"] (tam kopyası)</span>
+
+<span class="cmt">// Orijinal dəyişmədi:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">hərflər</span>); <span class="cmt">// ▶ ["A","B","C","D","E"] ✅</span></code></pre>
+      </div>
+      <div class="warn" style="margin-top:12px">
+        <strong>⚠️ splice vs slice:</strong> Adları çox oxşardır amma tamamilə fərqlidir!<br>
+        • <code>splice()</code> → orijinalı <strong>dəyişdirir</strong>, silir/əlavə edir<br>
+        • <code>slice()</code> → orijinalı <strong>dəyişdirmir</strong>, kopyalayır
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5 -->
+<!-- ============================================================ -->
+<section id="sec5">
+  <div class="section-label">Bölmə 05</div>
+  <h2><span class="num">5.</span> Axtarış Metodları</h2>
+  <p class="section-intro">Array içindəki elementləri tapmaq, yoxlamaq üçün bu metodlardan istifadə edirlər.</p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>axtarish.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">rəqəmlər</span> = <span class="arr">[</span><span class="num">10</span>, <span class="num">25</span>, <span class="num">30</span>, <span class="num">25</span>, <span class="num">50</span><span class="arr">]</span>;
+
+<span class="cmt">// indexOf() — ilk tapılan indeksi ver, yoxdursa -1 qaytarır:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">indexOf</span>(<span class="num">25</span>));     <span class="cmt">// ▶ 1</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">indexOf</span>(<span class="num">99</span>));     <span class="cmt">// ▶ -1 (yoxdur)</span>
+
+<span class="cmt">// lastIndexOf() — sondan axtarır:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">lastIndexOf</span>(<span class="num">25</span>));  <span class="cmt">// ▶ 3</span>
+
+<span class="cmt">// includes() — var ya yox? true/false:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">includes</span>(<span class="num">30</span>));    <span class="cmt">// ▶ true</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>.<span class="mth">includes</span>(<span class="num">100</span>));   <span class="cmt">// ▶ false</span>
+
+<span class="kw">let</span> <span class="var_">tələbələr</span> = <span class="arr">[</span>
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Aytən"</span>, <span class="var_">qiymət</span>: <span class="num">85</span> <span class="arr">}</span>,
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Bəhruz"</span>, <span class="var_">qiymət</span>: <span class="num">92</span> <span class="arr">}</span>,
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Camal"</span>, <span class="var_">qiymət</span>: <span class="num">74</span> <span class="arr">}</span>
+<span class="arr">]</span>;
+
+<span class="cmt">// find() — şərtə uyan İLK elementi qaytarır:</span>
+<span class="kw">let</span> <span class="var_">yüksək</span> = <span class="var_">tələbələr</span>.<span class="mth">find</span>(<span class="var_">t</span> => <span class="var_">t</span>.<span class="var_">qiymət</span> > <span class="num">90</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">yüksək</span>); <span class="cmt">// ▶ {ad:"Bəhruz", qiymət:92}</span>
+
+<span class="cmt">// findIndex() — şərtə uyan ilk elementin İNDEKSİ:</span>
+<span class="kw">let</span> <span class="var_">idx</span> = <span class="var_">tələbələr</span>.<span class="mth">findIndex</span>(<span class="var_">t</span> => <span class="var_">t</span>.<span class="var_">qiymət</span> > <span class="num">90</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">idx</span>); <span class="cmt">// ▶ 1</span>
+
+<span class="cmt">// some() — heç olmasa BİRİ uyan var mı? true/false:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">tələbələr</span>.<span class="mth">some</span>(<span class="var_">t</span> => <span class="var_">t</span>.<span class="var_">qiymət</span> >= <span class="num">80</span>)); <span class="cmt">// ▶ true</span>
+
+<span class="cmt">// every() — HAMISI şərtə uyur mu? true/false:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">tələbələr</span>.<span class="mth">every</span>(<span class="var_">t</span> => <span class="var_">t</span>.<span class="var_">qiymət</span> >= <span class="num">60</span>)); <span class="cmt">// ▶ true</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">tələbələr</span>.<span class="mth">every</span>(<span class="var_">t</span> => <span class="var_">t</span>.<span class="var_">qiymət</span> >= <span class="num">80</span>)); <span class="cmt">// ▶ false</span></code></pre>
+  </div>
+
+  <div class="tip">
+    <strong>💡 Fərq:</strong> <code>indexOf()</code> sadə dəyərləri (string, number) axtarır. Obyektlər üçün <code>find()</code> / <code>findIndex()</code> işlənməlidir, çünki <code>indexOf({...})</code> həmişə <code>-1</code> qaytarar (obyektlər istinad ilə müqayisə edilir).
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6 -->
+<!-- ============================================================ -->
+<section id="sec6">
+  <div class="section-label">Bölmə 06</div>
+  <h2><span class="num">6.</span> Çevirici Metodlar — map, filter, reduce</h2>
+  <p class="section-intro">
+    Bu üç metod funksional proqramlaşdırmanın əsasını təşkil edir. Hamısı <strong>yeni array qaytarır</strong> (orijinalı dəyişdirmir) — reduce istisnasıdır.
+  </p>
+
+  <div class="card">
+    <h3><span class="icon">🗺️</span> <code>map()</code> — Hər elementi çevir</h3>
+    <p>Hər elementə bir funksiya tətbiq edib <strong>eyni uzunluqda yeni array</strong> yaradır. Məsələn: hər qiyməti 2 dəfə artır.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>map.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">qiymətlər</span> = <span class="arr">[</span><span class="num">60</span>, <span class="num">75</span>, <span class="num">80</span>, <span class="num">90</span><span class="arr">]</span>;
+
+<span class="cmt">// Hər qiyməti 10% artır:</span>
+<span class="kw">let</span> <span class="var_">artırılmış</span> = <span class="var_">qiymətlər</span>.<span class="mth">map</span>(<span class="var_">q</span> => <span class="var_">q</span> * <span class="num">1.1</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">artırılmış</span>);
+<span class="cmt">// ▶ [66, 82.5, 88, 99]</span>
+
+<span class="kw">let</span> <span class="var_">tələbələr</span> = <span class="arr">[</span>
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Aytən"</span>, <span class="var_">qiymət</span>: <span class="num">85</span> <span class="arr">}</span>,
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Bəhruz"</span>, <span class="var_">qiymət</span>: <span class="num">92</span> <span class="arr">}</span>
+<span class="arr">]</span>;
+
+<span class="cmt">// Sadəcə adları al:</span>
+<span class="kw">let</span> <span class="var_">adlar</span> = <span class="var_">tələbələr</span>.<span class="mth">map</span>(<span class="var_">t</span> => <span class="var_">t</span>.<span class="var_">ad</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">adlar</span>); <span class="cmt">// ▶ ["Aytən","Bəhruz"]</span>
+
+<span class="cmt">// map() orijinalı DƏYİŞDİRMİR:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">qiymətlər</span>); <span class="cmt">// ▶ [60,75,80,90] ✅ eyni</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3><span class="icon">🔍</span> <code>filter()</code> — Şərtə uyanları seç</h3>
+    <p>Şərtə uyan elementləri götürüb yeni array qaytarır. Uymayanlar nəticəyə daxil edilmir.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>filter.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">rəqəmlər</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>, <span class="num">7</span>, <span class="num">8</span><span class="arr">]</span>;
+
+<span class="cmt">// Cüt rəqəmləri seç:</span>
+<span class="kw">let</span> <span class="var_">cütlər</span> = <span class="var_">rəqəmlər</span>.<span class="mth">filter</span>(<span class="var_">r</span> => <span class="var_">r</span> % <span class="num">2</span> === <span class="num">0</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">cütlər</span>); <span class="cmt">// ▶ [2,4,6,8]</span>
+
+<span class="kw">let</span> <span class="var_">məhsullar</span> = <span class="arr">[</span>
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Telefon"</span>, <span class="var_">qiymət</span>: <span class="num">450</span> <span class="arr">}</span>,
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Çanta"</span>,   <span class="var_">qiymət</span>: <span class="num">80</span>  <span class="arr">}</span>,
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Laptop"</span>,  <span class="var_">qiymət</span>: <span class="num">1200</span><span class="arr">}</span>,
+  <span class="arr">{</span> <span class="var_">ad</span>: <span class="str">"Kitab"</span>,   <span class="var_">qiymət</span>: <span class="num">15</span>  <span class="arr">}</span>
+<span class="arr">]</span>;
+
+<span class="cmt">// 100 manatdan bahalı məhsullar:</span>
+<span class="kw">let</span> <span class="var_">bahalılar</span> = <span class="var_">məhsullar</span>.<span class="mth">filter</span>(<span class="var_">m</span> => <span class="var_">m</span>.<span class="var_">qiymət</span> > <span class="num">100</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">bahalılar</span>);
+<span class="cmt">// ▶ [{ad:"Telefon",qiymət:450}, {ad:"Laptop",qiymət:1200}]</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:24px">
+    <h3><span class="icon">♻️</span> <code>reduce()</code> — Hamısını bir dəyərə yığ</h3>
+    <p>Array-in bütün elementlərini istifadə edərək <strong>tək bir dəyər qaytarır</strong>. Cəm, məhsul, ən böyük dəyər, obyekt qurma və s. üçün istifadə olunur.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>reduce.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">qiymətlər</span> = <span class="arr">[</span><span class="num">100</span>, <span class="num">200</span>, <span class="num">50</span>, <span class="num">75</span><span class="arr">]</span>;
+
+<span class="cmt">// Cəm hesabla:</span>
+<span class="kw">let</span> <span class="var_">cəm</span> = <span class="var_">qiymətlər</span>.<span class="mth">reduce</span>((<span class="var_">toplam</span>, <span class="var_">cari</span>) => <span class="var_">toplam</span> + <span class="var_">cari</span>, <span class="num">0</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">cəm</span>); <span class="cmt">// ▶ 425</span>
+<span class="cmt">//                      ↑         ↑           ↑            ↑</span>
+<span class="cmt">//                  yığıcı    cari dəyər   nəticə        başlanğıc</span>
+
+<span class="cmt">// Maksimum tapma:</span>
+<span class="kw">let</span> <span class="var_">max</span> = <span class="var_">qiymətlər</span>.<span class="mth">reduce</span>((<span class="var_">en_böyük</span>, <span class="var_">cari</span>) =>
+  <span class="var_">cari</span> > <span class="var_">en_böyük</span> ? <span class="var_">cari</span> : <span class="var_">en_böyük</span>
+);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">max</span>); <span class="cmt">// ▶ 200</span>
+
+<span class="cmt">// Sözlərin sayını hesabla:</span>
+<span class="kw">let</span> <span class="var_">meyvələr</span> = <span class="arr">[</span><span class="str">"alma"</span>, <span class="str">"armud"</span>, <span class="str">"alma"</span>, <span class="str">"üzüm"</span>, <span class="str">"alma"</span><span class="arr">]</span>;
+<span class="kw">let</span> <span class="var_">say</span> = <span class="var_">meyvələr</span>.<span class="mth">reduce</span>((<span class="var_">obj</span>, <span class="var_">m</span>) => {
+  <span class="var_">obj</span>[<span class="var_">m</span>] = (<span class="var_">obj</span>[<span class="var_">m</span>] || <span class="num">0</span>) + <span class="num">1</span>;
+  <span class="kw">return</span> <span class="var_">obj</span>;
+}, {});
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">say</span>); <span class="cmt">// ▶ {alma: 3, armud: 1, üzüm: 1}</span></code></pre>
+  </div>
+
+  <div class="warn">
+    <strong>⚠️ reduce-da başlanğıc dəyəri unutma!</strong> <code>reduce(fn, 0)</code>-dakı <code>0</code> — başlanğıc dəyərdir. Onu yazmassan, boş array-dən <code>reduce()</code> çağıranda xəta alacaqsan: <em>TypeError: Reduce of empty array with no initial value</em>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7 -->
+<!-- ============================================================ -->
+<section id="sec7">
+  <div class="section-label">Bölmə 07</div>
+  <h2><span class="num">7.</span> Dövrə Metodları</h2>
+  <p class="section-intro">Array elementlərinin üzərindən keçmək üçün bir neçə üsul var. Hansını seçmək istədiyinə görə:</p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>dovre.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">şəhərlər</span> = <span class="arr">[</span><span class="str">"Bakı"</span>, <span class="str">"Gəncə"</span>, <span class="str">"Sumqayıt"</span><span class="arr">]</span>;
+
+<span class="cmt">// ── 1) forEach() — hərdəfərəki element üçün iş gör:</span>
+<span class="var_">şəhərlər</span>.<span class="mth">forEach</span>((<span class="var_">şəhər</span>, <span class="var_">indeks</span>) => {
+  <span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">indeks</span> + <span class="str">": "</span> + <span class="var_">şəhər</span>);
+});
+<span class="cmt">// ▶ 0: Bakı</span>
+<span class="cmt">// ▶ 1: Gəncə</span>
+<span class="cmt">// ▶ 2: Sumqayıt</span>
+
+<span class="cmt">// ── 2) for...of — ən sadə dövrə (indeks lazım deyilsə):</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var_">şəhər</span> <span class="kw">of</span> <span class="var_">şəhərlər</span>) {
+  <span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">şəhər</span>);
+}
+
+<span class="cmt">// ── 3) Klassik for dövrəsi — indeks lazımdırsa:</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var_">i</span> = <span class="num">0</span>; <span class="var_">i</span> < <span class="var_">şəhərlər</span>.<span class="mth">length</span>; <span class="var_">i</span>++) {
+  <span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">i</span>, <span class="var_">şəhərlər</span>[<span class="var_">i</span>]);
+}
+
+<span class="cmt">// ── 4) flatMap() — map + düzləşdir:</span>
+<span class="kw">let</span> <span class="var_">cümlələr</span> = <span class="arr">[</span><span class="str">"Salam dünya"</span>, <span class="str">"Necəsən"</span><span class="arr">]</span>;
+<span class="kw">let</span> <span class="var_">sözlər</span>   = <span class="var_">cümlələr</span>.<span class="mth">flatMap</span>(<span class="var_">c</span> => <span class="var_">c</span>.<span class="mth">split</span>(<span class="str">" "</span>));
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sözlər</span>);
+<span class="cmt">// ▶ ["Salam","dünya","Necəsən"]</span></code></pre>
+  </div>
+
+  <div class="warn">
+    <strong>⚠️ forEach-dən return işləmir!</strong> <code>forEach</code> içinə <code>return</code> yazsan o funksiyadan çıxır, amma dövrəni DAYANDIRMIR. Dövrəni erkən bitirmək lazımdırsa <code>for...of</code> + <code>break</code> istifadə et.
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>forEach-return-bug.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">arr</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span><span class="arr">]</span>;
+
+<span class="cmt">// ❌ BUG — dövrə dayanmır:</span>
+<span class="var_">arr</span>.<span class="mth">forEach</span>(<span class="var_">n</span> => {
+  <span class="kw">if</span> (<span class="var_">n</span> === <span class="num">3</span>) <span class="kw">return</span>; <span class="cmt">// bu SADƏCƏ callback-dan çıxır</span>
+  <span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">n</span>);   <span class="cmt">// 4 və 5 yenə çap olunur!</span>
+});
+<span class="cmt">// ▶ 1, 2, 4, 5  ← 3 çap olunmadı amma dövrə getdi</span>
+
+<span class="cmt">// ✅ DÜZGÜN — for...of ilə break:</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var_">n</span> <span class="kw">of</span> <span class="var_">arr</span>) {
+  <span class="kw">if</span> (<span class="var_">n</span> === <span class="num">3</span>) <span class="kw">break</span>;
+  <span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">n</span>);
+}
+<span class="cmt">// ▶ 1, 2  ← 3-dən sonra dayandı ✅</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8 -->
+<!-- ============================================================ -->
+<section id="sec8">
+  <div class="section-label">Bölmə 08</div>
+  <h2><span class="num">8.</span> Sıralama, Birləşdirmə, Digər Faydalı Metodlar</h2>
+  <p class="section-intro">Array-i sıralamaq, mətne çevirmək, düzləşdirmək üçün bu metodlar çox işə yarayır.</p>
+
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>sort-join-flat.js</span>
+    </div>
+    <pre><code><span class="cmt">// ───────── sort() ─────────</span>
+<span class="kw">let</span> <span class="var_">adlar</span> = <span class="arr">[</span><span class="str">"Camal"</span>, <span class="str">"Aytən"</span>, <span class="str">"Bəhruz"</span><span class="arr">]</span>;
+<span class="var_">adlar</span>.<span class="mth">sort</span>();
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">adlar</span>); <span class="cmt">// ▶ ["Aytən","Bəhruz","Camal"]  (əlifba)</span>
+
+<span class="kw">let</span> <span class="var_">rəqəmlər</span> = <span class="arr">[</span><span class="num">10</span>, <span class="num">2</span>, <span class="num">100</span>, <span class="num">21</span><span class="arr">]</span>;
+
+<span class="cmt">// ⚠️ TƏLƏ — sort() rəqəmləri STRING kimi sıralayır:</span>
+<span class="var_">rəqəmlər</span>.<span class="mth">sort</span>();
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>); <span class="cmt">// ▶ [10,100,2,21] ❌ YANLIŞ!</span>
+
+<span class="cmt">// ✅ Düzgün rəqəm sıralaması:</span>
+<span class="var_">rəqəmlər</span>.<span class="mth">sort</span>((<span class="var_">a</span>, <span class="var_">b</span>) => <span class="var_">a</span> - <span class="var_">b</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>); <span class="cmt">// ▶ [2,10,21,100] ✅</span>
+
+<span class="cmt">// Azalana görə:</span>
+<span class="var_">rəqəmlər</span>.<span class="mth">sort</span>((<span class="var_">a</span>, <span class="var_">b</span>) => <span class="var_">b</span> - <span class="var_">a</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">rəqəmlər</span>); <span class="cmt">// ▶ [100,21,10,2]</span>
+
+<span class="cmt">// ───────── reverse() ─────────</span>
+<span class="kw">let</span> <span class="var_">sıra</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span><span class="arr">]</span>;
+<span class="var_">sıra</span>.<span class="mth">reverse</span>();
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sıra</span>); <span class="cmt">// ▶ [5,4,3,2,1]  ← orijinalı dəyişdirir!</span>
+
+<span class="cmt">// ───────── join() ─────────</span>
+<span class="kw">let</span> <span class="var_">meyvələr</span> = <span class="arr">[</span><span class="str">"alma"</span>, <span class="str">"armud"</span>, <span class="str">"üzüm"</span><span class="arr">]</span>;
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">meyvələr</span>.<span class="mth">join</span>(<span class="str">", "</span>));  <span class="cmt">// ▶ "alma, armud, üzüm"</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">meyvələr</span>.<span class="mth">join</span>(<span class="str">" - "</span>)); <span class="cmt">// ▶ "alma - armud - üzüm"</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">meyvələr</span>.<span class="mth">join</span>(<span class="str">""</span>));    <span class="cmt">// ▶ "almaarmudüzüm"</span>
+
+<span class="cmt">// ───────── flat() — iç-içə array-i düzləşdir ─────────</span>
+<span class="kw">let</span> <span class="var_">iç_içə</span> = <span class="arr">[</span><span class="num">1</span>, <span class="arr">[</span><span class="num">2</span>, <span class="num">3</span><span class="arr">]</span>, <span class="arr">[</span><span class="num">4</span>, <span class="arr">[</span><span class="num">5</span>, <span class="num">6</span><span class="arr">]</span><span class="arr">]</span><span class="arr">]</span>;
+
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">iç_içə</span>.<span class="mth">flat</span>());      <span class="cmt">// ▶ [1,2,3,4,[5,6]]  (1 səviyyə)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">iç_içə</span>.<span class="mth">flat</span>(<span class="num">2</span>));     <span class="cmt">// ▶ [1,2,3,4,5,6]   (2 səviyyə)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">iç_içə</span>.<span class="mth">flat</span>(<span class="kw">Infinity</span>)); <span class="cmt">// ▶ [1,2,3,4,5,6] (hamısı)</span>
+
+<span class="cmt">// ───────── fill() ─────────</span>
+<span class="kw">let</span> <span class="var_">sifir</span> = <span class="kw">new</span> <span class="fn">Array</span>(<span class="num">5</span>).<span class="mth">fill</span>(<span class="num">0</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">sifir</span>); <span class="cmt">// ▶ [0,0,0,0,0]</span>
+
+<span class="kw">let</span> <span class="var_">arr</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span><span class="arr">]</span>;
+<span class="var_">arr</span>.<span class="mth">fill</span>(<span class="num">9</span>, <span class="num">1</span>, <span class="num">4</span>); <span class="cmt">// indeks 1-3 arası 9 ilə doldur:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">arr</span>); <span class="cmt">// ▶ [1,9,9,9,5]</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 9 — BUGS -->
+<!-- ============================================================ -->
+<section id="sec9">
+  <div class="section-label">Bölmə 09</div>
+  <h2><span class="num">9.</span> 🐛 Ən Çox Rast Gəlinən Bug-lar</h2>
+  <p class="section-intro">
+    Hər proqramçı bu xətaları bir dəfə edir. Onları əvvəlcədən bilsən, saatlarla debug etməkdən xilas olursan.
+  </p>
+
+  <div class="card">
+    <h3><span class="icon">🐛</span> Bug 1 — sort() rəqəmləri yanlış sıralayır</h3>
+    <p>sort() standart olaraq elementləri string kimi müqayisə edir. Rəqəmlər üçün müqayisə funksiyası vermək şərtdir.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>bug-sort.js</span>
+    </div>
+    <pre><code><span class="cmt">// ❌ BUG:</span>
+<span class="arr">[</span><span class="num">5</span>, <span class="num">10</span>, <span class="num">1</span>, <span class="num">100</span>, <span class="num">25</span><span class="arr">]</span>.<span class="mth">sort</span>();
+<span class="cmt">// ▶ [1, 10, 100, 25, 5]  ← "10" < "25" çünki "1" < "2" (?!)</span>
+
+<span class="cmt">// ✅ DÜZGÜN:</span>
+<span class="arr">[</span><span class="num">5</span>, <span class="num">10</span>, <span class="num">1</span>, <span class="num">100</span>, <span class="num">25</span><span class="arr">]</span>.<span class="mth">sort</span>((<span class="var_">a</span>,<span class="var_">b</span>) => <span class="var_">a</span> - <span class="var_">b</span>);
+<span class="cmt">// ▶ [1, 5, 10, 25, 100]  ✅</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3><span class="icon">🐛</span> Bug 2 — Referans ilə kopyalama</h3>
+    <p>Array-i <code>=</code> ilə başqa dəyişkənə mənimsətsən, kopyalanmır — eyni array-ə <strong>işarə edir</strong>. Birini dəyişsən digəri də dəyişir!</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>bug-reference.js</span>
+    </div>
+    <pre><code><span class="cmt">// ❌ BUG — kopyalama yox, referans:</span>
+<span class="kw">let</span> <span class="var_">a</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span><span class="arr">]</span>;
+<span class="kw">let</span> <span class="var_">b</span> = <span class="var_">a</span>;      <span class="cmt">// b, a-nı kopyalamadı — hər ikisi eyni yeri göstərir</span>
+<span class="var_">b</span>.<span class="mth">push</span>(<span class="num">4</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">a</span>); <span class="cmt">// ▶ [1,2,3,4]  ← a da dəyişdi! 😱</span>
+
+<span class="cmt">// ✅ Düzgün kopyalama üsulları:</span>
+<span class="kw">let</span> <span class="var_">c</span> = <span class="arr">[</span>...<span class="var_">a</span><span class="arr">]</span>;          <span class="cmt">// spread (ən çox istifadə olunan)</span>
+<span class="kw">let</span> <span class="var_">d</span> = <span class="var_">a</span>.<span class="mth">slice</span>();      <span class="cmt">// slice() ilə kopyala</span>
+<span class="kw">let</span> <span class="var_">e</span> = <span class="arr">[</span>...<span class="var_">a</span><span class="arr">]</span>;
+<span class="var_">e</span>.<span class="mth">push</span>(<span class="num">99</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">a</span>); <span class="cmt">// ▶ [1,2,3,4]  ← dəyişmədi ✅</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">e</span>); <span class="cmt">// ▶ [1,2,3,4,99]</span>
+
+<span class="cmt">// ⚠️ Qeyd: Bu üsullar SƏTHI kopyalamadır.</span>
+<span class="cmt">// İç-içə obyekt/array-lər hələ də paylaşılır!</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3><span class="icon">🐛</span> Bug 3 — typeof ilə array yoxlamaq</h3>
+    <p>Array-lərin typeof nəticəsi <code>"object"</code> olur. Array-i yoxlamaq üçün <code>Array.isArray()</code> istifadə et.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>bug-typeof.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">arr</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span><span class="arr">]</span>;
+
+<span class="cmt">// ❌ YANLIŞ yoxlama:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="kw">typeof</span> <span class="var_">arr</span>);         <span class="cmt">// ▶ "object"  (fərq görünmür)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="kw">typeof</span> {});          <span class="cmt">// ▶ "object"  (eyni!)</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="kw">typeof</span> <span class="kw">null</span>);        <span class="cmt">// ▶ "object"  (JavaScript'in klassik xətası)</span>
+
+<span class="cmt">// ✅ DÜZGÜN yoxlama:</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="fn">Array</span>.<span class="mth">isArray</span>(<span class="var_">arr</span>)); <span class="cmt">// ▶ true  ✅</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="fn">Array</span>.<span class="mth">isArray</span>({}));  <span class="cmt">// ▶ false ✅</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="fn">Array</span>.<span class="mth">isArray</span>(<span class="str">"salam"</span>));<span class="cmt">// ▶ false ✅</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3><span class="icon">🐛</span> Bug 4 — map / filter əvəzinə forEach işlətmək</h3>
+    <p><code>forEach()</code> heçvaxt bir şey qaytarmır (<code>undefined</code>). Dəyər toplamaq istəyirsənsə <code>map()</code> ya <code>filter()</code> işlət.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>bug-foreach-return.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">r</span> = <span class="arr">[</span><span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span><span class="arr">]</span>;
+
+<span class="cmt">// ❌ BUG — forEach heç nə qaytarmır:</span>
+<span class="kw">let</span> <span class="var_">ikiqat</span> = <span class="var_">r</span>.<span class="mth">forEach</span>(<span class="var_">x</span> => <span class="var_">x</span> * <span class="num">2</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">ikiqat</span>); <span class="cmt">// ▶ undefined  ← !!!</span>
+
+<span class="cmt">// ✅ DÜZGÜN — map() yeni array qaytarır:</span>
+<span class="kw">let</span> <span class="var_">doğru</span> = <span class="var_">r</span>.<span class="mth">map</span>(<span class="var_">x</span> => <span class="var_">x</span> * <span class="num">2</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">doğru</span>); <span class="cmt">// ▶ [2,4,6]  ✅</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3><span class="icon">🐛</span> Bug 5 — delete ilə element silmə</h3>
+    <p><code>delete arr[i]</code> elementi silmir, sadəcə <code>undefined</code> ilə əvəz edir. Array-in uzunluğu dəyişmir. Bunun əvəzinə <code>splice()</code> işlət.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>bug-delete.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">arr</span> = <span class="arr">[</span><span class="str">"A"</span>, <span class="str">"B"</span>, <span class="str">"C"</span>, <span class="str">"D"</span><span class="arr">]</span>;
+
+<span class="cmt">// ❌ YANLIŞ:</span>
+<span class="kw">delete</span> <span class="var_">arr</span>[<span class="num">1</span>];
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">arr</span>);        <span class="cmt">// ▶ ["A", undefined, "C", "D"]  ← boşluq!</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">arr</span>.<span class="mth">length</span>); <span class="cmt">// ▶ 4  ← hələ 4!</span>
+
+<span class="cmt">// ✅ DÜZGÜN — splice ilə tam sil:</span>
+<span class="kw">let</span> <span class="var_">arr2</span> = <span class="arr">[</span><span class="str">"A"</span>, <span class="str">"B"</span>, <span class="str">"C"</span>, <span class="str">"D"</span><span class="arr">]</span>;
+<span class="var_">arr2</span>.<span class="mth">splice</span>(<span class="num">1</span>, <span class="num">1</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">arr2</span>);        <span class="cmt">// ▶ ["A","C","D"]  ✅</span>
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">arr2</span>.<span class="mth">length</span>); <span class="cmt">// ▶ 3  ✅</span></code></pre>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h3><span class="icon">🐛</span> Bug 6 — Dövrə içərisində array-i dəyişdirmək</h3>
+    <p>Üzərindən keçdiyin array-i eyni dövrə içərisində dəyişdirsən, gözlənilməz nəticələr çıxar.</p>
+  </div>
+  <div class="code-wrap">
+    <div class="code-header">
+      <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span>bug-loop-mutation.js</span>
+    </div>
+    <pre><code><span class="kw">let</span> <span class="var_">arr</span> = <span class="arr">[</span><span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span><span class="arr">]</span>;
+
+<span class="cmt">// ❌ PROBLEM — dövrə gedərkən splice işlətmək:</span>
+<span class="kw">for</span> (<span class="kw">let</span> <span class="var_">i</span> = <span class="num">0</span>; <span class="var_">i</span> < <span class="var_">arr</span>.<span class="mth">length</span>; <span class="var_">i</span>++) {
+  <span class="kw">if</span> (<span class="var_">arr</span>[<span class="var_">i</span>] % <span class="num">2</span> === <span class="num">0</span>) {
+    <span class="var_">arr</span>.<span class="mth">splice</span>(<span class="var_">i</span>, <span class="num">1</span>); <span class="cmt">// element sildikdə indekslər sürüşür!</span>
+  }
+}
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">arr</span>); <span class="cmt">// ▶ [1,3,5] görünür amma 4 unudula bilir!</span>
+
+<span class="cmt">// ✅ DÜZGÜN — filter() istifadə et:</span>
+<span class="kw">let</span> <span class="var_">tək</span> = <span class="arr">[</span><span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span><span class="arr">]</span>.<span class="mth">filter</span>(<span class="var_">n</span> => <span class="var_">n</span> % <span class="num">2</span> !== <span class="num">0</span>);
+<span class="fn">console</span>.<span class="mth">log</span>(<span class="var_">tək</span>); <span class="cmt">// ▶ [1,3,5]  ✅</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 10 — TABLE -->
+<!-- ============================================================ -->
+<section id="sec10">
+  <div class="section-label">Bölmə 10</div>
+  <h2><span class="num">10.</span> Bütün Metodlar Bir Nəzərə</h2>
+  <p class="section-intro">Aşağıdakı cədvəl bütün array metodlarını qısa şəkildə xülasə edir. Hər dəfə müraciət et!</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Metod</th>
+          <th>Nə edir?</th>
+          <th>Qaytarır</th>
+          <th>Orijinal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>push(...e)</code></td><td>Sona əlavə edir</td><td>Yeni length</td><td>Dəyişir</td></tr>
+        <tr><td><code>pop()</code></td><td>Sondan silir</td><td>Silinen element</td><td>Dəyişir</td></tr>
+        <tr><td><code>unshift(...e)</code></td><td>Əvvələ əlavə edir</td><td>Yeni length</td><td>Dəyişir</td></tr>
+        <tr><td><code>shift()</code></td><td>Əvvəldən silir</td><td>Silinen element</td><td>Dəyişir</td></tr>
+        <tr><td><code>splice(s,d,...e)</code></td><td>Ortadan sil/əlavə et</td><td>Silinen elementlər</td><td>Dəyişir</td></tr>
+        <tr><td><code>sort(fn?)</code></td><td>Sıralayır</td><td>Array özü</td><td>Dəyişir</td></tr>
+        <tr><td><code>reverse()</code></td><td>Tərsinə çevirir</td><td>Array özü</td><td>Dəyişir</td></tr>
+        <tr><td><code>fill(v,s?,e?)</code></td><td>Aralığı dəyərlə doldurur</td><td>Array özü</td><td>Dəyişir</td></tr>
+        <tr><td><code>copyWithin()</code></td><td>İç kopyalama</td><td>Array özü</td><td>Dəyişir</td></tr>
+        <tr><td><code>slice(s?,e?)</code></td><td>Parça kopyalayır</td><td>Yeni array</td><td>Dəyişmir</td></tr>
+        <tr><td><code>concat(...a)</code></td><td>Array-ləri birləşdirir</td><td>Yeni array</td><td>Dəyişmir</td></tr>
+        <tr><td><code>map(fn)</code></td><td>Hər elementi çevirir</td><td>Yeni array</td><td>Dəyişmir</td></tr>
+        <tr><td><code>filter(fn)</code></td><td>Şərtə uyanları götürür</td><td>Yeni array</td><td>Dəyişmir</td></tr>
+        <tr><td><code>flat(d?)</code></td><td>Iç-içəni düzləşdirir</td><td>Yeni array</td><td>Dəyişmir</td></tr>
+        <tr><td><code>flatMap(fn)</code></td><td>map + flat(1)</td><td>Yeni array</td><td>Dəyişmir</td></tr>
+        <tr><td><code>reduce(fn,init)</code></td><td>Hamısını bir dəyərə yığır</td><td>İstənilən dəyər</td><td>Dəyişmir</td></tr>
+        <tr><td><code>reduceRight(fn)</code></td><td>Sağdan başlayaraq reduce</td><td>İstənilən dəyər</td><td>Dəyişmir</td></tr>
+        <tr><td><code>forEach(fn)</code></td><td>Hər element üçün iş görür</td><td>undefined</td><td>Dəyişmir</td></tr>
+        <tr><td><code>find(fn)</code></td><td>İlk uyğun element</td><td>Element / undefined</td><td>Dəyişmir</td></tr>
+        <tr><td><code>findIndex(fn)</code></td><td>İlk uyğun indeks</td><td>İndeks / -1</td><td>Dəyişmir</td></tr>
+        <tr><td><code>findLast(fn)</code></td><td>Sondan ilk uyğun element</td><td>Element / undefined</td><td>Dəyişmir</td></tr>
+        <tr><td><code>findLastIndex(fn)</code></td><td>Sondan ilk uyğun indeks</td><td>İndeks / -1</td><td>Dəyişmir</td></tr>
+        <tr><td><code>indexOf(v)</code></td><td>İlk tapılan indeks</td><td>İndeks / -1</td><td>Dəyişmir</td></tr>
+        <tr><td><code>lastIndexOf(v)</code></td><td>Sondan tapılan indeks</td><td>İndeks / -1</td><td>Dəyişmir</td></tr>
+        <tr><td><code>includes(v)</code></td><td>Var mı yox mu?</td><td>true / false</td><td>Dəyişmir</td></tr>
+        <tr><td><code>some(fn)</code></td><td>Biri uyğun gelir mi?</td><td>true / false</td><td>Dəyişmir</td></tr>
+        <tr><td><code>every(fn)</code></td><td>Hamısı uyğun gəlir mi?</td><td>true / false</td><td>Dəyişmir</td></tr>
+        <tr><td><code>join(s?)</code></td><td>Elementləri birləşdirir</td><td>String</td><td>Dəyişmir</td></tr>
+        <tr><td><code>at(i)</code></td><td>Mənfi indekslə element gətirir</td><td>Element</td><td>Dəyişmir</td></tr>
+        <tr><td><code>Array.isArray(v)</code></td><td>Array-dir mi?</td><td>true / false</td><td>—</td></tr>
+        <tr><td><code>Array.from(v)</code></td><td>Array-ə çevirir</td><td>Yeni array</td><td>—</td></tr>
+        <tr><td><code>Array.of(...v)</code></td><td>Dəyərlərdən array yaradır</td><td>Yeni array</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip" style="margin-top:20px">
+    <strong>💡 Son Məsləhət:</strong> Hər metodun orijinalı dəyişdirib-dəyişdirmədiyini bilmək çox vacibdir. Ümumiyyətlə: <strong>push/pop/shift/unshift/splice/sort/reverse/fill → dəyişdirir</strong>; <strong>map/filter/slice/concat/reduce/flat → dəyişdirmir</strong> — bunu yadda saxla!
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p>JavaScript Array Dərsliyi · Azərbaycan dilində · DejaVu font ilə hazırlanmışdır</p>
+  <p style="margin-top:6px;font-size:11px">Hər kod nümunəsi brauzerin DevTools konsolunda (F12) sınaqdan keçirilə bilər</p>
+</footer>
+
+<!-- ===== SCROLL TO TOP ===== -->
+<button id="totop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Yuxarıya">↑</button>
+
+<script>
+  // Progress bar + scroll-to-top button
+  const prog  = document.getElementById('prog');
+  const totop = document.getElementById('totop');
+
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total    = document.body.scrollHeight - window.innerHeight;
+    const pct      = total > 0 ? (scrolled / total) * 100 : 0;
+    prog.style.width = pct + '%';
+    totop.classList.toggle('vis', scrolled > 300);
+  });
+</script>
+</body>
+</html>

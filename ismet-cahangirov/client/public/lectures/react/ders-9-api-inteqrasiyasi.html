@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 9 — API İnteqrasiyası | React Kursu</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0A0E1A;
+  --bg-soft:#0D1220;
+  --surface:#131A2C;
+  --surface-2:#1B2438;
+  --surface-3:#212C46;
+  --border:#263252;
+  --border-soft:#1B2338;
+  --text:#E7ECF7;
+  --text-dim:#A6B0C8;
+  --text-faint:#69749076;
+  --text-faint-solid:#6B7690;
+  --blue:#5B9CF6;
+  --green:#45D483;
+  --amber:#F0B94A;
+  --red:#F2685C;
+  --purple:#B18CF5;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:14px;
+  --radius-sm:8px;
+  --maxw:1180px;
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(91,156,246,0.10), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 10%, rgba(69,212,131,0.06), transparent 55%);
+  pointer-events:none;
+  z-index:0;
+}
+img,svg{display:block;max-width:100%;}
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;letter-spacing:-0.01em;margin:0;color:var(--text);}
+p{margin:0 0 1em;color:var(--text-dim);}
+code,pre,.mono{font-family:var(--font-mono);}
+ul{margin:0;padding:0;}
+button{font-family:inherit;cursor:pointer;}
+
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:4px;}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1;}
+
+/* ---------- HERO ---------- */
+.hero{padding:56px 0 40px;}
+.eyebrow-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:13px;
+  letter-spacing:0.06em;
+  color:var(--green);
+  background:rgba(69,212,131,0.1);
+  border:1px solid rgba(69,212,131,0.28);
+  padding:4px 10px;
+  border-radius:999px;
+}
+.duration-badge{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--amber);
+  background:rgba(240,185,74,0.1);
+  border:1px solid rgba(240,185,74,0.28);
+  padding:4px 10px;
+  border-radius:999px;
+}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.05;margin-bottom:14px;}
+.hero h1 .accent{color:var(--blue);}
+.hero-desc{font-size:18px;max-width:620px;color:var(--text-dim);margin-bottom:22px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px;}
+.tag{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  color:var(--text-faint-solid);
+  border:1px solid var(--border);
+  padding:5px 10px;
+  border-radius:6px;
+}
+
+/* devtools mock */
+.devtools{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+}
+.devtools-top{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 16px;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--border);
+}
+.dots{display:flex;gap:6px;}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dot-r{background:#F2685C;}
+.dot-y{background:#F0B94A;}
+.dot-g{background:#45D483;}
+.devtools-url{
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  color:var(--text-faint-solid);
+  background:var(--bg-soft);
+  border:1px solid var(--border-soft);
+  border-radius:6px;
+  padding:5px 12px;
+  flex:1;
+  max-width:360px;
+}
+.devtools-tab{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--text-dim);
+  padding:8px 16px 0;
+}
+.devtools-tab span{
+  display:inline-block;padding-bottom:8px;border-bottom:2px solid var(--blue);color:var(--text);
+}
+.network-scroll{overflow-x:auto;}
+table.network-table{width:100%;border-collapse:collapse;min-width:520px;}
+.network-table thead th{
+  text-align:left;
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--text-faint-solid);
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+}
+.network-table td{
+  padding:11px 16px;
+  border-bottom:1px solid var(--border-soft);
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--text-dim);
+  white-space:nowrap;
+}
+.network-table tr:last-child td{border-bottom:none;}
+.method{
+  display:inline-block;
+  font-size:11px;
+  font-weight:600;
+  padding:2px 7px;
+  border-radius:5px;
+  margin-right:10px;
+  letter-spacing:0.03em;
+}
+.method.get{background:rgba(91,156,246,0.14);color:var(--blue);border:1px solid rgba(91,156,246,0.32);}
+.method.post{background:rgba(69,212,131,0.14);color:var(--green);border:1px solid rgba(69,212,131,0.32);}
+.method.put{background:rgba(240,185,74,0.14);color:var(--amber);border:1px solid rgba(240,185,74,0.32);}
+.method.delete{background:rgba(242,104,92,0.14);color:var(--red);border:1px solid rgba(242,104,92,0.32);}
+.method.patch{background:rgba(177,140,245,0.14);color:var(--purple);border:1px solid rgba(177,140,245,0.32);}
+.status{font-weight:600;}
+.status.ok{color:var(--green);}
+.status.pending{color:var(--amber);}
+.status.pending::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-left:6px;animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
+
+/* ---------- AGENDA PILLS ---------- */
+.agenda{padding:0 0 48px;}
+.agenda-row{display:flex;flex-wrap:wrap;gap:10px;}
+.pill{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:13px;
+  color:var(--text-dim);
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:9px 14px;border-radius:999px;
+  transition:border-color .15s,color .15s;
+}
+.pill:hover{border-color:var(--blue);color:var(--text);text-decoration:none;}
+.pill .num{color:var(--text-faint-solid);}
+
+/* ---------- LAYOUT: sidebar + main ---------- */
+.layout{display:grid;grid-template-columns:1fr;gap:0;padding-bottom:80px;}
+.sidebar{display:none;}
+.side-nav{position:sticky;top:24px;padding:20px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+.side-nav-title{font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint-solid);margin-bottom:12px;}
+.side-nav a{
+  display:block;font-size:14px;color:var(--text-dim);padding:7px 10px;border-radius:7px;margin-bottom:2px;border-left:2px solid transparent;
+}
+.side-nav a:hover{color:var(--text);text-decoration:none;background:var(--surface-2);}
+.side-nav a.active{color:var(--blue);border-left-color:var(--blue);background:rgba(91,156,246,0.08);}
+
+main{min-width:0;}
+
+/* ---------- SECTIONS ---------- */
+section.block{padding:20px 0 56px;border-top:1px solid var(--border-soft);}
+.block:first-of-type{border-top:none;}
+.block-head{margin-bottom:28px;}
+.block-kicker{font-family:var(--font-mono);font-size:12.5px;color:var(--blue);letter-spacing:0.05em;margin-bottom:8px;text-transform:uppercase;}
+.block-head h2{font-size:clamp(24px,3.4vw,34px);margin-bottom:10px;}
+.block-head p{font-size:16px;max-width:680px;}
+
+/* topic cards */
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+.topic-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+  border-top:3px solid var(--blue);
+}
+.topic-card.c-blue{border-top-color:var(--blue);}
+.topic-card.c-green{border-top-color:var(--green);}
+.topic-card.c-amber{border-top-color:var(--amber);}
+.topic-card.c-red{border-top-color:var(--red);}
+.topic-card.c-purple{border-top-color:var(--purple);}
+.topic-num{font-family:var(--font-mono);font-size:13px;color:var(--text-faint-solid);margin-bottom:10px;}
+.topic-card h3{font-size:19px;margin-bottom:10px;}
+.topic-card p{font-size:14.5px;margin-bottom:10px;}
+.topic-card ul{margin:10px 0;padding-left:0;list-style:none;}
+.topic-card li{font-size:14.5px;color:var(--text-dim);padding-left:18px;position:relative;margin-bottom:6px;}
+.topic-card li::before{content:"→";position:absolute;left:0;color:var(--text-faint-solid);}
+
+.full-width-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;margin-bottom:20px;
+}
+.full-width-card h3{font-size:19px;margin-bottom:12px;}
+
+/* tables */
+.table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-sm);margin:16px 0;}
+table.data-table{width:100%;border-collapse:collapse;min-width:480px;background:var(--surface);}
+.data-table th{
+  text-align:left;font-size:12.5px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.04em;
+  color:var(--text-faint-solid);padding:12px 16px;background:var(--surface-2);border-bottom:1px solid var(--border);
+}
+.data-table td{padding:12px 16px;font-size:14.5px;color:var(--text-dim);border-bottom:1px solid var(--border-soft);}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table code{background:var(--surface-2);padding:2px 6px;border-radius:4px;font-size:13px;color:var(--text);}
+
+/* vs comparison */
+.vs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin:20px 0;}
+.vs-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+.vs-card h4{font-family:var(--font-mono);font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.vs-card.fetch h4{color:var(--blue);}
+.vs-card.axios h4{color:var(--purple);}
+.vs-card ul{list-style:none;}
+.vs-card li{font-size:14.5px;color:var(--text-dim);padding:7px 0;border-bottom:1px dashed var(--border-soft);}
+.vs-card li:last-child{border-bottom:none;}
+.vs-card li b{color:var(--text);font-weight:600;}
+
+/* code blocks */
+.code-source{display:none;}
+.code-block{
+  background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius-sm);
+  overflow:hidden;margin:16px 0;
+}
+.code-block-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;background:var(--surface-2);border-bottom:1px solid var(--border);
+}
+.code-lang{font-family:var(--font-mono);font-size:12px;color:var(--text-faint-solid);letter-spacing:0.04em;}
+.copy-btn{
+  font-family:var(--font-mono);font-size:12px;color:var(--text-dim);background:transparent;border:1px solid var(--border);
+  padding:4px 10px;border-radius:6px;transition:color .15s,border-color .15s;
+}
+.copy-btn:hover{color:var(--text);border-color:var(--blue);}
+.code-block pre{margin:0;padding:16px;overflow-x:auto;}
+.code-block code{font-size:13.5px;line-height:1.65;color:var(--text-dim);white-space:pre;}
+.tok-kw{color:var(--purple);}
+.tok-str{color:var(--green);}
+.tok-com{color:var(--text-faint-solid);font-style:italic;}
+.tok-num{color:var(--amber);}
+
+.note{
+  display:flex;gap:12px;background:rgba(91,156,246,0.06);border:1px solid rgba(91,156,246,0.25);
+  border-radius:var(--radius-sm);padding:14px 16px;margin:16px 0;font-size:14.5px;color:var(--text-dim);
+}
+.note b{color:var(--text);}
+.note.warn{background:rgba(240,185,74,0.06);border-color:rgba(240,185,74,0.25);}
+.note.danger{background:rgba(242,104,92,0.06);border-color:rgba(242,104,92,0.25);}
+
+/* spinner demo */
+.demo-box{
+  display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:22px;margin:16px 0;flex-wrap:wrap;
+}
+.spinner{
+  width:30px;height:30px;border-radius:50%;
+  border:3px solid var(--surface-3);border-top-color:var(--blue);
+  animation:spin 0.8s linear infinite;flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.demo-error{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:rgba(242,104,92,0.08);border:1px solid rgba(242,104,92,0.3);
+  border-radius:var(--radius-sm);padding:14px 16px;color:var(--text);font-size:14.5px;flex:1;
+}
+.demo-error button{
+  font-family:var(--font-mono);font-size:12.5px;background:var(--red);color:#1a0806;border:none;
+  padding:6px 12px;border-radius:6px;font-weight:600;
+}
+
+/* task section */
+.task-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:20px 0 8px;}
+.req-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;font-size:14px;color:var(--text-dim);display:flex;gap:10px;}
+.req-check{
+  flex-shrink:0;width:20px;height:20px;border-radius:6px;background:rgba(69,212,131,0.15);color:var(--green);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:1px solid rgba(69,212,131,0.35);
+}
+
+.preview-frame{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin:24px 0;
+}
+.preview-label{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint-solid);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:16px;}
+.user-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
+.user-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;}
+.user-avatar{
+  width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:14px;color:#0A0E1A;margin-bottom:10px;
+}
+.user-card h4{font-size:15px;margin-bottom:4px;color:var(--text);}
+.user-card p{font-size:12.5px;color:var(--text-faint-solid);margin-bottom:2px;}
+
+/* FAQ */
+.faq-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:12px;overflow:hidden;
+}
+.faq-item summary{
+  list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;gap:12px;font-family:var(--font-display);
+  font-weight:600;font-size:15.5px;color:var(--text);
+}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{
+  content:"+";margin-left:auto;font-family:var(--font-mono);font-size:18px;color:var(--text-faint-solid);transition:transform .2s;
+}
+.faq-item[open] summary::after{transform:rotate(45deg);}
+.faq-body{padding:0 18px 18px 18px;font-size:14.5px;color:var(--text-dim);}
+.faq-body p{font-size:14.5px;}
+
+/* bug cards */
+.bug-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;}
+.bug-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;
+}
+.bug-code{
+  display:inline-block;font-family:var(--font-mono);font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:5px;margin-bottom:12px;letter-spacing:0.02em;
+}
+.bug-code.sev-high{background:rgba(242,104,92,0.14);color:var(--red);border:1px solid rgba(242,104,92,0.3);}
+.bug-code.sev-mid{background:rgba(240,185,74,0.14);color:var(--amber);border:1px solid rgba(240,185,74,0.3);}
+.bug-code.sev-info{background:rgba(91,156,246,0.14);color:var(--blue);border:1px solid rgba(91,156,246,0.3);}
+.bug-card h4{font-size:16px;margin-bottom:8px;}
+.bug-card .lbl{font-family:var(--font-mono);font-size:11px;color:var(--text-faint-solid);text-transform:uppercase;letter-spacing:0.05em;margin:10px 0 3px;}
+.bug-card p{font-size:14px;margin-bottom:0;}
+
+/* reco */
+.reco-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.reco-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.reco-card .reco-icon{
+  width:34px;height:34px;border-radius:9px;background:rgba(69,212,131,0.12);color:var(--green);border:1px solid rgba(69,212,131,0.3);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;margin-bottom:12px;
+}
+.reco-card h4{font-size:15.5px;margin-bottom:6px;}
+.reco-card p{font-size:14px;margin-bottom:0;}
+
+/* summary checklist */
+.summary-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;}
+.check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px 24px;margin-top:16px;}
+.check-item{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--text-dim);}
+.check-item .ck{
+  flex-shrink:0;width:18px;height:18px;border-radius:5px;background:rgba(69,212,131,0.15);border:1px solid rgba(69,212,131,0.35);
+  color:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:2px;
+}
+
+footer{padding:32px 0 60px;border-top:1px solid var(--border-soft);text-align:center;}
+footer p{font-size:13.5px;color:var(--text-faint-solid);margin:0;}
+
+/* ---------- RESPONSIVE ---------- */
+@media(min-width:860px){
+  .hero{padding:72px 0 48px;}
+}
+@media(min-width:1180px){
+  .layout{grid-template-columns:240px 1fr;gap:44px;align-items:start;}
+  .sidebar{display:block;padding-top:8px;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}
+  html{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap hero">
+  <div class="eyebrow-row">
+    <span class="eyebrow">React Kursu · Dərs 9</span>
+    <span class="duration-badge">⏱ ≈ 2.5 saat</span>
+  </div>
+  <h1>API <span class="accent">İnteqrasiyası</span></h1>
+  <p class="hero-desc">React tətbiqini xarici məlumat mənbələri ilə necə əlaqələndirmək lazım olduğunu öyrənirik: sorğu göndərmək, nəticəni gözləmək, xətaları düzgün idarə etmək və köhnə sorğuların yeni datanı əvəz etməsinin qarşısını almaq.</p>
+  <div class="tag-row">
+    <span class="tag">React</span>
+    <span class="tag">useEffect</span>
+    <span class="tag">Fetch API</span>
+    <span class="tag">Axios</span>
+    <span class="tag">async / await</span>
+    <span class="tag">JSONPlaceholder</span>
+  </div>
+
+  <div class="devtools">
+    <div class="devtools-top">
+      <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="devtools-url">localhost:3000/react-kursu/ders-9</span>
+    </div>
+    <div class="devtools-tab"><span>Network</span></div>
+    <div class="network-scroll">
+      <table class="network-table">
+        <thead>
+          <tr><th>Ad</th><th>Status</th><th>Növ</th><th>Vaxt</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="method get">GET</span>ders-9/nezeri-hisse</td>
+            <td class="status ok">200 OK</td>
+            <td>fetch</td>
+            <td>90 dəq</td>
+          </tr>
+          <tr>
+            <td><span class="method post">POST</span>ders-9/praktiki-hisse</td>
+            <td class="status ok">200 OK</td>
+            <td>xhr</td>
+            <td>45 dəq</td>
+          </tr>
+          <tr>
+            <td><span class="method put">PUT</span>ders-9/tapshiriq</td>
+            <td class="status ok">200 OK</td>
+            <td>fetch</td>
+            <td>15 dəq</td>
+          </tr>
+          <tr>
+            <td><span class="method patch">PATCH</span>ders-9/sual-cavab</td>
+            <td class="status pending">pending</td>
+            <td>fetch</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="wrap agenda">
+  <div class="agenda-row">
+    <a class="pill" href="#nezeri"><span class="num">01</span> Nəzəri hissə</a>
+    <a class="pill" href="#praktiki"><span class="num">02</span> Praktiki hissə</a>
+    <a class="pill" href="#tapshiriq"><span class="num">03</span> Tapşırıq</a>
+    <a class="pill" href="#faq"><span class="num">04</span> Tez-tez verilən suallar</a>
+    <a class="pill" href="#buglar"><span class="num">05</span> Xətalar &amp; buglar</a>
+    <a class="pill" href="#tovsiyeler"><span class="num">06</span> Tövsiyələr</a>
+    <a class="pill" href="#yekun"><span class="num">07</span> Yekun</a>
+  </div>
+</div>
+
+<div class="wrap layout">
+  <aside class="sidebar">
+    <nav class="side-nav">
+      <div class="side-nav-title">İçindəkilər</div>
+      <a href="#nezeri" data-nav>Nəzəri hissə</a>
+      <a href="#praktiki" data-nav>Praktiki hissə</a>
+      <a href="#tapshiriq" data-nav>Tapşırıq</a>
+      <a href="#faq" data-nav>FAQ</a>
+      <a href="#buglar" data-nav>Xətalar &amp; buglar</a>
+      <a href="#tovsiyeler" data-nav>Tövsiyələr</a>
+      <a href="#yekun" data-nav>Yekun</a>
+    </nav>
+  </aside>
+
+  <main>
+
+  <!-- ================= NƏZƏRİ HİSSƏ ================= -->
+  <section class="block" id="nezeri">
+    <div class="block-head">
+      <div class="block-kicker">01 · Nəzəri hissə</div>
+      <h2>Əvvəlcə anlayaq, sonra yazaq</h2>
+      <p>Kodu yazmazdan əvvəl altı əsas anlayışı aydınlaşdırırıq. Bunlar React-də API ilə işləyən demək olar ki, hər komponentin əsasını təşkil edir.</p>
+    </div>
+
+    <div class="topic-grid">
+
+      <article class="topic-card c-blue" id="rest-api">
+        <div class="topic-num">01 / 06</div>
+        <h3>REST API əsasları</h3>
+        <p><b>REST</b> (Representational State Transfer) — server ilə client arasında HTTP protokolu üzərindən məlumat mübadiləsi üçün istifadə olunan arxitektura üslubudur. Hər resurs özünəməxsus ünvana (endpoint) malikdir və bu ünvana müxtəlif HTTP metodları ilə müraciət olunur.</p>
+        <ul>
+          <li><code>GET</code> — məlumat almaq</li>
+          <li><code>POST</code> — yeni məlumat yaratmaq</li>
+          <li><code>PUT / PATCH</code> — məlumatı yeniləmək</li>
+          <li><code>DELETE</code> — məlumatı silmək</li>
+        </ul>
+        <p>Cavab adətən <b>JSON</b> formatında qaytarılır və status kodu ilə müşayiət olunur (200, 404, 500 və s.).</p>
+      </article>
+
+      <article class="topic-card c-green" id="fetch-axios">
+        <div class="topic-num">02 / 06</div>
+        <h3>Fetch API vs Axios</h3>
+        <p>Hər ikisi HTTP sorğusu göndərmək üçündür, amma davranışları fərqlidir. Fetch brauzerə daxili gəlir, Axios isə ayrıca kitabxanadır və bir sıra əlverişli funksiyaları özündə birləşdirir.</p>
+        <ul>
+          <li>Fetch — <b>manual</b> JSON çevrilməsi (<code>response.json()</code>)</li>
+          <li>Axios — cavabı <b>avtomatik</b> JSON-a çevirir</li>
+          <li>Axios — 4xx/5xx statuslarını avtomatik xəta kimi tanıyır</li>
+          <li>Fetch — <code>response.ok</code>-u özün yoxlamalısan</li>
+        </ul>
+      </article>
+
+      <article class="topic-card c-amber" id="useeffect-struktur">
+        <div class="topic-num">03 / 06</div>
+        <h3>useEffect daxilində data fetching</h3>
+        <p>Sorğu birbaşa komponentin gövdəsində deyil, <code>useEffect</code> daxilində göndərilməlidir. Əks halda hər render zamanı yeni sorğu gedər və sonsuz dövr yarana bilər.</p>
+        <ul>
+          <li>Asılılıq massivini (<code>[]</code>) düzgün təyin et</li>
+          <li>Sorğunu ayrıca async funksiyaya çıxar</li>
+          <li>Lazım gələrsə cleanup funksiyası qaytar</li>
+        </ul>
+      </article>
+
+      <article class="topic-card c-red" id="state-idareetme">
+        <div class="topic-num">04 / 06</div>
+        <h3>Loading / error / success idarəetməsi</h3>
+        <p>Hər sorğunun üç mümkün nəticəsi var: gözləmə, uğur, xəta. Bunların hər biri üçün ayrıca state saxlamaq interfeysi proqnozlaşdırıla bilən edir.</p>
+        <ul>
+          <li><code>loading</code> — spinner göstər</li>
+          <li><code>error</code> — anlaşıqlı mesaj göstər</li>
+          <li><code>data</code> — uğurlu nəticəni render et</li>
+        </ul>
+      </article>
+
+      <article class="topic-card c-purple" id="async-await">
+        <div class="topic-num">05 / 06</div>
+        <h3>async / await React kontekstində</h3>
+        <p><code>useEffect</code>-in callback funksiyası özü <b>async ola bilməz</b> — çünki React ondan funksiya (cleanup) qaytarılmasını gözləyir, Promise yox. Buna görə daxildə ayrıca async funksiya yaradılır.</p>
+        <ul>
+          <li><code>try / catch / finally</code> strukturu</li>
+          <li>Xətanı tuturuq, işi "finally"-də bitiririk</li>
+        </ul>
+      </article>
+
+      <article class="topic-card c-blue" id="race-condition">
+        <div class="topic-num">06 / 06</div>
+        <h3>Race condition problemi</h3>
+        <p>İstifadəçi tez-tez parametr dəyişdirdikdə (məs. axtarış, ID) əvvəlki sorğu sonradan cavab qaytara və <b>yeni məlumatın üstünü köhnə ilə örtə bilər</b>.</p>
+        <ul>
+          <li>Cleanup flag (<code>ignore</code>) üsulu</li>
+          <li><code>AbortController</code> ilə sorğunu ləğv etmək</li>
+        </ul>
+      </article>
+
+    </div>
+
+    <!-- Fetch vs Axios comparison table -->
+    <div class="full-width-card">
+      <h3>Fetch və Axios — yanaşı müqayisə</h3>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Xüsusiyyət</th><th>Fetch API</th><th>Axios</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Quraşdırma</td><td>Lazım deyil (daxili)</td><td><code>npm install axios</code></td></tr>
+            <tr><td>JSON çevrilməsi</td><td>Manual — <code>.json()</code></td><td>Avtomatik</td></tr>
+            <tr><td>Xəta idarəetməsi (4xx/5xx)</td><td>Xəta kimi tanımır, <code>response.ok</code> yoxlanmalı</td><td>Avtomatik <code>catch</code>-ə düşür</td></tr>
+            <tr><td>Request timeout</td><td>Manual (AbortController)</td><td>Hazır <code>timeout</code> parametri</td></tr>
+            <tr><td>Interceptors</td><td>Yoxdur</td><td>Var (request/response)</td></tr>
+            <tr><td>Köhnə brauzer dəstəyi</td><td>Məhdud</td><td>Geniş</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="vs-grid">
+        <div class="vs-card fetch">
+          <h4>fetch()</h4>
+          <textarea class="code-source" data-lang="JavaScript" readonly>useEffect(() => {
+  fetch("https://jsonplaceholder.typicode.com/users")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Server xətası: " + response.status);
+      }
+      return response.json();
+    })
+    .then((data) => setUsers(data))
+    .catch((error) => setError(error.message));
+}, []);</textarea>
+        </div>
+        <div class="vs-card axios">
+          <h4>axios.get()</h4>
+          <textarea class="code-source" data-lang="JavaScript" readonly>useEffect(() => {
+  axios
+    .get("https://jsonplaceholder.typicode.com/users")
+    .then((response) => setUsers(response.data))
+    .catch((error) => setError(error.message));
+}, []);</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- useEffect structure -->
+    <div class="full-width-card">
+      <h3>useEffect strukturu — səhv və düzgün</h3>
+      <div class="note danger"><b>Diqqət:</b> Asılılıq massivi olmadan komponent daxilində state güncəllənən fetch çağırışı sonsuz render dövrü yaradır.</div>
+      <textarea class="code-source" data-lang="JavaScript" readonly>// SƏHV — asılılıq massivi yoxdur, hər render-də təkrar işə düşür
+useEffect(() => {
+  fetchUsers();
+});
+
+// DÜZGÜN — boş massiv, yalnız ilk render-də bir dəfə işləyir
+useEffect(() => {
+  fetchUsers();
+}, []);</textarea>
+    </div>
+
+    <!-- state pattern -->
+    <div class="full-width-card">
+      <h3>Loading / error / success — tam nümunə</h3>
+      <textarea class="code-source" data-lang="JSX" readonly>function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await axios.get(
+          "https://jsonplaceholder.typicode.com/users"
+        );
+        setUsers(response.data);
+      } catch (err) {
+        setError("Məlumatları yükləmək mümkün olmadı.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return &lt;p&gt;Yüklənir...&lt;/p&gt;;
+  if (error) return &lt;p&gt;{error}&lt;/p&gt;;
+
+  return (
+    &lt;ul&gt;
+      {users.map((user) =&gt; (
+        &lt;li key={user.id}&gt;{user.name}&lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}</textarea>
+    </div>
+
+    <!-- async/await -->
+    <div class="full-width-card">
+      <h3>async / await — tez-tez rast gəlinən səhv</h3>
+      <textarea class="code-source" data-lang="JavaScript" readonly>// SƏHV — useEffect callback-i birbaşa async ola bilməz
+useEffect(async () => {
+  const data = await fetchUsers();
+  setUsers(data);
+}, []);
+
+// DÜZGÜN — daxildə ayrıca async funksiya təyin edib çağırırıq
+useEffect(() => {
+  const load = async () => {
+    const data = await fetchUsers();
+    setUsers(data);
+  };
+  load();
+}, []);</textarea>
+      <div class="note"><b>Niyə?</b> React <code>useEffect</code>-dən ya heç nə, ya da cleanup funksiyası qaytarılmasını gözləyir. async funksiya isə həmişə Promise qaytarır — bu, React-i çaşdırır və xəbərdarlıq (warning) yaradır.</div>
+    </div>
+
+    <!-- race condition -->
+    <div class="full-width-card">
+      <h3>Race condition — iki həll yolu</h3>
+      <p>Fərz edək ki, istifadəçi <code>userId</code> parametrini sürətlə dəyişir (məsələn siyahıdan başqa profilə klikləyir). Əvvəlki sorğu gecikə bilər və sonradan qayıdıb <b>yeni datanın üstünü köhnə ilə örtə bilər</b>. Bunun qarşısını iki üsulla almaq olar:</p>
+
+      <h4 class="lbl" style="margin-top:18px;color:var(--text);font-size:14.5px;">1. Cleanup flag (ignore) üsulu</h4>
+      <textarea class="code-source" data-lang="JavaScript" readonly>useEffect(() => {
+  let ignore = false;
+
+  const fetchData = async () => {
+    const response = await axios.get(`/api/users/${userId}`);
+    if (!ignore) {
+      setUser(response.data);
+    }
+  };
+
+  fetchData();
+
+  return () => {
+    ignore = true;
+  };
+}, [userId]);</textarea>
+
+      <h4 class="lbl" style="margin-top:18px;color:var(--text);font-size:14.5px;">2. AbortController üsulu</h4>
+      <textarea class="code-source" data-lang="JavaScript" readonly>useEffect(() => {
+  const controller = new AbortController();
+
+  fetch(`/api/users/${userId}`, { signal: controller.signal })
+    .then((res) => res.json())
+    .then((data) => setUser(data))
+    .catch((err) => {
+      if (err.name !== "AbortError") {
+        setError(err.message);
+      }
+    });
+
+  return () => controller.abort();
+}, [userId]);</textarea>
+      <div class="note"><b>Fərq:</b> <code>ignore</code> üsulu sadədir, amma sorğu artıq göndərilmiş olur (nəticəni sadəcə nəzərə almırıq). <code>AbortController</code> isə şəbəkə sorğusunu real mənada ləğv edir — trafik və server resursuna qənaət edir.</div>
+    </div>
+
+  </section>
+
+  <!-- ================= PRAKTİKİ HİSSƏ ================= -->
+  <section class="block" id="praktiki">
+    <div class="block-head">
+      <div class="block-kicker">02 · Praktiki hissə</div>
+      <h2>Kodu yazmağa başlayaq</h2>
+      <p>İndi nəzəriyyəni real layihədə tətbiq edirik: Axios quraşdırılır, JSONPlaceholder API-dən məlumat çəkilir, loading və error vəziyyətləri göstərilir.</p>
+    </div>
+
+    <div class="full-width-card">
+      <div class="topic-num">Addım 01</div>
+      <h3>Axios quraşdırılması</h3>
+      <p>Layihə qovluğunda terminalı açıb aşağıdakı əmrlərdən birini icra edin:</p>
+      <textarea class="code-source" data-lang="Bash" readonly>npm install axios
+# və ya
+yarn add axios</textarea>
+      <p>Böyük layihələrdə hər dəfə tam URL yazmamaq üçün mərkəzləşdirilmiş bir Axios nüsxəsi yaratmaq faydalıdır:</p>
+      <textarea class="code-source" data-lang="JavaScript" readonly>// src/api/client.js
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "https://jsonplaceholder.typicode.com",
+  timeout: 5000,
+});
+
+export default api;</textarea>
+    </div>
+
+    <div class="full-width-card">
+      <div class="topic-num">Addım 02</div>
+      <h3>JSONPlaceholder-dən məlumat çəkmək</h3>
+      <p><a href="https://jsonplaceholder.typicode.com" target="_blank" rel="noopener">JSONPlaceholder</a> — test məqsədilə pulsuz istifadə oluna bilən saxta REST API-dir. <code>/users</code> endpoint-i 10 istifadəçidən ibarət siyahı qaytarır.</p>
+      <textarea class="code-source" data-lang="JavaScript" readonly>import { useEffect, useState } from "react";
+import api from "./api/client";
+
+function useUsers() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        const { data } = await api.get("/users");
+        if (!ignore) setUsers(data);
+      } catch (err) {
+        if (!ignore) setError("İstifadəçilər yüklənə bilmədi.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  return { users, loading, error };
+}</textarea>
+    </div>
+
+    <div class="full-width-card">
+      <div class="topic-num">Addım 03</div>
+      <h3>Loading spinner və error mesajları</h3>
+      <p>Aşağıda sadə bir spinner-in real animasiyası göstərilir (yalnız nümayiş üçün) və xəta zamanı istifadəçiyə göstərilə biləcək bir bildiriş nümunəsi:</p>
+
+      <div class="demo-box">
+        <div class="spinner" role="status" aria-label="Yüklənir"></div>
+        <span style="color:var(--text-dim);font-size:14.5px;">Yüklənir...</span>
+      </div>
+      <div class="demo-box">
+        <div class="demo-error">
+          <span>⚠️ Məlumatları yükləmək mümkün olmadı. İnternet bağlantınızı yoxlayın.</span>
+          <button type="button">Yenidən cəhd et</button>
+        </div>
+      </div>
+
+      <textarea class="code-source" data-lang="CSS" readonly>.spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid #e5e7eb;
+  border-top-color: #5b9cf6;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}</textarea>
+
+      <textarea class="code-source" data-lang="JSX" readonly>function ErrorMessage({ message, onRetry }) {
+  return (
+    &lt;div className="error-box"&gt;
+      &lt;p&gt;⚠️ {message}&lt;/p&gt;
+      &lt;button onClick={onRetry}&gt;Yenidən cəhd et&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</textarea>
+    </div>
+  </section>
+
+  <!-- ================= TAPŞIRIQ ================= -->
+  <section class="block" id="tapshiriq">
+    <div class="block-head">
+      <div class="block-kicker">03 · Tapşırıq</div>
+      <h2>İstifadəçi siyahısını kart şəklində göstər</h2>
+      <p>JSONPlaceholder-in <code>/users</code> endpoint-indən məlumatları çəkib, hər istifadəçini responsiv kart komponentində göstərən <code>UserList</code> komponenti qur.</p>
+    </div>
+
+    <div class="task-grid">
+      <div class="req-card"><span class="req-check">✓</span> Axios ilə istifadəçi siyahısı çəkilməli</div>
+      <div class="req-card"><span class="req-check">✓</span> Yüklənmə zamanı spinner göstərilməli</div>
+      <div class="req-card"><span class="req-check">✓</span> Xəta zamanı anlaşıqlı mesaj çıxmalı</div>
+      <div class="req-card"><span class="req-check">✓</span> Hər kartda: ad, email, şirkət, telefon</div>
+      <div class="req-card"><span class="req-check">✓</span> Grid responsiv olmalı (mobil → 1, desktop → 3 sütun)</div>
+      <div class="req-card"><span class="req-check">✓</span> Bonus: ada görə axtarış input-u əlavə et</div>
+    </div>
+
+    <div class="preview-frame">
+      <div class="preview-label">Gözlənilən nəticə — canlı önizləmə</div>
+      <div class="user-grid">
+        <div class="user-card">
+          <div class="user-avatar">LG</div>
+          <h4>Leanne Graham</h4>
+          <p>Sincere@april.biz</p>
+          <p>Romaguera-Crona</p>
+          <p>1-770-736-8031</p>
+        </div>
+        <div class="user-card">
+          <div class="user-avatar">EH</div>
+          <h4>Ervin Howell</h4>
+          <p>Shanna@melissa.tv</p>
+          <p>Deckow-Crist</p>
+          <p>010-692-6593</p>
+        </div>
+        <div class="user-card">
+          <div class="user-avatar">CB</div>
+          <h4>Clementine Bauch</h4>
+          <p>Nathan@yesenia.net</p>
+          <p>Romaguera-Jacobson</p>
+          <p>1-463-123-4447</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="full-width-card">
+      <h3>Nümunə həll</h3>
+      <textarea class="code-source" data-lang="JSX" readonly>import { useEffect, useState } from "react";
+import axios from "axios";
+
+function UserCard({ user }) {
+  return (
+    &lt;div className="user-card"&gt;
+      &lt;h3&gt;{user.name}&lt;/h3&gt;
+      &lt;p&gt;{user.email}&lt;/p&gt;
+      &lt;p&gt;{user.company.name}&lt;/p&gt;
+      &lt;p&gt;{user.phone}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(
+          "https://jsonplaceholder.typicode.com/users"
+        );
+        if (!ignore) setUsers(res.data);
+      } catch (err) {
+        if (!ignore) setError("İstifadəçiləri yükləmək alınmadı.");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    fetchUsers();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  if (loading) return &lt;Spinner /&gt;;
+  if (error) return &lt;ErrorMessage message={error} /&gt;;
+
+  return (
+    &lt;div className="user-grid"&gt;
+      {users.map((user) =&gt; (
+        &lt;UserCard key={user.id} user={user} /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}</textarea>
+      <textarea class="code-source" data-lang="CSS" readonly>.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.user-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+}</textarea>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="block" id="faq">
+    <div class="block-head">
+      <div class="block-kicker">04 · FAQ</div>
+      <h2>Tez-tez verilən suallar</h2>
+      <p>Kursda bu mövzu ilə bağlı ən çox verilən suallar və ətraflı cavablar.</p>
+    </div>
+
+    <details class="faq-item" open>
+      <summary><span class="method get">GET</span> Fetch çağırışını komponentin harasında etmək düzgündür?</summary>
+      <div class="faq-body">
+        <p>Yalnız <code>useEffect</code> daxilində. Əgər fetch çağırışını birbaşa komponentin gövdəsində (render zamanı) yerləşdirsən, hər render zamanı yeni sorğu göndəriləcək — və sorğunun nəticəsi state-i dəyişdirdiyi üçün bu, yeni render yaradıb sonsuz dövrə səbəb olacaq.</p>
+        <p>İstisna: istifadəçinin klikləməsi kimi bir hadisə (event handler) daxilində fetch çağırmaq tamamilə düzgündür — məsələn "Yadda saxla" düyməsinə basılanda POST sorğusu göndərmək. Fərq ondadır ki, bu halda sorğu render zamanı deyil, konkret hərəkətə cavab olaraq gedir.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="method put">PUT</span> Race condition necə həll olunur (cleanup, AbortController)?</summary>
+      <div class="faq-body">
+        <p>Yuxarıda ətraflı izah olunduğu kimi, iki əsas üsul var: <b>cleanup flag</b> (<code>let ignore = false</code>, useEffect təmizlənəndə <code>true</code> edilir və nəticə tətbiq olunmur) və <b>AbortController</b> (sorğunu fiziki olaraq ləğv edir).</p>
+        <p>Praktik tövsiyə: kiçik layihələrdə <code>ignore</code> flag kifayət edir, çünki sadədir. İstifadəçi sürətlə axtarış edən (search-as-you-type) interfeyslərdə isə <code>AbortController</code> daha yaxşıdır, çünki lazımsız sorğular şəbəkəni yükləməzdən əvvəl dayandırılır.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="method delete">DELETE</span> Xəta baş verərsə istifadəçiyə necə düzgün mesaj göstərmək olar?</summary>
+      <div class="faq-body">
+        <p>Üç qaydaya əməl et:</p>
+        <p>1) Texniki xəta mətnini (stack trace, "Network Error" kimi) birbaşa istifadəçiyə göstərmə — onun əvəzinə anlaşıqlı, insan dilində mesaj yaz: <i>"Məlumatları yükləmək mümkün olmadı, bir az sonra yenidən cəhd edin."</i></p>
+        <p>2) Xətanın növünə görə fərqləndir: şəbəkə xətası (internet yoxdur), 404 (tapılmadı), 500 (server problemi) — hər biri üçün fərqli mesaj daha faydalıdır.</p>
+        <p>3) Əsl texniki xətanı isə <code>console.error(err)</code> ilə developer üçün konsola yaz ki, debug etmək asan olsun. Mümkünsə "Yenidən cəhd et" düyməsi əlavə et.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="method post">POST</span> useEffect asılılıq massivini niyə düzgün doldurmaq vacibdir?</summary>
+      <div class="faq-body">
+        <p>Asılılıq massivi React-ə deyir: "bu dəyərlərdən biri dəyişəndə effekti təkrar işə sal". Əgər effekt daxilində istifadə olunan bir dəyəri (məsələn <code>userId</code>) massivə əlavə etməsən, effekt köhnə dəyərlə "qıfıllanmış" (stale closure) qalar və ID dəyişəndə belə köhnə istifadəçini göstərməyə davam edər.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="method patch">PATCH</span> Niyə development rejimində sorğu iki dəfə göndərilir?</summary>
+      <div class="faq-body">
+        <p>Bu bug deyil. React 18-in <b>Strict Mode</b> rejimi development zamanı komponentləri qəsdən mount → unmount → mount edir ki, təmizlənməmiş effektləri (yəni cleanup-u unudulmuş kodları) tez aşkar etsin. Production build-də bu davranış olmur, sorğu yalnız bir dəfə gedir. Əgər cleanup funksiyanı düzgün yazmısansa (yuxarıdakı race condition nümunələrinə bax), bu heç bir problem yaratmır.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ================= BUGLAR ================= -->
+  <section class="block" id="buglar">
+    <div class="block-head">
+      <div class="block-kicker">05 · Diqqət</div>
+      <h2>Olası xətalar və buglar</h2>
+      <p>API inteqrasiyası zamanı tələbələrin ən çox rastlaşdığı problemlər — səbəbi və həlli ilə birlikdə.</p>
+    </div>
+
+    <div class="bug-grid">
+      <div class="bug-card">
+        <span class="bug-code sev-high">INFINITE_LOOP</span>
+        <h4>Sonsuz sorğu dövrü</h4>
+        <p class="lbl">Səbəb</p>
+        <p>useEffect-in asılılıq massivi unudulub, ya da massivə obyekt/funksiya kimi hər render-də yeni yaranan bir dəyər verilib.</p>
+        <p class="lbl">Həll</p>
+        <p>Massivi boş qoy (<code>[]</code>) və ya yalnız primitiv dəyərlər (id, string) əlavə et; funksiyaları <code>useCallback</code> ilə sabitləşdir.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-info">STRICT_MODE_2X</span>
+        <h4>Effekt iki dəfə işə düşür</h4>
+        <p class="lbl">Səbəb</p>
+        <p>Development rejimində React Strict Mode effektləri qəsdən iki dəfə çağırır (bax: FAQ).</p>
+        <p class="lbl">Həll</p>
+        <p>Narahat olma — production-da baş vermir. Amma cleanup funksiyasının düzgün yazıldığından əmin ol.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-mid">RACE_CONDITION</span>
+        <h4>Köhnə sorğu yeni datanı əvəz edir</h4>
+        <p class="lbl">Səbəb</p>
+        <p>Parametr (məs. ID) sürətlə dəyişir, əvvəlki sorğu gecikərək sonradan qayıdır və son nəticəni üstələyir.</p>
+        <p class="lbl">Həll</p>
+        <p><code>ignore</code> flag və ya <code>AbortController</code> istifadə et.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-mid">UNMOUNTED_STATE</span>
+        <h4>"Can't perform state update on unmounted component"</h4>
+        <p class="lbl">Səbəb</p>
+        <p>Komponent artıq DOM-dan silinib, amma hələ də cavab gözlənilən sorğu <code>setState</code> çağırmağa çalışır.</p>
+        <p class="lbl">Həll</p>
+        <p>Cleanup funksiyasında flag təyin et, ya da <code>AbortController</code> ilə sorğunu ləğv et.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-high">CORS_BLOCKED</span>
+        <h4>CORS xətası</h4>
+        <p class="lbl">Səbəb</p>
+        <p>Brauzer başqa domenə göndərilən sorğunu təhlükəsizlik səbəbindən bloklayır, çünki server müvafiq CORS header-lərini qaytarmır.</p>
+        <p class="lbl">Həll</p>
+        <p>Server tərəfdə <code>Access-Control-Allow-Origin</code> header-i əlavə edilməli. Test üçün JSONPlaceholder kimi API-lər CORS-a artıq icazə verir.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-mid">MISSING_CATCH</span>
+        <h4>Xəta tutulmur, səssiz uğursuzluq</h4>
+        <p class="lbl">Səbəb</p>
+        <p><code>try/catch</code> yazılmayıb və ya <code>.catch()</code> unudulub — sorğu uğursuz olanda istifadəçi heç nə görmür, konsolda "Unhandled promise rejection" xəbərdarlığı çıxır.</p>
+        <p class="lbl">Həll</p>
+        <p>Hər async fetch əməliyyatını <code>try/catch</code> ilə əhatə et və <code>error</code> state-i istifadəçiyə göstər.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-mid">NO_LOADING_STATE</span>
+        <h4>Loading state-i unutmaq</h4>
+        <p class="lbl">Səbəb</p>
+        <p>Sorğu davam edərkən ekran boş qalır, istifadəçi tətbiqin "asılıb" olduğunu düşünə bilər.</p>
+        <p class="lbl">Həll</p>
+        <p><code>loading</code> state-i əlavə et və spinner və ya skeleton göstər.</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-info">MISSING_KEY</span>
+        <h4>.map() zamanı key prop unudulub</h4>
+        <p class="lbl">Səbəb</p>
+        <p>Massiv render edilərkən hər elementə unikal <code>key</code> verilmir — React konsolda xəbərdarlıq verir və render performansı zəifləyə bilər.</p>
+        <p class="lbl">Həll</p>
+        <p>Hər elementə unikal, sabit ID ver: <code>key={user.id}</code> (index-dən qaçın, xüsusən sıralama dəyişəndə).</p>
+      </div>
+
+      <div class="bug-card">
+        <span class="bug-code sev-high">NULL_REFERENCE</span>
+        <h4>"Cannot read properties of undefined"</h4>
+        <p class="lbl">Səbəb</p>
+        <p>İlkin state <code>undefined</code> təyin olunub, amma render zamanı üzərində <code>.map()</code> çağırılıb — data hələ gəlməyib.</p>
+        <p class="lbl">Həll</p>
+        <p>İlkin state-i həmişə düzgün tipdə təyin et: <code>useState([])</code>, obyekt gözlənirsə <code>useState(null)</code> və render-də yoxlama et.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TÖVSİYƏLƏR ================= -->
+  <section class="block" id="tovsiyeler">
+    <div class="block-head">
+      <div class="block-kicker">06 · Növbəti addım</div>
+      <h2>Nələri etsək daha yaxşı olar</h2>
+      <p>Tapşırığı bitirdikdən sonra kodu daha da təkmilləşdirmək üçün faydalı adətlər.</p>
+    </div>
+
+    <div class="reco-grid">
+      <div class="reco-card">
+        <div class="reco-icon">↺</div>
+        <h4>Custom hook — useFetch()</h4>
+        <p>Fetch məntiqini <code>useUsers()</code> kimi ayrıca hook-a çıxarmaq kodun təkrarını azaldır və komponenti sadə saxlayır.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">⚡</div>
+        <h4>React Query / SWR</h4>
+        <p>Böyük layihələrdə caching, avtomatik refetch, retry və "stale-while-revalidate" strategiyasını əl ilə yazmaq əvəzinə hazır kitabxanadan istifadə et.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">🔧</div>
+        <h4>Axios instance + interceptors</h4>
+        <p>Mərkəzləşdirilmiş <code>baseURL</code>, auth token əlavə etmək və xətaları bir yerdə idarə etmək üçün Axios interceptor-larından istifadə et.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">⏱</div>
+        <h4>Axtarışı debounce et</h4>
+        <p>İstifadəçi yazarkən hər hərfdən sonra sorğu göndərmək əvəzinə, 300-500ms gecikmə ilə (debounce) sorğu göndər — server yükünü azaldar.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">▦</div>
+        <h4>Skeleton loading</h4>
+        <p>Sadə spinner əvəzinə, gələcək kontentin formasını təqlid edən skeleton komponentləri UX-i daha "hamar" edir.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">⛨</div>
+        <h4>Error Boundary əlavə et</h4>
+        <p>Render zamanı gözlənilməz xətaların bütün tətbiqi çökdürməsinin qarşısını almaq üçün Error Boundary komponenti istifadə et.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">🔑</div>
+        <h4>Environment dəyişənləri</h4>
+        <p>API URL-lərini kodda hardcode etmə — <code>.env</code> faylında saxla (<code>VITE_API_URL</code> və s.), mühitlər arasında keçidi asanlaşdır.</p>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon">TS</div>
+        <h4>TypeScript ilə tip təhlükəsizliyi</h4>
+        <p>API-dən gələn cavabın formasını <code>interface User {}</code> kimi təyin etmək səhvləri kompilyasiya mərhələsində tutur.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= YEKUN ================= -->
+  <section class="block" id="yekun">
+    <div class="block-head">
+      <div class="block-kicker">07 · Yekun</div>
+      <h2>Dərsi bitirməzdən əvvəl yoxla</h2>
+    </div>
+
+    <div class="summary-box">
+      <p style="margin-bottom:0;">Bu dərsi tam mənimsədiyini yoxlamaq üçün aşağıdakı siyahını gözdən keçir:</p>
+      <div class="check-grid">
+        <div class="check-item"><span class="ck">✓</span> REST metodlarının (GET, POST, PUT, DELETE) nə üçün istifadə olunduğunu izah edə bilirəm</div>
+        <div class="check-item"><span class="ck">✓</span> Fetch və Axios arasındakı əsas fərqləri sadalaya bilirəm</div>
+        <div class="check-item"><span class="ck">✓</span> Fetch çağırışını yalnız useEffect daxilində edirəm</div>
+        <div class="check-item"><span class="ck">✓</span> loading / error / data state-lərini ayrıca idarə edirəm</div>
+        <div class="check-item"><span class="ck">✓</span> useEffect-in özünü async etmirəm, daxildə ayrıca funksiya yazıram</div>
+        <div class="check-item"><span class="ck">✓</span> Race condition-ı cleanup flag və ya AbortController ilə həll edə bilirəm</div>
+        <div class="check-item"><span class="ck">✓</span> Xəta mesajlarını istifadəçi dilində, anlaşıqlı yazıram</div>
+        <div class="check-item"><span class="ck">✓</span> .map() ilə render edərkən unikal key verirəm</div>
+      </div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Dərs 9 — API İnteqrasiyası · React Kursu materialı</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  function escapeHtml(str){
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  var KEYWORD_RE = /\b(const|let|var|function|async|await|return|import|from|export|default|if|else|try|catch|finally|new|true|false|null|undefined|this|class|extends|typeof|of|in|throw|switch|case|break|useState|useEffect|useCallback|useMemo)\b/;
+
+  function highlightCode(raw){
+    var escaped = escapeHtml(raw);
+    var pattern = /(\/\/[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(const|let|var|function|async|await|return|import|from|export|default|if|else|try|catch|finally|new|true|false|null|undefined|this|class|extends|typeof|of|in|throw|switch|case|break|useState|useEffect|useCallback|useMemo)\b|\b(\d+\.?\d*)\b/g;
+    return escaped.replace(pattern, function(m, com, str, kw, num){
+      if (com) return '<span class="tok-com">' + com + '</span>';
+      if (str) return '<span class="tok-str">' + str + '</span>';
+      if (kw) return '<span class="tok-kw">' + kw + '</span>';
+      if (num) return '<span class="tok-num">' + num + '</span>';
+      return m;
+    });
+  }
+
+  function buildCodeBlocks(){
+    var textareas = document.querySelectorAll("textarea.code-source");
+    textareas.forEach(function(ta){
+      var raw = ta.value;
+      var lang = ta.getAttribute("data-lang") || "code";
+
+      var wrapper = document.createElement("div");
+      wrapper.className = "code-block";
+
+      var head = document.createElement("div");
+      head.className = "code-block-head";
+
+      var langSpan = document.createElement("span");
+      langSpan.className = "code-lang";
+      langSpan.textContent = lang;
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "copy-btn";
+      btn.textContent = "Kopyala";
+      btn.addEventListener("click", function(){
+        var text = raw;
+        var done = function(){
+          btn.textContent = "Kopyalandı!";
+          setTimeout(function(){ btn.textContent = "Kopyala"; }, 1600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(done).catch(function(){});
+        }
+      });
+
+      head.appendChild(langSpan);
+      head.appendChild(btn);
+
+      var pre = document.createElement("pre");
+      var codeEl = document.createElement("code");
+      codeEl.innerHTML = highlightCode(raw);
+      pre.appendChild(codeEl);
+
+      wrapper.appendChild(head);
+      wrapper.appendChild(pre);
+
+      ta.parentNode.insertBefore(wrapper, ta);
+      ta.parentNode.removeChild(ta);
+    });
+  }
+
+  function scrollSpy(){
+    var navLinks = document.querySelectorAll("[data-nav]");
+    if (!navLinks.length) return;
+    var sections = [];
+    navLinks.forEach(function(link){
+      var id = link.getAttribute("href").slice(1);
+      var el = document.getElementById(id);
+      if (el) sections.push({ id: id, el: el, link: link });
+    });
+    if (!("IntersectionObserver" in window) || !sections.length) return;
+
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var match = sections.find(function(s){ return s.el === entry.target; });
+        if (!match) return;
+        if (entry.isIntersecting){
+          navLinks.forEach(function(l){ l.classList.remove("active"); });
+          match.link.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
+
+    sections.forEach(function(s){ observer.observe(s.el); });
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    buildCodeBlocks();
+    scrollSpy();
+  });
+})();
+</script>
+
+</body>
+</html>

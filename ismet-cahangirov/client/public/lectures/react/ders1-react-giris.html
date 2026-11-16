@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dərs 1 — React-a Giriş, JSX və Layihə Qurulumu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0f14;
+    --bg-soft: #0f151c;
+    --panel: #131a22;
+    --panel-2: #1a232d;
+    --panel-3: #202b37;
+    --border: #263140;
+    --border-soft: #1c2530;
+    --text: #e7edf3;
+    --text-dim: #93a2b3;
+    --text-faint: #5d6b7c;
+    --cyan: #4fd1c5;
+    --cyan-dim: #2c5f5b;
+    --amber: #f0b459;
+    --amber-dim: #4a3c22;
+    --pink: #e58fb0;
+    --green: #7ee787;
+    --green-dim: #23422a;
+    --red: #ff7b72;
+    --red-dim: #4a2323;
+    --purple: #b48ce8;
+    --radius: 14px;
+    --font-display: 'Sora', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(79,209,197,0.10), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(180,140,232,0.08), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--cyan-dim); color:#fff; }
+
+  a{color:var(--cyan);}
+
+  .wrap{ max-width:960px; margin:0 auto; padding:0 clamp(16px,4vw,32px); }
+
+  /* ---------- TOP NAV ---------- */
+  .topnav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(11,15,20,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .topnav-inner{
+    max-width:960px; margin:0 auto; padding:0 clamp(16px,4vw,32px);
+    display:flex; align-items:center; gap:14px; height:52px;
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .topnav-inner::-webkit-scrollbar{display:none;}
+  .topnav-brand{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--cyan);
+    white-space:nowrap; padding-right:10px; border-right:1px solid var(--border);
+  }
+  .topnav a.pill{
+    font-family:var(--font-mono); font-size:12px; color:var(--text-dim);
+    text-decoration:none; white-space:nowrap; padding:6px 10px;
+    border-radius:100px; border:1px solid transparent;
+    transition:all .15s ease;
+  }
+  .topnav a.pill:hover{ color:var(--text); border-color:var(--border); background:var(--panel); }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:clamp(40px,7vw,72px) 0 28px; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:12.5px; letter-spacing:.04em;
+    color:var(--cyan); background:rgba(79,209,197,0.08);
+    border:1px solid rgba(79,209,197,0.25);
+    padding:5px 12px; border-radius:100px; margin-bottom:20px;
+  }
+  .eyebrow::before{ content:"●"; font-size:8px; color:var(--green); }
+
+  h1.title{
+    font-family:var(--font-display); font-weight:700;
+    font-size:clamp(28px,5.4vw,46px); line-height:1.15; margin:0 0 16px;
+    letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--cyan); }
+
+  .hero-sub{ color:var(--text-dim); font-size:clamp(15px,2vw,17.5px); max-width:640px; margin:0 0 28px; }
+
+  .meta-row{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:36px; }
+  .meta-chip{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim);
+    background:var(--panel); border:1px solid var(--border);
+    padding:8px 14px; border-radius:10px;
+  }
+  .meta-chip b{ color:var(--text); font-weight:600; }
+
+  /* Agenda */
+  .agenda{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+    padding:clamp(18px,3vw,28px); margin-bottom:8px;
+  }
+  .agenda h3{
+    font-family:var(--font-mono); font-size:12.5px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--text-faint); margin:0 0 16px; font-weight:600;
+  }
+  .agenda-list{ display:grid; gap:2px; }
+  .agenda-item{
+    display:flex; align-items:baseline; gap:14px; text-decoration:none;
+    padding:10px 8px; border-radius:8px; transition:background .15s ease;
+  }
+  .agenda-item:hover{ background:var(--panel-2); }
+  .agenda-num{ font-family:var(--font-mono); color:var(--text-faint); font-size:13px; min-width:22px; }
+  .agenda-name{ color:var(--text); font-size:14.5px; font-weight:500; }
+  .agenda-time{ margin-left:auto; font-family:var(--font-mono); color:var(--text-faint); font-size:12px; }
+
+  /* ---------- SECTIONS ---------- */
+  section.topic{ padding:clamp(48px,8vw,76px) 0; border-top:1px solid var(--border-soft); }
+  section.topic:first-of-type{ border-top:none; }
+
+  .topic-eyebrow{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--text-faint);
+    margin-bottom:10px; display:flex; align-items:center; gap:10px;
+  }
+  .topic-eyebrow .num{
+    color:var(--cyan); background:rgba(79,209,197,0.1); border:1px solid rgba(79,209,197,0.3);
+    width:26px; height:26px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center;
+    font-weight:600;
+  }
+
+  h2.topic-title{
+    font-family:var(--font-display); font-weight:700;
+    font-size:clamp(22px,3.6vw,32px); margin:0 0 18px; letter-spacing:-0.01em;
+  }
+
+  .lead{ font-size:16.5px; color:var(--text-dim); max-width:700px; margin:0 0 20px; }
+
+  p{ font-size:15.5px; color:#c9d3dd; margin:0 0 16px; max-width:720px; }
+  strong{ color:var(--text); font-weight:600; }
+
+  ul.bullets, ol.bullets{ margin:0 0 20px; padding-left:0; list-style:none; max-width:720px; }
+  ul.bullets li, ol.bullets li{
+    position:relative; padding-left:26px; margin-bottom:12px; font-size:15.5px; color:#c9d3dd;
+  }
+  ul.bullets li::before{
+    content:"▸"; position:absolute; left:0; top:0; color:var(--cyan); font-size:14px;
+  }
+  ol.bullets{ counter-reset:ol-count; }
+  ol.bullets li{ counter-increment:ol-count; }
+  ol.bullets li::before{
+    content:counter(ol-count); position:absolute; left:0; top:0; color:var(--cyan);
+    font-family:var(--font-mono); font-size:12.5px; font-weight:600;
+  }
+
+  /* Code blocks */
+  .code-block{
+    background:#0d1218; border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; margin:20px 0; max-width:100%;
+  }
+  .code-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 16px; background:var(--panel-2); border-bottom:1px solid var(--border);
+    font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint);
+  }
+  .code-dots{ display:flex; gap:6px; }
+  .code-dots span{ width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .code-dots span:nth-child(1){ background:#ff5f56; }
+  .code-dots span:nth-child(2){ background:#ffbd2e; }
+  .code-dots span:nth-child(3){ background:#27c93f; }
+  .code-block pre{
+    margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--font-mono);
+    font-size:13px; line-height:1.7; color:#dbe4ee;
+  }
+  .code-block code{ font-family:var(--font-mono); }
+  .tk-tag{ color:var(--pink); }
+  .tk-attr{ color:var(--amber); }
+  .tk-str{ color:var(--green); }
+  .tk-cmt{ color:var(--text-faint); font-style:italic; }
+  .tk-kw{ color:var(--purple); }
+  .tk-fn{ color:var(--cyan); }
+  .tk-punc{ color:var(--text-dim); }
+
+  /* Callouts */
+  .callout{
+    border-radius:12px; padding:18px 20px; margin:22px 0; border:1px solid; max-width:720px;
+  }
+  .callout-head{
+    display:flex; align-items:center; gap:9px; font-weight:700; font-size:13.5px;
+    margin-bottom:10px; font-family:var(--font-mono); letter-spacing:.02em;
+  }
+  .callout p, .callout li{ margin-bottom:8px; font-size:14.5px; }
+  .callout ul{ margin:0; padding-left:20px; }
+  .callout li{ padding-left:2px; }
+  .callout li::before{ display:none; }
+
+  .callout.error{ background:rgba(255,123,114,0.06); border-color:rgba(255,123,114,0.3); }
+  .callout.error .callout-head{ color:var(--red); }
+  .callout.tip{ background:rgba(126,231,135,0.06); border-color:rgba(126,231,135,0.3); }
+  .callout.tip .callout-head{ color:var(--green); }
+  .callout.info{ background:rgba(79,209,197,0.06); border-color:rgba(79,209,197,0.3); }
+  .callout.info .callout-head{ color:var(--cyan); }
+  .callout.warn{ background:rgba(240,180,89,0.07); border-color:rgba(240,180,89,0.35); }
+  .callout.warn .callout-head{ color:var(--amber); }
+
+  /* Tables */
+  .table-wrap{ overflow-x:auto; margin:22px 0; border:1px solid var(--border); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; min-width:520px; }
+  th{
+    text-align:left; font-family:var(--font-mono); font-size:12px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--text-faint); background:var(--panel-2);
+    padding:12px 16px; border-bottom:1px solid var(--border); white-space:nowrap;
+  }
+  td{
+    padding:13px 16px; font-size:14px; color:#c9d3dd; border-bottom:1px solid var(--border-soft);
+    vertical-align:top;
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.ok{ color:var(--green); }
+  td.bad{ color:var(--red); }
+
+  /* Compare grid (HTML vs JSX) */
+  .compare-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0; max-width:760px;
+  }
+  .compare-col{ background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .compare-col .lbl{
+    padding:10px 16px; font-family:var(--font-mono); font-size:12px; font-weight:600;
+    letter-spacing:.04em; border-bottom:1px solid var(--border);
+  }
+  .compare-col.html .lbl{ color:var(--amber); background:rgba(240,180,89,0.08); }
+  .compare-col.jsx .lbl{ color:var(--pink); background:rgba(229,143,176,0.08); }
+  .compare-col pre{ margin:0; padding:14px 16px; font-family:var(--font-mono); font-size:12.5px; color:#dbe4ee; overflow-x:auto; }
+  @media (max-width:640px){ .compare-grid{ grid-template-columns:1fr; } }
+
+  /* Virtual DOM diagram */
+  .vdom-diagram{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    margin:32px 0; padding:28px clamp(10px,3vw,26px); background:var(--panel);
+    border:1px solid var(--border); border-radius:16px; max-width:760px; flex-wrap:wrap;
+  }
+  .vdom-box{
+    flex:1; min-width:150px; background:var(--panel-2); border:1px solid var(--border);
+    border-radius:12px; padding:16px; text-align:center;
+  }
+  .vdom-box .vlabel{ font-family:var(--font-mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; }
+  .vdom-tree{ display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .vnode{
+    font-family:var(--font-mono); font-size:11px; padding:4px 10px; border-radius:6px;
+    background:var(--panel-3); border:1px solid var(--border); color:var(--text-dim);
+  }
+  .vnode.changed{
+    color:#0b0f14; background:var(--amber); border-color:var(--amber);
+    animation:pulse 1.8s ease-in-out infinite;
+    font-weight:600;
+  }
+  @keyframes pulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(240,180,89,0.5); }
+    50%{ box-shadow:0 0 0 6px rgba(240,180,89,0); }
+  }
+  .vdom-arrow{
+    font-size:20px; color:var(--text-faint); padding:0 4px; flex-shrink:0;
+  }
+  .vdom-arrow .cap{ display:block; font-family:var(--font-mono); font-size:9.5px; margin-top:4px; color:var(--text-faint); white-space:nowrap; }
+  @media (max-width:640px){
+    .vdom-diagram{ flex-direction:column; }
+    .vdom-arrow{ transform:rotate(90deg); }
+    .vdom-arrow .cap{ transform:rotate(-90deg); margin-top:0; }
+  }
+
+  /* Checklist / recap */
+  .recap-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin:22px 0; max-width:760px; }
+  .recap-card{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px 18px; }
+  .recap-card .rc-title{ font-family:var(--font-mono); font-size:12px; color:var(--cyan); margin-bottom:8px; font-weight:600; }
+  .recap-card p{ font-size:13.5px; margin:0; color:var(--text-dim); }
+  @media (max-width:640px){ .recap-grid{ grid-template-columns:1fr; } }
+
+  .check-list{ list-style:none; padding:0; margin:20px 0; max-width:720px; }
+  .check-list li{
+    display:flex; align-items:flex-start; gap:12px; padding:12px 0;
+    border-bottom:1px solid var(--border-soft); font-size:14.5px; color:#c9d3dd;
+  }
+  .check-list li:last-child{ border-bottom:none; }
+  .check-list .box{
+    flex-shrink:0; width:20px; height:20px; border-radius:6px; border:1.5px solid var(--cyan);
+    display:flex; align-items:center; justify-content:center; margin-top:1px;
+    color:var(--cyan); font-size:12px;
+  }
+
+  footer{
+    padding:40px 0 60px; border-top:1px solid var(--border-soft); margin-top:20px;
+  }
+  footer p{ color:var(--text-faint); font-size:13px; font-family:var(--font-mono); }
+
+  h4.sub{ font-family:var(--font-display); font-size:17px; font-weight:700; margin:28px 0 12px; color:var(--text); }
+
+  @media (max-width:640px){
+    .hero{ padding-top:32px; }
+    p, ul.bullets li, ol.bullets li{ max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <span class="topnav-brand">DƏRS 01</span>
+    <a class="pill" href="#giris">Giriş</a>
+    <a class="pill" href="#mov1">React nədir</a>
+    <a class="pill" href="#mov2">SPA vs MPA</a>
+    <a class="pill" href="#mov3">Virtual DOM</a>
+    <a class="pill" href="#mov4">İş prinsipi</a>
+    <a class="pill" href="#mov5">JSX</a>
+    <a class="pill" href="#mov6">JSX + JS</a>
+    <a class="pill" href="#bonus">Layihə qurulumu</a>
+    <a class="pill" href="#xulase">Xülasə</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero" id="giris">
+    <span class="eyebrow">FRONTEND KURSU · MODUL 1</span>
+    <h1 class="title">Dərs 1 — <span class="accent">React</span>-a Giriş,<br>JSX və Layihə Qurulumu</h1>
+    <p class="hero-sub">
+      Bu dərsdə React-ın niyə yarandığını, brauzerin arxa planında nə baş verdiyini,
+      JSX-in HTML-dən necə fərqləndiyini və ilk React layihəsinin necə qurulduğunu
+      addım-addım, real kod nümunələri və tez-tez rast gəlinən xətalarla birlikdə öyrənəcəyik.
+    </p>
+
+    <div class="meta-row">
+      <div class="meta-chip">⏱ Ümumi müddət: <b>≈2 saat</b></div>
+      <div class="meta-chip">📘 Nəzəri hissə: <b>50 dəqiqə</b></div>
+      <div class="meta-chip">🎯 Səviyyə: <b>Başlanğıc</b></div>
+      <div class="meta-chip">🧩 Tələb olunur: <b>HTML, CSS, JS əsasları</b></div>
+    </div>
+
+    <div class="agenda">
+      <h3>Dərsin planı</h3>
+      <div class="agenda-list">
+        <a class="agenda-item" href="#mov1">
+          <span class="agenda-num">01</span>
+          <span class="agenda-name">React nədir, niyə yaranıb</span>
+          <span class="agenda-time">~8 dəq</span>
+        </a>
+        <a class="agenda-item" href="#mov2">
+          <span class="agenda-num">02</span>
+          <span class="agenda-name">SPA anlayışı və multi-page saytlarla fərqi</span>
+          <span class="agenda-time">~8 dəq</span>
+        </a>
+        <a class="agenda-item" href="#mov3">
+          <span class="agenda-num">03</span>
+          <span class="agenda-name">Virtual DOM konsepsiyası</span>
+          <span class="agenda-time">~10 dəq</span>
+        </a>
+        <a class="agenda-item" href="#mov4">
+          <span class="agenda-num">04</span>
+          <span class="agenda-name">İşləmə prinsipi: komponent → render → DOM</span>
+          <span class="agenda-time">~8 dəq</span>
+        </a>
+        <a class="agenda-item" href="#mov5">
+          <span class="agenda-num">05</span>
+          <span class="agenda-name">JSX sintaksisi və HTML-dən fərqləri</span>
+          <span class="agenda-time">~10 dəq</span>
+        </a>
+        <a class="agenda-item" href="#mov6">
+          <span class="agenda-num">06</span>
+          <span class="agenda-name">JSX daxilində JavaScript ifadələri</span>
+          <span class="agenda-time">~6 dəq</span>
+        </a>
+        <a class="agenda-item" href="#bonus">
+          <span class="agenda-num">+</span>
+          <span class="agenda-name">Bonus: Layihə qurulumu (Vite ilə)</span>
+          <span class="agenda-time">əlavə</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÖVZU 1 -->
+  <section class="topic" id="mov1">
+    <div class="topic-eyebrow"><span class="num">1</span> NƏZƏRİYYƏ</div>
+    <h2 class="topic-title">React nədir və niyə yaranıb?</h2>
+    <p class="lead">
+      React — Facebook (indiki Meta) tərəfindən 2013-cü ildə açıq mənbə kimi təqdim edilmiş,
+      istifadəçi interfeysi (UI) qurmaq üçün istifadə olunan JavaScript kitabxanasıdır.
+      Diqqət edin: React <strong>framework deyil, kitabxanadır</strong> — o, yalnız
+      "görünüşü necə qurmalı" sualına cavab verir, marşrutlama, HTTP sorğuları kimi
+      digər məsələlər üçün ayrı kitabxanalar (React Router, Axios və s.) istifadə olunur.
+    </p>
+
+    <h4 class="sub">jQuery və vanilla JS-in problemi nə idi?</h4>
+    <p>
+      React-dan əvvəl veb-saytlar əsasən <strong>imperativ</strong> yanaşma ilə qurulurdu —
+      yəni proqramçı DOM-a "get element, sonra dəyəri dəyiş, sonra class əlavə et" kimi
+      addım-addım əmrlər verirdi. Facebook-un "Bildirişlər" (Notifications) bölməsi bu
+      problemin klassik nümunəsidir:
+    </p>
+    <ul class="bullets">
+      <li><strong>Data və DOM sinxronizasiyası əl ilə idi.</strong> Server-dən yeni bildiriş
+        gələndə, proqramçı həm say göstəricisini, həm siyahını, həm də səhifə başlığındakı
+        rəqəmi <em>ayrı-ayrılıqda</em> yeniləməli idi. Bir yeri unutsan, interfeys "yalan
+        danışmağa" başlayırdı (say 5 göstərir, siyahıda isə 3 element var).</li>
+      <li><strong>Kod böyüdükcə idarə olunmaz olurdu.</strong> jQuery ilə yazılan layihələrdə
+        yüzlərlə <code>$(".element").on("click", ...)</code> tipli hadisə dinləyicisi bir-birinə
+        qarışır, hansı kodun hansı DOM elementinə təsir etdiyini izləmək çətinləşirdi.
+        Buna qeyri-rəsmi olaraq <strong>"spagetti kod"</strong> deyilir.</li>
+      <li><strong>Yenidən istifadə (reusability) demək olar yox idi.</strong> Eyni "kart" və ya
+        "düymə" dizaynını başqa səhifədə istifadə etmək üçün kodu köçürüb-yapışdırmaq (copy-paste)
+        lazım gəlirdi — komponent anlayışı mövcud deyildi.</li>
+      <li><strong>Test etmək çətin idi.</strong> Məntiq birbaşa DOM-a bağlı olduğu üçün, UI-ni
+        DOM-suz (məsələn avtomatik testlərdə) yoxlamaq demək olar mümkün deyildi.</li>
+    </ul>
+
+    <p>
+      React bu problemləri <strong>deklarativ (declarative)</strong> yanaşma ilə həll etdi:
+      proqramçı "necə etməli" (necə addım-addım DOM-u dəyişməli) yox, "nəyi görmək istəyirəm"
+      izah edir, React isə bunu real DOM-a necə çevirəcəyinə özü qərar verir.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Meyar</th><th>jQuery / Vanilla JS (imperativ)</th><th>React (deklarativ)</th></tr>
+        <tr><td>Yanaşma</td><td>"Bu elementi tap, sonra class-ı dəyiş"</td><td>"Bu state-də UI belə görünməlidir"</td></tr>
+        <tr><td>Data ↔ UI əlaqəsi</td><td>Əl ilə sinxronlaşdırılır</td><td>Avtomatik (state dəyişəndə UI özü yenilənir)</td></tr>
+        <tr><td>Struktur</td><td>Səpələnmiş event handler-lər</td><td>Təkrar istifadə oluna bilən komponentlər</td></tr>
+        <tr><td>Miqyaslanma</td><td>Layihə böyüdükcə çətinləşir</td><td>Komponent modeli sayəsində asanlaşır</td></tr>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-head">⚠ Yayılmış səhv anlayış</div>
+      <ul>
+        <li>"React bütün problemi avtomatik həll edir, JS bilmək lazım deyil" — <strong>yanlışdır.</strong>
+          React sadəcə JavaScript-in üzərində qurulmuş bir vasitədir; closures, array metodları
+          (<code>map</code>, <code>filter</code>), destructuring kimi JS əsaslarını bilmədən
+          React-ı öyrənmək çox çətin olacaq.</li>
+        <li>"React framework-dür" — texniki olaraq React özü <strong>kitabxanadır</strong>;
+          Next.js kimi vasitələr onun üzərində qurulan framework-lərdir.</li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Tövsiyə</div>
+      <p>Bu dərsə başlamazdan əvvəl JS-də <code>let/const</code>, arrow function,
+        array metodları və destructuring mövzularını bir daha nəzərdən keçirin — React-ın
+        90%-i "sadəcə JavaScript"dir, sintaksis üstündə deyil, bu əsaslar üzərində çətinlik çəkəcəksiniz.</p>
+    </div>
+  </section>
+
+  <!-- MÖVZU 2 -->
+  <section class="topic" id="mov2">
+    <div class="topic-eyebrow"><span class="num">2</span> NƏZƏRİYYƏ</div>
+    <h2 class="topic-title">SPA (Single Page Application) anlayışı</h2>
+    <p class="lead">
+      SPA — istifadəçi saytda gəzərkən brauzerin <strong>yalnız bir dəfə</strong> tam HTML
+      səhifəsi yüklədiyi, sonrakı bütün keçidlərin isə JavaScript vasitəsilə, səhifəni
+      yenidən yükləmədən idarə olunduğu tətbiq növüdür.
+    </p>
+
+    <h4 class="sub">Ənənəvi Multi-Page Application (MPA) necə işləyir?</h4>
+    <p>
+      Klassik saytda hər link kliklədikdə brauzer server-ə yeni sorğu göndərir, server
+      <strong>tam yeni HTML faylı</strong> qaytarır və brauzer bütün səhifəni sıfırdan
+      yenidən çəkir (o cümlədən CSS, JS də yenidən yüklənir). Nəticədə qısa bir "ağ ekran
+      yanıb-sönməsi" (flicker) hiss olunur.
+    </p>
+
+    <h4 class="sub">SPA necə işləyir?</h4>
+    <p>
+      SPA-da server ilk dəfə minimal bir <code>index.html</code> və JS bundle-ı göndərir.
+      Bundan sonra "səhifə keçidi" kimi görünən hər şey əslində JavaScript-in (React Router
+      kimi kitabxanaların) DOM-un müəyyən hissəsini dəyişməsidir — server-ə tam səhifə üçün
+      yeni sorğu getmir, lazım gələrsə yalnız data (JSON) üçün kiçik sorğu (fetch/AJAX) atılır.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Xüsusiyyət</th><th>Multi-Page (MPA)</th><th>Single Page (SPA)</th></tr>
+        <tr><td>Səhifə keçidi</td><td>Tam yenidən yüklənir</td><td class="ok">Ani, "yumşaq" keçid</td></tr>
+        <tr><td>İlk yükləmə sürəti</td><td class="ok">Adətən sürətli</td><td>Bundle böyükdürsə yavaş ola bilər</td></tr>
+        <tr><td>SEO (axtarış motorları)</td><td class="ok">Asan — HTML hazır gəlir</td><td>Əlavə iş tələb edir (SSR/SSG)</td></tr>
+        <tr><td>Server yükü</td><td>Hər keçiddə server render edir</td><td class="ok">Əsasən client tərəfdə</td></tr>
+        <tr><td>İstifadəçi təcrübəsi</td><td>"Sıçrayışlı"</td><td class="ok">Tətbiq kimi axıcı</td></tr>
+        <tr><td>Nümunə</td><td>Wikipedia, bloq saytları</td><td>Gmail, Instagram (veb), Trello</td></tr>
+      </table>
+    </div>
+
+    <div class="callout error">
+      <div class="callout-head">✕ Tez-tez rast gəlinən bug / problem</div>
+      <ul>
+        <li><strong>SEO problemi:</strong> Sırf client-side SPA-da axtarış botu səhifəyə
+          gələndə boş <code>&lt;div id="root"&gt;&lt;/div&gt;</code> görə bilər, çünki
+          məzmun JS icra olunandan sonra yaranır. Bu, ictimai (public) saytlar üçün ciddi
+          problem yaradır.</li>
+        <li><strong>İlkin yükləmə (First Load) yavaşlığı:</strong> Bütün tətbiqi bir bundle-da
+          yükləmək JS faylının həddindən artıq böyük olmasına səbəb ola bilər.</li>
+        <li><strong>"Geri" düyməsi qırılması:</strong> Marşrutlama düzgün qurulmayanda brauzerin
+          "geri" düyməsi gözlənilən kimi işləməyə bilər.</li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Yaxşı təcrübə</div>
+      <ul>
+        <li>SEO vacib olan (bloq, e-ticarət, elan saytı) layihələr üçün Next.js kimi
+          server-side rendering (SSR) dəstəkləyən həll seçin.</li>
+        <li>Bundle ölçüsünü azaltmaq üçün <strong>code-splitting</strong> və
+          <strong>lazy loading</strong> (<code>React.lazy</code>) tətbiq edin.</li>
+        <li>Marşrutlama üçün əl ilə DOM manipulyasiyası yox, React Router kimi
+          sınanmış kitabxana istifadə edin.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- MÖVZU 3: VIRTUAL DOM -->
+  <section class="topic" id="mov3">
+    <div class="topic-eyebrow"><span class="num">3</span> NƏZƏRİYYƏ</div>
+    <h2 class="topic-title">Virtual DOM konsepsiyası</h2>
+    <p class="lead">
+      Real DOM (Document Object Model) brauzerin səhifəni yaddaşda saxladığı ağac
+      strukturudur. Problem ondadır ki, real DOM-a hər toxunuş (bir class əlavə etmək belə)
+      brauzerə <strong>reflow</strong> və <strong>repaint</strong> — yəni layout-un
+      yenidən hesablanması və ekranın yenidən çəkilməsi kimi baha başa gələn əməliyyatlar
+      etdirir.
+    </p>
+
+    <p>
+      Virtual DOM — real DOM-un <strong>JavaScript obyekti şəklində yüngül surətidir</strong>.
+      React state və ya props dəyişəndə birbaşa real DOM-a getmir; əvəzinə:
+    </p>
+    <ol class="bullets">
+      <li>Yeni Virtual DOM ağacı yaradılır (yaddaşda, çox sürətli).</li>
+      <li>Bu yeni ağac köhnə Virtual DOM ağacı ilə müqayisə olunur — bu prosesə
+        <strong>"diffing"</strong> (fərqlərin tapılması) deyilir.</li>
+      <li>React yalnız <strong>faktiki dəyişən</strong> node-ları müəyyən edir və bu
+        dəyişiklikləri bir yerə (batch) toplayaraq yalnız bir dəfə real DOM-a tətbiq edir —
+        buna <strong>"reconciliation"</strong> (barışdırma) deyilir.</li>
+    </ol>
+
+    <p>Aşağıdakı diaqram bu prosesi sadələşdirilmiş şəkildə göstərir: yalnız dəyişən node
+      (narıncı) real DOM-da yenilənir, qalanlarına toxunulmur.</p>
+
+    <div class="vdom-diagram">
+      <div class="vdom-box">
+        <div class="vlabel">Komponent (JSX)</div>
+        <div class="vdom-tree">
+          <span class="vnode">&lt;App /&gt;</span>
+          <span class="vnode">&lt;Header /&gt;</span>
+          <span class="vnode changed">&lt;Counter: 5 /&gt;</span>
+          <span class="vnode">&lt;Footer /&gt;</span>
+        </div>
+      </div>
+      <div class="vdom-arrow">→<span class="cap">diffing</span></div>
+      <div class="vdom-box">
+        <div class="vlabel">Virtual DOM (yeni)</div>
+        <div class="vdom-tree">
+          <span class="vnode">div</span>
+          <span class="vnode">header</span>
+          <span class="vnode changed">span: "5"</span>
+          <span class="vnode">footer</span>
+        </div>
+      </div>
+      <div class="vdom-arrow">→<span class="cap">yalnız fərq</span></div>
+      <div class="vdom-box">
+        <div class="vlabel">Real DOM</div>
+        <div class="vdom-tree">
+          <span class="vnode">div</span>
+          <span class="vnode">header</span>
+          <span class="vnode changed">span: "5"</span>
+          <span class="vnode">footer</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Xüsusiyyət</th><th>Real DOM</th><th>Virtual DOM</th></tr>
+        <tr><td>Yenilənmə sürəti</td><td>Yavaş (reflow/repaint bahalıdır)</td><td class="ok">Sürətli (JS obyekti üzərində)</td></tr>
+        <tr><td>Yeniləmə üsulu</td><td>Hər dəyişiklik dərhal tətbiq olunur</td><td class="ok">Dəyişikliklər toplanıb (batch) tətbiq olunur</td></tr>
+        <tr><td>Yaddaş modeli</td><td>Brauzerin öz strukturu</td><td>Yüngül JS obyekti</td></tr>
+        <tr><td>Kim idarə edir</td><td>Brauzer</td><td>React (kitabxana səviyyəsində)</td></tr>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-head">⚠ Diqqət — yayılmış yanlış anlayış</div>
+      <p>"Virtual DOM həmişə real DOM-dan sürətlidir" ifadəsi <strong>tam dəqiq deyil</strong>.
+        Virtual DOM-un əsl üstünlüyü xam sürət deyil, <strong>proqramçının iş prosesini
+        asanlaşdırması və orta hesabla effektiv performans verməsidir</strong>. Düzgün
+        optimallaşdırılmamış komponentlərdə (məsələn hər kiçik dəyişiklikdə bütün böyük
+        siyahının yenidən render olunması) Virtual DOM da performans problemi yarada bilər.</p>
+    </div>
+
+    <div class="callout error">
+      <div class="callout-head">✕ Ən çox rast gəlinən bug: <code>key</code> prop-u</div>
+      <p>Siyahı (list) render edərkən React-a hər elementi fərqləndirmək üçün unikal
+        <code>key</code> lazımdır. Bunu unutmaq və ya massivin indeksini
+        (<code>index</code>) key kimi istifadə etmək aşağıdakı problemlərə səbəb olur:</p>
+      <ul>
+        <li>Konsolda görəcəyiniz xəbərdarlıq: <code>Warning: Each child in a list should have a unique "key" prop.</code></li>
+        <li>Siyahıya element əlavə/silinəndə və ya sıra dəyişəndə React səhv node-u
+          "yenidən istifadə edir" — nəticədə input-un daxilindəki mətn, checkbox vəziyyəti
+          kimi lokal state <strong>səhv elementə "yapışıb qala bilər"</strong>.</li>
+      </ul>
+      <div class="code-block">
+        <div class="code-head"><span>❌ Səhv nümunə</span></div>
+        <pre><code><span class="tk-kw">const</span> list = items.map((item, <span class="tk-attr">index</span>) =&gt; (
+  <span class="tk-punc">&lt;</span><span class="tk-tag">li</span> <span class="tk-attr">key</span>=<span class="tk-punc">{</span>index<span class="tk-punc">}</span><span class="tk-punc">&gt;</span>{item.name}<span class="tk-punc">&lt;/</span><span class="tk-tag">li</span><span class="tk-punc">&gt;</span>
+));</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-head"><span>✅ Düzgün nümunə</span></div>
+        <pre><code><span class="tk-kw">const</span> list = items.map((item) =&gt; (
+  <span class="tk-punc">&lt;</span><span class="tk-tag">li</span> <span class="tk-attr">key</span>=<span class="tk-punc">{</span>item.id<span class="tk-punc">}</span><span class="tk-punc">&gt;</span>{item.name}<span class="tk-punc">&lt;/</span><span class="tk-tag">li</span><span class="tk-punc">&gt;</span>
+));</code></pre>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Yaxşı təcrübə</div>
+      <p>Key üçün həmişə data-nın özündən gələn, dəyişməz və unikal dəyər (məsələn
+        verilənlər bazasındakı <code>id</code>) istifadə edin. İndeksi yalnız siyahı
+        statik olduğu, heç vaxt sıralanmadığı və element silinib-əlavə olunmadığı
+        hallarda istifadə etmək olar.</p>
+    </div>
+  </section>
+
+  <!-- MÖVZU 4 -->
+  <section class="topic" id="mov4">
+    <div class="topic-eyebrow"><span class="num">4</span> NƏZƏRİYYƏ</div>
+    <h2 class="topic-title">React-ın işləmə prinsipi: komponent → render → DOM yeniləmə</h2>
+    <p class="lead">
+      React tətbiqi əslində komponentlərdən qurulan bir ağacdır. Bu ağacın "canlı" qalması
+      üçün üç mərhələdən keçir: <strong>render, commit və yeniləmə (update)</strong>.
+    </p>
+
+    <div class="code-block">
+      <div class="code-head">
+        <span class="code-dots"><span></span><span></span><span></span></span>
+        <span>Welcome.jsx</span>
+      </div>
+      <pre><code><span class="tk-kw">function</span> <span class="tk-fn">Welcome</span>(<span class="tk-attr">props</span>) {
+  <span class="tk-kw">return</span> <span class="tk-punc">&lt;</span><span class="tk-tag">h1</span><span class="tk-punc">&gt;</span>Salam, {props.name}!<span class="tk-punc">&lt;/</span><span class="tk-tag">h1</span><span class="tk-punc">&gt;</span>;
+}</code></pre>
+    </div>
+
+    <ol class="bullets">
+      <li><strong>Komponent (Component):</strong> UI-nin bir hissəsini təsvir edən sadə
+        JavaScript funksiyasıdır. Giriş kimi <code>props</code> qəbul edir, çıxış kimi
+        JSX (əslində React elementi) qaytarır.</li>
+      <li><strong>Render:</strong> React komponent funksiyasını çağırır və qaytarılan
+        JSX-dən Virtual DOM ağacı qurur. Bu mərhələdə hələ real DOM-a heç nə yazılmır —
+        sadəcə "nə görünməli olduğu" hesablanır.</li>
+      <li><strong>Commit:</strong> React əvvəlki bölmədə izah olunan diffing prosesindən
+        sonra, yalnız lazımi dəyişiklikləri real DOM-a yazır (əlavə edir, silir və ya
+        yeniləyir).</li>
+      <li><strong>Yenidən render (Re-render):</strong> Komponentin <code>state</code>-i
+        və ya valideynindən aldığı <code>props</code> dəyişəndə, React həmin komponenti
+        (və onun uşaqlarını) yenidən çağırır və bütün proses təkrarlanır.</li>
+    </ol>
+
+    <div class="callout info">
+      <div class="callout-head">ℹ Qeyd</div>
+      <p>Bu dərsdə <code>state</code> anlayışına səthi toxunuruq — <code>useState</code> və
+        digər hook-lar növbəti dərsdə ətraflı izah olunacaq. Hələlik bilmək kifayətdir ki,
+        <strong>state dəyişən komponentin "yaddaşıdır"</strong> və state dəyişəndə komponent
+        avtomatik yenidən render olunur.</p>
+    </div>
+
+    <div class="callout error">
+      <div class="callout-head">✕ Başlanğıcda tez-tez edilən səhv</div>
+      <ul>
+        <li><strong>State-i birbaşa dəyişmək</strong> (mutasiya): <code>state.value = 5</code>
+          yazmaq React-a heç nə "demir" — React yalnız <code>setState</code> və ya
+          <code>useState</code>-in qaytardığı funksiya (məsələn <code>setCount</code>)
+          çağırılanda yenidən render etməli olduğunu bilir. Birbaşa dəyişiklikdə ekran
+          köhnə vəziyyətdə "donub qalır".</li>
+        <li><strong>Komponenti "saf funksiya" kimi yazmamaq:</strong> eyni props/state ilə
+          çağırıldıqda komponent hər dəfə fərqli nəticə qaytarırsa (məsələn render zamanı
+          təsadüfi dəyər və ya qlobal dəyişəni dəyişmək), bu, gözlənilməz və izlənməsi çətin
+          bug-lara səbəb olur.</li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Yaxşı təcrübə</div>
+      <p>Komponentə riyazi funksiya kimi baxın: <strong>eyni giriş (props/state) → eyni çıxış
+        (JSX)</strong>. Render funksiyası daxilində "yan effekt" (API çağırışı, timer qurmaq,
+        dəyişən dəyişdirmək) etməyin — bunlar üçün növbəti dərslərdə öyrənəcəyimiz
+        <code>useEffect</code> mövcuddur.</p>
+    </div>
+  </section>
+
+  <!-- MÖVZU 5: JSX -->
+  <section class="topic" id="mov5">
+    <div class="topic-eyebrow"><span class="num">5</span> NƏZƏRİYYƏ</div>
+    <h2 class="topic-title">JSX sintaksisi: HTML-dən fərqləri</h2>
+    <p class="lead">
+      JSX (JavaScript XML) — HTML-ə çox bənzəyən, amma əslində JavaScript-in sintaktik
+      genişlənməsidir. Brauzer JSX-i birbaşa anlamır: Babel adlı alət JSX kodunu adi
+      <code>React.createElement(...)</code> çağırışlarına çevirir.
+    </p>
+
+    <div class="compare-grid">
+      <div class="compare-col html">
+        <div class="lbl">HTML kimi görünür</div>
+        <pre><code>&lt;div class="card"&gt;
+  &lt;img src="foto.jpg"&gt;
+  &lt;label for="ad"&gt;Ad&lt;/label&gt;
+  &lt;input onclick="click()"&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+      <div class="compare-col jsx">
+        <div class="lbl">Doğru JSX</div>
+        <pre><code>&lt;div className="card"&gt;
+  &lt;img src="foto.jpg" /&gt;
+  &lt;label htmlFor="ad"&gt;Ad&lt;/label&gt;
+  &lt;input onClick={click} /&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+    </div>
+
+    <h4 class="sub">Əsas fərqlər</h4>
+    <ul class="bullets">
+      <li><strong><code>class</code> → <code>className</code>:</strong> <code>class</code>
+        JavaScript-də rezerv olunmuş açar sözdür (siniflər üçün), ona görə JSX-də CSS
+        klassı üçün <code>className</code> istifadə olunur.</li>
+      <li><strong>camelCase atributlar:</strong> <code>onclick</code> → <code>onClick</code>,
+        <code>tabindex</code> → <code>tabIndex</code>, <code>maxlength</code> → <code>maxLength</code>.
+        Bunun səbəbi JSX-in JS obyekt xüsusiyyətləri (property) kimi işləməsidir, JS isə
+        çox sözlü adları camelCase şəklində yazır.</li>
+      <li><strong><code>for</code> → <code>htmlFor</code>:</strong> <code>for</code> də
+        JavaScript-də rezerv sözdür (dövr — loop üçün), ona görə label-in <code>for</code>
+        atributu <code>htmlFor</code> adlanır.</li>
+      <li><strong>Bütün teqlər bağlanmalıdır (self-closing):</strong> HTML-də
+        <code>&lt;img&gt;</code>, <code>&lt;br&gt;</code>, <code>&lt;input&gt;</code> kimi
+        teqlər bağlanmasa da brauzer bağışlayır. JSX-də isə bu <strong>mütləq şərtdir</strong>:
+        ya <code>&lt;img /&gt;</code> yazılmalı, ya da açıq-bağlı cüt teq
+        (<code>&lt;div&gt;&lt;/div&gt;</code>) istifadə olunmalıdır.</li>
+      <li><strong>Inline stil obyekt kimi yazılır:</strong> HTML-də
+        <code>style="color: red; font-size: 14px"</code> — string. JSX-də isə
+        <code>style={{color: 'red', fontSize: 14}}</code> — JS obyekti (diqqət:
+        <code>font-size</code> də camelCase-ə çevrilir və vahidsiz ədədlər üçün
+        avtomatik <code>px</code> əlavə olunur).</li>
+      <li><strong>Bir kök element qaydası:</strong> Bir komponent funksiyası yalnız
+        <strong>bir</strong> JSX elementi qaytara bilər. Bir neçə element qaytarmaq lazımdırsa,
+        onları <code>&lt;div&gt;</code> və ya görünməz <code>&lt;&gt;...&lt;/&gt;</code>
+        (Fragment) ilə əhatə etmək lazımdır.</li>
+    </ul>
+
+    <div class="code-block">
+      <div class="code-head"><span>Fragment istifadəsi</span></div>
+      <pre><code><span class="tk-kw">function</span> <span class="tk-fn">Kart</span>() {
+  <span class="tk-kw">return</span> (
+    <span class="tk-punc">&lt;&gt;</span>
+      <span class="tk-punc">&lt;</span><span class="tk-tag">h2</span><span class="tk-punc">&gt;</span>Başlıq<span class="tk-punc">&lt;/</span><span class="tk-tag">h2</span><span class="tk-punc">&gt;</span>
+      <span class="tk-punc">&lt;</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>Mətn<span class="tk-punc">&lt;/</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>
+    <span class="tk-punc">&lt;/&gt;</span>
+  );
+}</code></pre>
+    </div>
+
+    <div class="callout error">
+      <div class="callout-head">✕ Tez-tez rast gəlinən JSX xətaları</div>
+      <ul>
+        <li><strong>"Adjacent JSX elements must be wrapped in an enclosing tag"</strong> —
+          komponentdən iki və ya daha çox "kök" element qaytarmağa cəhd edəndə çıxan
+          kompilyasiya xətası. Həlli: Fragment (<code>&lt;&gt;&lt;/&gt;</code>) və ya
+          <code>&lt;div&gt;</code> ilə əhatələmək.</li>
+        <li><strong><code>class</code> istifadə etmək:</strong> Bu, kompilyasiya xətası vermir,
+          amma konsolda <code>Warning: Invalid DOM property "class". Did you mean "className"?</code>
+          xəbərdarlığı çıxır və stillər tətbiq olunmur.</li>
+        <li><strong>Adi HTML şərhi istifadə etmək:</strong> <code>&lt;!-- şərh --&gt;</code>
+          JSX-də sintaksis xətası verir. JSX daxilində şərh
+          <code>{'{/* bu şəkildə */}'}</code> formatında yazılmalıdır.</li>
+        <li><strong>Bağlanmamış teq:</strong> <code>&lt;img src="a.jpg"&gt;</code> unudulmuş
+          slash — "Unterminated JSX contents" xətası verə bilər.</li>
+        <li><strong>Açar sözlərin toqquşması:</strong> dəyişən adı kimi <code>class</code>
+          və ya digər JS rezerv sözlərini istifadə etmək.</li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Yaxşı təcrübə</div>
+      <ul>
+        <li>Layihəyə əvvəlcədən <strong>ESLint + Prettier</strong> qoşun — bu, yuxarıdakı
+          xətaların çoxunu kod yazan kimi, hələ brauzerə çatmadan aşkarlayacaq.</li>
+        <li>Kod redaktorunda (VS Code) <strong>ES7+ React/Redux/React-Native snippets</strong>
+          kimi əlavələr istifadə edin — <code>className</code>, <code>onClick</code> kimi
+          adları avtomatik təklif edir, əl xətalarını azaldır.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- MÖVZU 6 -->
+  <section class="topic" id="mov6">
+    <div class="topic-eyebrow"><span class="num">6</span> NƏZƏRİYYƏ</div>
+    <h2 class="topic-title">JSX-də JavaScript ifadələrinin istifadəsi</h2>
+    <p class="lead">
+      JSX-in ən güclü tərəfi — HTML-in içərisinə birbaşa JavaScript "qatmaq" imkanıdır.
+      Bunun üçün tək qoşa mötərizə <code>{'{ }'}</code> istifadə olunur.
+    </p>
+
+    <div class="code-block">
+      <div class="code-head"><span>Dəyişən, funksiya çağırışı, riyazi ifadə</span></div>
+      <pre><code><span class="tk-kw">const</span> ad = <span class="tk-str">"Aysel"</span>;
+<span class="tk-kw">const</span> yas = <span class="tk-fn">hesablaYas</span>(2001);
+
+<span class="tk-kw">function</span> <span class="tk-fn">Profil</span>() {
+  <span class="tk-kw">return</span> (
+    <span class="tk-punc">&lt;</span><span class="tk-tag">div</span><span class="tk-punc">&gt;</span>
+      <span class="tk-punc">&lt;</span><span class="tk-tag">h2</span><span class="tk-punc">&gt;</span>Salam, {ad}!<span class="tk-punc">&lt;/</span><span class="tk-tag">h2</span><span class="tk-punc">&gt;</span>
+      <span class="tk-punc">&lt;</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>Yaş: {yas}<span class="tk-punc">&lt;/</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>
+      <span class="tk-punc">&lt;</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>2 + 2 = {2 + 2}<span class="tk-punc">&lt;/</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>
+    <span class="tk-punc">&lt;/</span><span class="tk-tag">div</span><span class="tk-punc">&gt;</span>
+  );
+}</code></pre>
+    </div>
+
+    <p><strong>Şərti render (ternary və <code>&&</code>):</strong> <code>if</code> operatoru
+      "statement" olduğu üçün <code>{}</code> daxilində birbaşa işləmir — çünki
+      <code>{}</code> yalnız <strong>ifadə (expression)</strong> qəbul edir, əmr
+      (statement) yox. Ona görə şərti göstərmək üçün ternary operator və ya
+      <code>&&</code> istifadə olunur:</p>
+
+    <div class="code-block">
+      <div class="code-head"><span>Şərti render</span></div>
+      <pre><code>{isLoggedIn ? (
+  <span class="tk-punc">&lt;</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>Xoş gəldiniz!<span class="tk-punc">&lt;/</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>
+) : (
+  <span class="tk-punc">&lt;</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>Zəhmət olmasa daxil olun<span class="tk-punc">&lt;/</span><span class="tk-tag">p</span><span class="tk-punc">&gt;</span>
+)}
+
+{istifadeciSayi &gt; 0 && (
+  <span class="tk-punc">&lt;</span><span class="tk-tag">span</span><span class="tk-punc">&gt;</span>{istifadeciSayi} istifadəçi onlayn<span class="tk-punc">&lt;/</span><span class="tk-tag">span</span><span class="tk-punc">&gt;</span>
+)}</code></pre>
+    </div>
+
+    <p><strong>Siyahı render (<code>.map()</code>):</strong> massivi JSX elementlərinə
+      çevirmək üçün ən çox istifadə olunan üsuldur — unutmayın, hər elementin unikal
+      <code>key</code>-i olmalıdır (3-cü bölmədə izah olundu).</p>
+
+    <div class="code-block">
+      <div class="code-head"><span>Siyahı render</span></div>
+      <pre><code><span class="tk-punc">&lt;</span><span class="tk-tag">ul</span><span class="tk-punc">&gt;</span>
+  {meyveler.map((meyve) =&gt; (
+    <span class="tk-punc">&lt;</span><span class="tk-tag">li</span> <span class="tk-attr">key</span>=<span class="tk-punc">{</span>meyve.id<span class="tk-punc">}</span><span class="tk-punc">&gt;</span>{meyve.ad}<span class="tk-punc">&lt;/</span><span class="tk-tag">li</span><span class="tk-punc">&gt;</span>
+  ))}
+<span class="tk-punc">&lt;/</span><span class="tk-tag">ul</span><span class="tk-punc">&gt;</span></code></pre>
+    </div>
+
+    <div class="callout error">
+      <div class="callout-head">✕ Tez-tez rast gəlinən xətalar</div>
+      <ul>
+        <li><strong><code>{'{'}</code> daxilində <code>if</code> yazmaq:</strong>
+          <code>{'{if (x) { ... }}'}</code> — "Unexpected token" sintaksis xətası verir,
+          çünki <code>if</code> statement-dir, expression deyil.</li>
+        <li><strong>Obyekt qaytarmaq üçün mötərizə çaşqınlığı:</strong>
+          <code>style={'{{color: "red"}}'}</code> yazısındakı ikinci cüt mötərizə —
+          birincisi JSX-in <code>{'{ }'}</code>-i, ikincisi isə JS obyekt literalıdır.
+          Bunu qarışdırmaq (məsələn tək mötərizə yazmaq) xətaya səbəb olur.</li>
+        <li><strong><code>0</code> render problemi:</strong> <code>{'{count && <span>Var</span>}'}</code>
+          — əgər <code>count</code> dəyəri <code>0</code>-dırsa, ekranda gözlənilmədən
+          <strong>"0" rəqəmi</strong> göstərilir (çünki <code>0</code> "falsy" olsa da,
+          React onu render edir). Düzəliş: <code>count &gt; 0 && ...</code> və ya
+          <code>Boolean(count) && ...</code>.</li>
+        <li><strong>Array yerinə obyekt qaytarmaq:</strong> <code>{'{}'}</code> daxilinə
+          birbaşa sadə JS obyekti (<code>{'{ad: "Ali"}'}</code>) yazmaq — "Objects are not
+          valid as a React child" xətası ilə nəticələnir, çünki React obyekti necə
+          göstərəcəyini bilmir.</li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Yaxşı təcrübə</div>
+      <ul>
+        <li>Mürəkkəb şərti məntiqi (bir neçə <code>if/else if</code>) JSX daxilinə
+          yığmaq yerinə, render-dən əvvəl ayrıca dəyişənə və ya köməkçi funksiyaya çıxarın —
+          JSX-i sadə və oxunaqlı saxlayın.</li>
+        <li><code>.map()</code> istifadə edərkən key-i həmişə ən yaxın valideyn elementə
+          verin, uşaq komponentin öz daxilinə yox.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- BONUS: LAYIHƏ QURULUMU -->
+  <section class="topic" id="bonus">
+    <div class="topic-eyebrow"><span class="num">+</span> PRAKTİKİ</div>
+    <h2 class="topic-title">Bonus: İlk React layihəsinin qurulması</h2>
+    <p class="lead">
+      Dərsin adında qeyd olunan "Layihə Qurulumu" hissəsi üçün qısa təcrübi bələdçi —
+      bu gün ən çox tövsiyə olunan üsul <strong>Vite</strong> ilə qurulumdur (köhnə
+      <code>create-react-app</code> artıq rəsmi olaraq tövsiyə olunmur və dəstəklənmir).
+    </p>
+
+    <div class="code-block">
+      <div class="code-head">
+        <span class="code-dots"><span></span><span></span><span></span></span>
+        <span>terminal</span>
+      </div>
+      <pre><code><span class="tk-cmt"># 1. Yeni layihə yarat</span>
+npm create vite@latest menim-ilk-react-layihem
+
+<span class="tk-cmt"># 2. Framework seç → React, sonra → JavaScript (və ya TypeScript)</span>
+
+<span class="tk-cmt"># 3. Qovluğa keç</span>
+cd menim-ilk-react-layihem
+
+<span class="tk-cmt"># 4. Asılılıqları yüklə</span>
+npm install
+
+<span class="tk-cmt"># 5. Dev server-i işə sal</span>
+npm run dev</code></pre>
+    </div>
+
+    <p>Bundan sonra terminalda görünən linki (adətən
+      <code>http://localhost:5173</code>) brauzerdə açmaqla layihəni canlı görə bilərsiniz.
+      Vite-in üstünlüyü — <strong>Hot Module Replacement (HMR)</strong>: kodda dəyişiklik
+      etdikdə səhifə tam yenidən yüklənmədən, yalnız dəyişən hissə anında yenilənir.</p>
+
+    <div class="callout error">
+      <div class="callout-head">✕ Qurulum zamanı tez-tez rast gəlinən problemlər</div>
+      <ul>
+        <li><strong>Köhnə Node.js versiyası:</strong> Vite müasir Node.js (18+) tələb edir.
+          "Unsupported engine" və ya anlaşılmaz build xətaları görsəniz, ilk növbədə
+          <code>node -v</code> ilə versiyanı yoxlayın.</li>
+        <li><strong><code>npm install</code> zamanı asılılıq konflikti:</strong> köhnə
+          paket qalıqları problem yaradanda <code>node_modules</code> qovluğunu və
+          <code>package-lock.json</code> faylını silib yenidən <code>npm install</code>
+          etmək çox vaxt kömək edir.</li>
+        <li><strong>Port məşğuldur (Port already in use):</strong> başqa layihə eyni portu
+          tutubsa, Vite avtomatik başqa boş port seçir — konsoldakı yeni ünvana diqqət edin.</li>
+        <li><strong>Fayl adları həssaslığı:</strong> Windows/macOS-dan fərqli olaraq Linux
+          server-lərdə fayl adları böyük/kiçik hərfə həssasdır — <code>Button.jsx</code>
+          və <code>button.jsx</code> fərqli fayllardır, import zamanı bu, "modul tapılmadı"
+          xətasına səbəb ola bilər.</li>
+      </ul>
+    </div>
+
+    <div class="callout tip">
+      <div class="callout-head">✓ Yaxşı təcrübə</div>
+      <ul>
+        <li><code>create-react-app</code> yerinə <strong>Vite</strong> istifadə edin —
+          daha sürətli, daha yüngül və aktiv dəstəklənir.</li>
+        <li>Layihəyə başlar-başlamaz <code>.gitignore</code>-da <code>node_modules</code>
+          olduğuna əmin olun və Git-ə qoşun.</li>
+        <li>Qovluq strukturunu əvvəldən nizamlayın:
+          <code>src/components</code>, <code>src/pages</code> kimi.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- XÜLASƏ -->
+  <section class="topic" id="xulase">
+    <div class="topic-eyebrow"><span class="num">✓</span> YEKUN</div>
+    <h2 class="topic-title">Dərsin xülasəsi</h2>
+    <p class="lead">Bu dərsdə öyrəndiklərimizi yoxlama siyahısı ilə bir daha xatırlayaq:</p>
+
+    <ul class="check-list">
+      <li><span class="box">✓</span> React-ın niyə yarandığını və jQuery/vanilla JS-in hansı problemlərini həll etdiyini izah edə bilirəm.</li>
+      <li><span class="box">✓</span> SPA və MPA arasındakı fərqi, hər birinin üstünlük/mənfi cəhətlərini bilirəm.</li>
+      <li><span class="box">✓</span> Virtual DOM-un nə olduğunu və diffing/reconciliation prosesini izah edə bilirəm.</li>
+      <li><span class="box">✓</span> Komponent → render → DOM yeniləmə zəncirini başa düşürəm.</li>
+      <li><span class="box">✓</span> JSX-in HTML-dən fərqlərini (className, camelCase, self-closing) sadalaya bilirəm.</li>
+      <li><span class="box">✓</span> JSX daxilində <code>{'{ }'}</code> ilə JS ifadəsi, şərti render və siyahı render yaza bilirəm.</li>
+      <li><span class="box">✓</span> Vite ilə yeni React layihəsi qura bilirəm.</li>
+    </ul>
+
+    <div class="recap-grid">
+      <div class="recap-card">
+        <div class="rc-title">// ƏN ÇOX RAST GƏLİNƏN 3 XƏTA</div>
+        <p>1) Siyahıda key unutmaq və ya index istifadə etmək · 2) <code>class</code>
+          yazıb <code>className</code> yazmamaq · 3) state-i birbaşa mutasiya etmək.</p>
+      </div>
+      <div class="recap-card">
+        <div class="rc-title">// NÖVBƏTİ DƏRSDƏ</div>
+        <p>Komponentlər, props və <code>useState</code> hook-u ilə dinamik, interaktiv
+          UI qurmağa başlayacağıq.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>DƏRS 1 / MODUL 1 · REACT-A GİRİŞ, JSX VƏ LAYİHƏ QURULUMU</p>
+  </footer>
+
+</div>
+</body>
+</html>

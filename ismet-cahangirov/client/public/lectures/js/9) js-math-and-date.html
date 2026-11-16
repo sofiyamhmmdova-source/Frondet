@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript: Math və Date Obyektləri | Azərbaycan Dərsliki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DejaVu+Sans&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #0f1117;
+    --surface:    #1a1d27;
+    --surface2:   #22263a;
+    --border:     #2e3354;
+    --accent:     #6c63ff;
+    --accent2:    #00d4aa;
+    --accent3:    #ff6b6b;
+    --accent4:    #ffd166;
+    --text:       #e8eaf0;
+    --text-muted: #8890a8;
+    --code-bg:    #141824;
+    --math-col:   #6c63ff;
+    --date-col:   #00d4aa;
+
+    --font-main: 'DejaVu Sans', 'Segoe UI', Arial, sans-serif;
+    --font-mono: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-main);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0f1117 0%, #1a1230 50%, #0f2a1a 100%);
+    padding: 80px 20px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(108,99,255,.18) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 35% at 80% 50%, rgba(0,212,170,.14) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(108,99,255,.2);
+    border: 1px solid rgba(108,99,255,.5);
+    color: #a9a3ff;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .hero h1 span.math { color: var(--accent); }
+  .hero h1 span.date { color: var(--accent2); }
+  .hero p {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto 36px;
+  }
+  .hero-pills {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: .82rem;
+    color: var(--text-muted);
+  }
+
+  /* ── NAV ── */
+  .sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex-shrink: 0;
+    padding: 14px 20px;
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.math { border-bottom-color: transparent; }
+  .nav-tab.math:hover, .nav-tab.math.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .nav-tab.date:hover, .nav-tab.date.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+  .nav-tab.bug:hover, .nav-tab.bug.active  { color: var(--accent3); border-bottom-color: var(--accent3); }
+
+  /* ── MAIN CONTENT ── */
+  main { padding: 60px 0 100px; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+  .section-icon.math { background: rgba(108,99,255,.15); border: 1px solid rgba(108,99,255,.3); }
+  .section-icon.date { background: rgba(0,212,170,.12); border: 1px solid rgba(0,212,170,.3); }
+  .section-icon.bug  { background: rgba(255,107,107,.12); border: 1px solid rgba(255,107,107,.3); }
+  .section-title h2 { font-size: 1.6rem; font-weight: 700; }
+  .section-title p { color: var(--text-muted); font-size: .9rem; margin-top: 2px; }
+  .math-color { color: var(--math-col); }
+  .date-color { color: var(--date-col); }
+  .bug-color  { color: var(--accent3); }
+
+  section { margin-bottom: 80px; scroll-margin-top: 80px; }
+
+  /* ── LESSON BLOCK ── */
+  .lesson {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .lesson-head {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .method-badge {
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    padding: 3px 10px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .method-badge.math { background: rgba(108,99,255,.2); color: #a9a3ff; border: 1px solid rgba(108,99,255,.3); }
+  .method-badge.date { background: rgba(0,212,170,.15); color: #5ee8ca; border: 1px solid rgba(0,212,170,.3); }
+  .lesson-head-text h3 { font-size: 1rem; font-weight: 600; margin-bottom: 3px; }
+  .lesson-head-text p  { font-size: .875rem; color: var(--text-muted); }
+  .lesson-body { padding: 22px 24px; }
+  .lesson-body p { margin-bottom: 14px; font-size: .9rem; }
+  .lesson-body p:last-child { margin-bottom: 0; }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .code-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .code-label .dots { display: flex; gap: 5px; }
+  .code-label .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+  }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  pre {
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: .855rem;
+    line-height: 1.65;
+    white-space: pre;
+    word-break: normal;
+    -webkit-overflow-scrolling: touch;
+  }
+  code { font-family: var(--font-mono); }
+
+  /* Syntax highlight */
+  .kw  { color: #c792ea; font-weight: 600; } /* keyword */
+  .fn  { color: #82aaff; }                   /* function/method */
+  .num { color: #f78c6c; }                   /* number */
+  .str { color: #c3e88d; }                   /* string */
+  .cmt { color: #546e7a; font-style: italic; }/* comment */
+  .obj { color: #89ddff; }                   /* object */
+  .var { color: #eeffff; }                   /* variable */
+  .op  { color: #89ddff; }                   /* operator */
+  .pn  { color: #bfc7d5; }                   /* punctuation */
+  .out { color: #00d4aa; }                   /* console output */
+
+  /* ── INTERACTIVE DEMO ── */
+  .demo-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .demo-box h4 {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .demo-box h4::before {
+    content: '▶';
+    font-size: .65rem;
+    color: var(--accent2);
+  }
+  .demo-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .demo-input {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 8px 14px;
+    font-family: var(--font-mono);
+    font-size: .875rem;
+    width: 140px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .demo-input:focus { border-color: var(--accent); }
+  .btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-main);
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .btn-math { background: rgba(108,99,255,.25); color: #a9a3ff; border: 1px solid rgba(108,99,255,.4); }
+  .btn-math:hover { background: rgba(108,99,255,.4); }
+  .btn-date { background: rgba(0,212,170,.18); color: #5ee8ca; border: 1px solid rgba(0,212,170,.35); }
+  .btn-date:hover { background: rgba(0,212,170,.32); }
+  .btn-run  { background: rgba(255,209,102,.18); color: var(--accent4); border: 1px solid rgba(255,209,102,.35); }
+  .btn-run:hover  { background: rgba(255,209,102,.32); }
+  .demo-output {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: var(--font-mono);
+    font-size: .855rem;
+    min-height: 44px;
+    color: var(--accent2);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .demo-output.empty { color: var(--text-muted); }
+
+  /* ── RANDOM DEMO ── */
+  .random-demo {
+    background: var(--surface2);
+    border: 2px dashed rgba(108,99,255,.4);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 16px 0;
+    text-align: center;
+  }
+  .random-number-display {
+    font-size: clamp(2.4rem, 8vw, 4rem);
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    margin: 16px 0;
+    letter-spacing: -1px;
+  }
+  .random-explain {
+    font-size: .82rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  /* ── WARNING / BUG BOX ── */
+  .warning-box {
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .warning-box::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+  }
+  .warn-error {
+    background: rgba(255,107,107,.08);
+    border: 1px solid rgba(255,107,107,.3);
+  }
+  .warn-error::before { background: var(--accent3); }
+  .warn-tip {
+    background: rgba(0,212,170,.07);
+    border: 1px solid rgba(0,212,170,.3);
+  }
+  .warn-tip::before { background: var(--accent2); }
+  .warn-note {
+    background: rgba(255,209,102,.06);
+    border: 1px solid rgba(255,209,102,.3);
+  }
+  .warn-note::before { background: var(--accent4); }
+  .warning-box .warn-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: .9rem;
+    margin-bottom: 10px;
+  }
+  .warn-error .warn-head { color: var(--accent3); }
+  .warn-tip   .warn-head { color: var(--accent2); }
+  .warn-note  .warn-head { color: var(--accent4); }
+  .warning-box p { font-size: .875rem; color: var(--text-muted); margin-bottom: 8px; }
+  .warning-box p:last-child { margin-bottom: 0; }
+  .warning-box code {
+    background: rgba(255,255,255,.06);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: .82rem;
+  }
+
+  /* ── COMPARE TABLE ── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  @media (max-width: 560px) { .compare-grid { grid-template-columns: 1fr; } }
+  .compare-card {
+    background: var(--code-bg);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .compare-card-head {
+    padding: 10px 14px;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .compare-card-head.wrong { background: rgba(255,107,107,.15); color: var(--accent3); }
+  .compare-card-head.right { background: rgba(0,212,170,.12);  color: var(--accent2); }
+  .compare-card pre { border-radius: 0; margin: 0; padding: 14px 16px; font-size: .82rem; }
+
+  /* ── MONTH TABLE ── */
+  .month-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    margin: 16px 0;
+  }
+  .month-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    border-bottom: 1px solid var(--border);
+  }
+  .month-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(46,51,84,.5);
+    font-family: var(--font-mono);
+  }
+  .month-table tr:last-child td { border-bottom: none; }
+  .month-table .idx { color: var(--accent); font-weight: 600; }
+  .month-table .az  { color: var(--text); }
+  .month-table .highlight td { background: rgba(255,107,107,.06); }
+  .month-table .highlight .idx { color: var(--accent3); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+  /* ── DATE DISPLAY ── */
+  .live-clock {
+    background: linear-gradient(135deg, rgba(0,212,170,.1), rgba(108,99,255,.08));
+    border: 1px solid rgba(0,212,170,.25);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    margin: 20px 0;
+  }
+  .live-clock .clock-time {
+    font-family: var(--font-mono);
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 2px;
+  }
+  .live-clock .clock-date {
+    font-size: .9rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .clock-parts {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .clock-part {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    text-align: center;
+    min-width: 80px;
+  }
+  .clock-part .val { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--accent2); }
+  .clock-part .lbl { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── PROGRESS STEPS ── */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+    position: relative;
+  }
+  .step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+    padding-bottom: 24px;
+  }
+  .step:last-child { padding-bottom: 0; }
+  .step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step-num.math { background: rgba(108,99,255,.2); color: var(--accent); border: 2px solid rgba(108,99,255,.4); }
+  .step-num.date { background: rgba(0,212,170,.15); color: var(--accent2); border: 2px solid rgba(0,212,170,.35); }
+  .step:not(:last-child) .step-num::after {
+    content: '';
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: calc(100% + 8px);
+    background: var(--border);
+  }
+  .step-content { flex: 1; padding-top: 3px; }
+  .step-content h4 { font-size: .9rem; font-weight: 600; margin-bottom: 4px; }
+  .step-content p  { font-size: .85rem; color: var(--text-muted); }
+
+  /* ── INFO CARD ── */
+  .info-card {
+    display: flex;
+    gap: 14px;
+    background: rgba(255,209,102,.06);
+    border: 1px solid rgba(255,209,102,.25);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    margin: 16px 0;
+    font-size: .875rem;
+  }
+  .info-card .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .info-card p { color: var(--text-muted); }
+  .info-card strong { color: var(--text); }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 64px 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: .82rem;
+  }
+  footer strong { color: var(--text); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .lesson-head { padding: 14px 16px 12px; }
+    .lesson-body { padding: 16px; }
+    pre { font-size: .78rem; padding: 14px 14px; }
+    .demo-box { padding: 14px; }
+    .section-header { gap: 12px; }
+    .section-icon { width: 42px; height: 42px; font-size: 1.2rem; }
+    .section-title h2 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<header class="hero">
+  <div class="hero-badge">JavaScript Dərsliki</div>
+  <h1><span class="math">Math</span> və <span class="date">Date</span> Obyektləri</h1>
+  <p>Azərbaycan dilində, addım-addım, canlı nümunələrlə JavaScript-in iki vacib daxili obyektini öyrən.</p>
+  <div class="hero-pills">
+    <span class="pill">📐 Riyazi əməliyyatlar</span>
+    <span class="pill">📅 Tarix idarəetməsi</span>
+    <span class="pill">⚠️ Kritik xətalar</span>
+    <span class="pill">▶ Canlı nümunələr</span>
+  </div>
+</header>
+
+<!-- ═══ NAV ═══ -->
+<nav class="sticky-nav">
+  <div class="container">
+    <div class="nav-inner">
+      <a class="nav-tab math" href="#math">📐 Math Obyekti</a>
+      <a class="nav-tab date" href="#date">📅 Date Obyekti</a>
+      <a class="nav-tab bug"  href="#bugs">⚠️ Kritik Xətalar</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div class="container">
+
+<!-- ═══════════════════════════════════════════
+     SECTION 1 – Math Obyekti
+═══════════════════════════════════════════ -->
+<section id="math">
+  <div class="section-header">
+    <div class="section-icon math">📐</div>
+    <div class="section-title">
+      <h2><span class="math-color">Math</span> Obyekti</h2>
+      <p>Riyazi hesablamalar üçün JavaScript-in daxili statik obyekti</p>
+    </div>
+  </div>
+
+  <!-- Giriş -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">Nə dir?</span>
+      <div class="lesson-head-text">
+        <h3>Math Obyektinə Giriş</h3>
+        <p>Riyazi sabitlər və funksiyalar toplusu</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p><strong>Math</strong> obyekti JavaScript-ə daxil olan, riyazi əməliyyatları yerinə yetirmək üçün istifadə olunan <em>statik</em> obyektdir. Onu <code>new Math()</code> şəklində yaratmırsınız — birbaşa istifadə edirsiniz.</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript</span>
+        </div>
+<pre><span class="cmt">// Math.PI sabitinə nümunə</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="obj">Math</span>.<span class="fn">PI</span>);   <span class="cmt">// → 3.141592653589793</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="obj">Math</span>.<span class="fn">E</span>);    <span class="cmt">// → 2.718281828459045</span></pre>
+      </div>
+      <div class="info-card">
+        <span class="icon">💡</span>
+        <p><strong>Əsas qayda:</strong> Math metodları həmişə <strong>böyük M</strong> ilə yazılır: <code>Math.round()</code>, <code>Math.floor()</code> — heç vaxt <code>math.round()</code> deyil!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math.round -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">Math.round()</span>
+      <div class="lesson-head-text">
+        <h3>Yuvarlaqlaşdırma</h3>
+        <p>Ən yaxın tam ədədə yuvarlaqlaşdırır</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p><code>Math.round(x)</code> — <strong>0.5 və ya daha böyük</strong> olduqda <em>yuxarı</em>, əksi halda <em>aşağı</em> yuvarlaqlaşdırır.</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript</span>
+        </div>
+<pre><span class="obj">Math</span>.<span class="fn">round</span>(<span class="num">4.3</span>);  <span class="cmt">// → 4   (0.3 &lt; 0.5 → aşağı)</span>
+<span class="obj">Math</span>.<span class="fn">round</span>(<span class="num">4.5</span>);  <span class="cmt">// → 5   (0.5 ≥ 0.5 → yuxarı)</span>
+<span class="obj">Math</span>.<span class="fn">round</span>(<span class="num">4.7</span>);  <span class="cmt">// → 5   (0.7 ≥ 0.5 → yuxarı)</span>
+<span class="obj">Math</span>.<span class="fn">round</span>(<span class="op">-</span><span class="num">4.5</span>); <span class="cmt">// → -4  (mənfi ədədlər fərqlidir!)</span></pre>
+      </div>
+      <div class="demo-box">
+        <h4>Canlı Sınaq</h4>
+        <div class="demo-controls">
+          <input class="demo-input" type="number" id="r-input" value="4.6" step="0.1" placeholder="Ədəd daxil et">
+          <button class="btn btn-math" onclick="runRound()">▶ Sına</button>
+        </div>
+        <div class="demo-output empty" id="r-out">Nəticə burada görünəcək...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math.floor / Math.ceil / Math.trunc -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">floor / ceil / trunc</span>
+      <div class="lesson-head-text">
+        <h3>Tam Ədədə Çevirməyin 3 Üsulu</h3>
+        <p>Hər birinin fərqli məntiqi var</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num math">1</div>
+          <div class="step-content">
+            <h4>Math.floor() — Döşəmə (aşağı)</h4>
+            <p>Həmişə aşağıya doğru yuvarlaqlaşdırır, heç vaxt qiymətini artırmır.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num math">2</div>
+          <div class="step-content">
+            <h4>Math.ceil() — Tavan (yuxarı)</h4>
+            <p>Həmişə yuxarıya doğru yuvarlaqlaşdırır, heç vaxt qiymətini azaltmır.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num math">3</div>
+          <div class="step-content">
+            <h4>Math.trunc() — Kəsik (sıfıra)</h4>
+            <p>Kəsr hissəni sadəcə atar, müsbət və ya mənfi olmasından asılı olmayaraq.</p>
+          </div>
+        </div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript – müqayisəli nümunə</span>
+        </div>
+<pre><span class="kw">let</span> <span class="var">x</span> <span class="op">=</span> <span class="num">4.7</span><span class="pn">;</span>
+<span class="obj">Math</span>.<span class="fn">floor</span>(<span class="var">x</span>);   <span class="cmt">// → 4  (aşağı)</span>
+<span class="obj">Math</span>.<span class="fn">ceil</span>(<span class="var">x</span>);    <span class="cmt">// → 5  (yuxarı)</span>
+<span class="obj">Math</span>.<span class="fn">trunc</span>(<span class="var">x</span>);   <span class="cmt">// → 4  (kəsr atıldı)</span>
+<span class="obj">Math</span>.<span class="fn">round</span>(<span class="var">x</span>);   <span class="cmt">// → 5  (0.7 ≥ 0.5, yuxarı)</span>
+
+<span class="cmt">// Mənfi ədədlər üçün fərq daha aydındır:</span>
+<span class="kw">let</span> <span class="var">y</span> <span class="op">=</span> <span class="op">-</span><span class="num">4.7</span><span class="pn">;</span>
+<span class="obj">Math</span>.<span class="fn">floor</span>(<span class="var">y</span>);   <span class="cmt">// → -5  (aşağı → daha kiçik)</span>
+<span class="obj">Math</span>.<span class="fn">ceil</span>(<span class="var">y</span>);    <span class="cmt">// → -4  (yuxarı → sıfıra yaxın)</span>
+<span class="obj">Math</span>.<span class="fn">trunc</span>(<span class="var">y</span>);   <span class="cmt">// → -4  (kəsr atıldı → sıfıra)</span></pre>
+      </div>
+      <div class="demo-box">
+        <h4>Canlı Müqayisə</h4>
+        <div class="demo-controls">
+          <input class="demo-input" type="number" id="fct-input" value="-4.7" step="0.1">
+          <button class="btn btn-math" onclick="runFCT()">▶ Müqayisə et</button>
+        </div>
+        <div class="demo-output empty" id="fct-out">Nəticə burada görünəcək...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math.abs -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">Math.abs()</span>
+      <div class="lesson-head-text">
+        <h3>Mütləq Qiymət</h3>
+        <p>Ədədin işarəsini silir, həmişə müsbət qaytarır</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p><code>Math.abs(x)</code> — x-in mütləq qiymətini qaytarır. Məsafə hesablamalarında, yaxud iki qiymət arasındakı fərqi müsbət göstərmək üçün çox istifadə olunur.</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript</span>
+        </div>
+<pre><span class="obj">Math</span>.<span class="fn">abs</span>(<span class="op">-</span><span class="num">7</span>);    <span class="cmt">// → 7</span>
+<span class="obj">Math</span>.<span class="fn">abs</span>(<span class="num">7</span>);     <span class="cmt">// → 7</span>
+<span class="obj">Math</span>.<span class="fn">abs</span>(<span class="op">-</span><span class="num">3.14</span>); <span class="cmt">// → 3.14</span>
+
+<span class="cmt">// Praktiki nümunə: iki temperatur arasındakı fərq</span>
+<span class="kw">let</span> <span class="var">sabah</span>   <span class="op">=</span> <span class="num">12</span><span class="pn">;</span>
+<span class="kw">let</span> <span class="var">bugun</span>  <span class="op">=</span> <span class="num">18</span><span class="pn">;</span>
+<span class="kw">let</span> <span class="var">ferq</span>    <span class="op">=</span> <span class="obj">Math</span>.<span class="fn">abs</span>(<span class="var">sabah</span> <span class="op">-</span> <span class="var">bugun</span>)<span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Temperatur fərqi: "</span> <span class="op">+</span> <span class="var">ferq</span> <span class="op">+</span> <span class="str">"°C"</span>); <span class="cmt">// → 6°C</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math.min / Math.max -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">Math.min() / Math.max()</span>
+      <div class="lesson-head-text">
+        <h3>Ən Kiçik və Ən Böyük</h3>
+        <p>Bir neçə ədəd arasından seçim edir</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p><code>Math.min()</code> ən kiçik, <code>Math.max()</code> ən böyük ədədi qaytarır. Neçə arqument versəniz, hamısı arasında axtarır.</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript</span>
+        </div>
+<pre><span class="obj">Math</span>.<span class="fn">min</span>(<span class="num">3</span><span class="pn">,</span> <span class="num">7</span><span class="pn">,</span> <span class="num">1</span><span class="pn">,</span> <span class="num">9</span><span class="pn">,</span> <span class="num">5</span>);  <span class="cmt">// → 1</span>
+<span class="obj">Math</span>.<span class="fn">max</span>(<span class="num">3</span><span class="pn">,</span> <span class="num">7</span><span class="pn">,</span> <span class="num">1</span><span class="pn">,</span> <span class="num">9</span><span class="pn">,</span> <span class="num">5</span>);  <span class="cmt">// → 9</span>
+
+<span class="cmt">// Array ilə istifadə (spread operatoru):</span>
+<span class="kw">let</span> <span class="var">qiymetler</span> <span class="op">=</span> <span class="pn">[</span><span class="num">45</span><span class="pn">,</span> <span class="num">12</span><span class="pn">,</span> <span class="num">78</span><span class="pn">,</span> <span class="num">33</span><span class="pn">,</span> <span class="num">99</span><span class="pn">]</span><span class="pn">;</span>
+<span class="obj">Math</span>.<span class="fn">min</span>(<span class="op">...</span><span class="var">qiymetler</span>);        <span class="cmt">// → 12</span>
+<span class="obj">Math</span>.<span class="fn">max</span>(<span class="op">...</span><span class="var">qiymetler</span>);        <span class="cmt">// → 99</span>
+
+<span class="cmt">// Praktiki: istifadəçi girişini 1-100 arasında saxla</span>
+<span class="kw">let</span> <span class="var">giris</span> <span class="op">=</span> <span class="num">150</span><span class="pn">;</span>
+<span class="kw">let</span> <span class="var">saxla</span> <span class="op">=</span> <span class="obj">Math</span>.<span class="fn">min</span>(<span class="obj">Math</span>.<span class="fn">max</span>(<span class="var">giris</span><span class="pn">,</span> <span class="num">1</span>)<span class="pn">,</span> <span class="num">100</span>)<span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">saxla</span>); <span class="cmt">// → 100  (150 &gt; 100 olduğu üçün)</span></pre>
+      </div>
+      <div class="demo-box">
+        <h4>Canlı Sınaq – Min / Max</h4>
+        <div class="demo-controls">
+          <input class="demo-input" type="text" id="minmax-input" value="3, 7, 1, 9, 5" style="width:200px" placeholder="Ədədlər (vergüllə)">
+          <button class="btn btn-math" onclick="runMinMax()">▶ Hesabla</button>
+        </div>
+        <div class="demo-output empty" id="minmax-out">Nəticə burada görünəcək...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math.sqrt / Math.pow -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">Math.sqrt() / Math.pow()</span>
+      <div class="lesson-head-text">
+        <h3>Kök və Dərəcə</h3>
+        <p>Kvadrat kök və ədədi dərəcəyə yüksəltmə</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript</span>
+        </div>
+<pre><span class="cmt">// Math.sqrt(x) → x-in kvadrat kökü</span>
+<span class="obj">Math</span>.<span class="fn">sqrt</span>(<span class="num">9</span>);        <span class="cmt">// → 3</span>
+<span class="obj">Math</span>.<span class="fn">sqrt</span>(<span class="num">2</span>);        <span class="cmt">// → 1.4142135623730951</span>
+<span class="obj">Math</span>.<span class="fn">sqrt</span>(<span class="num">25</span>);       <span class="cmt">// → 5</span>
+
+<span class="cmt">// Math.pow(x, n) → x-i n-ci dərəcəyə qaldır</span>
+<span class="obj">Math</span>.<span class="fn">pow</span>(<span class="num">2</span><span class="pn">,</span> <span class="num">10</span>);    <span class="cmt">// → 1024</span>
+<span class="obj">Math</span>.<span class="fn">pow</span>(<span class="num">3</span><span class="pn">,</span> <span class="num">3</span>);     <span class="cmt">// → 27</span>
+
+<span class="cmt">// Müasir alternativ: ** operatoru</span>
+<span class="num">2</span> <span class="op">**</span> <span class="num">10</span><span class="pn">;</span>              <span class="cmt">// → 1024  (eyni nəticə)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Math.random — xüsusi bölmə -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge math">Math.random()</span>
+      <div class="lesson-head-text">
+        <h3>Təsadüfi Ədəd — Ən Çox İstifadə Olunan</h3>
+        <p>0 (daxil) ilə 1 (istisna) arasında float qaytarır</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p><code>Math.random()</code> hər çağırıldığında <code>[0, 1)</code> aralığında fərqli onluq ədəd qaytarır. Lakin tək başına istifadəsi nadir hallarda kifayət edir — adətən <code>Math.floor()</code> ilə birləşdirilir.</p>
+
+      <div class="random-demo">
+        <p class="random-explain">Math.random() nəticəsi (hər dəfə dəyişir):</p>
+        <div class="random-number-display" id="rand-display">—</div>
+        <button class="btn btn-math" onclick="genRandom()" style="margin-bottom:8px">🎲 Yeni Ədəd Yarat</button>
+        <p class="random-explain" id="rand-explain" style="font-size:.8rem;margin-top:8px"></p>
+      </div>
+
+      <p style="font-weight:600;margin-top:4px">Praktiki Düstur: N ilə M arasında tam ədəd:</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript – universal düstur</span>
+        </div>
+<pre><span class="cmt">// [min, max] arasında tam ədəd (hər iki son daxil)</span>
+<span class="kw">function</span> <span class="fn">randomAraliq</span>(<span class="var">min</span><span class="pn">,</span> <span class="var">max</span>) <span class="pn">{</span>
+  <span class="kw">return</span> <span class="obj">Math</span>.<span class="fn">floor</span>(<span class="obj">Math</span>.<span class="fn">random</span>() <span class="op">*</span> (<span class="var">max</span> <span class="op">-</span> <span class="var">min</span> <span class="op">+</span> <span class="num">1</span>)) <span class="op">+</span> <span class="var">min</span><span class="pn">;</span>
+<span class="pn">}</span>
+
+<span class="cmt">// Misal istifadələr:</span>
+<span class="fn">randomAraliq</span>(<span class="num">1</span><span class="pn">,</span>  <span class="num">6</span>);   <span class="cmt">// → zər atışı: 1, 2, 3, 4, 5 və ya 6</span>
+<span class="fn">randomAraliq</span>(<span class="num">1</span><span class="pn">,</span>  <span class="num">100</span>); <span class="cmt">// → 1-100 arası</span>
+<span class="fn">randomAraliq</span>(<span class="num">0</span><span class="pn">,</span>  <span class="num">1</span>);   <span class="cmt">// → ya 0, ya 1 (sikkə atışı)</span>
+
+<span class="cmt">// Massivdən təsadüfi element:</span>
+<span class="kw">let</span> <span class="var">renglar</span> <span class="op">=</span> <span class="pn">[</span><span class="str">"qırmızı"</span><span class="pn">,</span> <span class="str">"yaşıl"</span><span class="pn">,</span> <span class="str">"mavi"</span><span class="pn">]</span><span class="pn">;</span>
+<span class="kw">let</span> <span class="var">secim</span>   <span class="op">=</span> <span class="var">renglar</span><span class="pn">[</span><span class="fn">randomAraliq</span>(<span class="num">0</span><span class="pn">,</span> <span class="var">renglar</span>.<span class="fn">length</span> <span class="op">-</span> <span class="num">1</span>)<span class="pn">]</span><span class="pn">;</span></pre>
+      </div>
+
+      <div class="demo-box">
+        <h4>Zər Simulyatoru — Canlı Nümunə</h4>
+        <div class="demo-controls">
+          <input class="demo-input" type="number" id="dice-min" value="1" style="width:90px" placeholder="Min">
+          <span style="color:var(--text-muted);font-size:.9rem">→</span>
+          <input class="demo-input" type="number" id="dice-max" value="6" style="width:90px" placeholder="Max">
+          <button class="btn btn-run" onclick="rollDice()">🎲 At!</button>
+        </div>
+        <div class="demo-output empty" id="dice-out">Nəticə burada görünəcək...</div>
+      </div>
+    </div>
+  </div>
+
+</section><!-- /math -->
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════════
+     SECTION 2 – Date Obyekti
+═══════════════════════════════════════════ -->
+<section id="date">
+  <div class="section-header">
+    <div class="section-icon date">📅</div>
+    <div class="section-title">
+      <h2><span class="date-color">Date</span> Obyekti</h2>
+      <p>Tarix və zaman idarəetməsi üçün JavaScript-in daxili konstruktoru</p>
+    </div>
+  </div>
+
+  <!-- Cari tarix/saat -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge date">new Date()</span>
+      <div class="lesson-head-text">
+        <h3>Date Obyektinin Yaradılması</h3>
+        <p>Cari an — "new" açar sözü <em>şərtdir</em></p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p>Date obyekti yaratmaq üçün <strong>mütləq <code>new</code> açar sözü</strong> yazılmalıdır. Arqumentsiz çağırılanda cari tarixi/saatı qaytarır.</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript</span>
+        </div>
+<pre><span class="cmt">// Cari tarixi almaq</span>
+<span class="kw">let</span> <span class="var">indi</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">indi</span>);
+<span class="cmt">// → Thu Jun 18 2026 14:32:10 GMT+0400 (...</span>
+
+<span class="cmt">// Tam string kimi göstərmək</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">indi</span>.<span class="fn">toString</span>());
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">indi</span>.<span class="fn">toLocaleDateString</span>(<span class="str">"az-AZ"</span>));</pre>
+      </div>
+
+      <div class="live-clock">
+        <div class="clock-time" id="live-time">--:--:--</div>
+        <div class="clock-date" id="live-date">Yüklənir...</div>
+        <div class="clock-parts">
+          <div class="clock-part">
+            <div class="val" id="cp-year">—</div>
+            <div class="lbl">İl</div>
+          </div>
+          <div class="clock-part">
+            <div class="val" id="cp-month">—</div>
+            <div class="lbl">Ay (indeks)</div>
+          </div>
+          <div class="clock-part">
+            <div class="val" id="cp-date">—</div>
+            <div class="lbl">Gün</div>
+          </div>
+          <div class="clock-part">
+            <div class="val" id="cp-day">—</div>
+            <div class="lbl">Həftə günü</div>
+          </div>
+          <div class="clock-part">
+            <div class="val" id="cp-hours">—</div>
+            <div class="lbl">Saat</div>
+          </div>
+          <div class="clock-part">
+            <div class="val" id="cp-mins">—</div>
+            <div class="lbl">Dəqiqə</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spesifik tarix -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge date">new Date(il, ay, gün...)</span>
+      <div class="lesson-head-text">
+        <h3>Spesifik Tarix Təyin Etmək</h3>
+        <p>İstənilən tarixi/saatı yaratmaq üçün arqumentlər</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript – spesifik tarix yaratma üsulları</span>
+        </div>
+<pre><span class="cmt">// Üsul 1: new Date(il, ayİndeksi, gün)</span>
+<span class="cmt">// ⚠ Ay 0-dan başlayır! Yanvar=0, Dekabr=11</span>
+<span class="kw">let</span> <span class="var">mustaqillik</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>(<span class="num">1991</span><span class="pn">,</span> <span class="num">9</span><span class="pn">,</span> <span class="num">18</span>)<span class="pn">;</span>
+<span class="cmt">// ay=9 → Oktyabr (0=Yanvar, 9=Oktyabr)</span>
+
+<span class="cmt">// Üsul 2: new Date(il, ay, gün, saat, dəq, san)</span>
+<span class="kw">let</span> <span class="var">tam</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>(<span class="num">2025</span><span class="pn">,</span> <span class="num">5</span><span class="pn">,</span> <span class="num">15</span><span class="pn">,</span> <span class="num">10</span><span class="pn">,</span> <span class="num">30</span><span class="pn">,</span> <span class="num">0</span>)<span class="pn">;</span>
+<span class="cmt">// → 2025-06-15 10:30:00</span>
+
+<span class="cmt">// Üsul 3: ISO 8601 string formatı (ay burada 1-dən başlayır!)</span>
+<span class="kw">let</span> <span class="var">isoDate</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>(<span class="str">"2025-06-15"</span>)<span class="pn">;</span>
+<span class="cmt">// → 2025-06-15 (string-də ay 1-dən başlayır)</span>
+
+<span class="cmt">// Üsul 4: Timestamp (millisaniyə, 1 Yanvar 1970-dən)</span>
+<span class="kw">let</span> <span class="var">ts</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>(<span class="num">0</span>)<span class="pn">;</span>
+<span class="cmt">// → Thu Jan 01 1970 (Unix Epoch)</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- GET metodları -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge date">GET Metodları</span>
+      <div class="lesson-head-text">
+        <h3>Tarix Komponentlərini Almaq</h3>
+        <p>getFullYear, getMonth, getDate, getDay, getHours...</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript – GET metodları</span>
+        </div>
+<pre><span class="kw">let</span> <span class="var">tarix</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>(<span class="num">2026</span><span class="pn">,</span> <span class="num">5</span><span class="pn">,</span> <span class="num">18</span><span class="pn">,</span> <span class="num">14</span><span class="pn">,</span> <span class="num">45</span><span class="pn">,</span> <span class="num">30</span>)<span class="pn">;</span>
+<span class="cmt">// ay=5 → İYUN (0=yanvar, 5=iyun)</span>
+
+<span class="cmt">// ── İl ──────────────────────────────────</span>
+<span class="var">tarix</span>.<span class="fn">getFullYear</span>();   <span class="cmt">// → 2026</span>
+
+<span class="cmt">// ── Ay (0-dan 11-ə qədər!) ──────────────</span>
+<span class="var">tarix</span>.<span class="fn">getMonth</span>();      <span class="cmt">// → 5  (İyun = 5)</span>
+<span class="cmt">// Real ay almaq üçün +1 əlavə et:</span>
+<span class="var">tarix</span>.<span class="fn">getMonth</span>() <span class="op">+</span> <span class="num">1</span>; <span class="cmt">// → 6  ← İstifadəçiyə göstəriləcək!</span>
+
+<span class="cmt">// ── Ayın günü (1-dən 31-ə) ──────────────</span>
+<span class="var">tarix</span>.<span class="fn">getDate</span>();       <span class="cmt">// → 18</span>
+
+<span class="cmt">// ── Həftənin günü (0=Bazar, 6=Şənbə) ──</span>
+<span class="var">tarix</span>.<span class="fn">getDay</span>();        <span class="cmt">// → 4 (Cümə axşamı)</span>
+
+<span class="cmt">// ── Saat, dəqiqə, saniyə ────────────────</span>
+<span class="var">tarix</span>.<span class="fn">getHours</span>();     <span class="cmt">// → 14</span>
+<span class="var">tarix</span>.<span class="fn">getMinutes</span>();   <span class="cmt">// → 45</span>
+<span class="var">tarix</span>.<span class="fn">getSeconds</span>();   <span class="cmt">// → 30</span>
+
+<span class="cmt">// ── Timestamp (1970-dən bəri ms) ────────</span>
+<span class="var">tarix</span>.<span class="fn">getTime</span>();      <span class="cmt">// → böyük ədəd (ms)</span></pre>
+      </div>
+
+      <div class="demo-box">
+        <h4>Canlı Tarix Analizatoru</h4>
+        <div class="demo-controls">
+          <input class="demo-input" type="date" id="date-analyze" style="width:auto">
+          <button class="btn btn-date" onclick="analyzeDate()">📋 Analiz Et</button>
+        </div>
+        <div class="demo-output empty" id="date-out">Nəticə burada görünəcək...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AY CƏDVƏLI — Kritik bölmə -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge date">⚠ getMonth()</span>
+      <div class="lesson-head-text">
+        <h3>Ay İndeksi Cədvəli — Kritik!</h3>
+        <p>0-dan başlayan ay sistemi — ən çox çaşdıran xüsusiyyət</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <div class="warning-box warn-error">
+        <div class="warn-head">🚨 Çox Vacib Xəbərdarlıq</div>
+        <p><code>getMonth()</code> ayı <strong>0-dan 11-ə qədər</strong> qaytarır. Yanvar = <strong>0</strong>, Dekabr = <strong>11</strong>. İstifadəçiyə göstərəcəyiniz zaman mütləq <code>+1</code> əlavə edin!</p>
+      </div>
+      <div class="table-wrap">
+        <table class="month-table">
+          <thead>
+            <tr><th>İndeks (getMonth)</th><th>Azərbaycanca Ay</th><th>İngilis</th><th>new Date() üçün</th></tr>
+          </thead>
+          <tbody>
+            <tr class="highlight"><td class="idx">0</td><td class="az">Yanvar</td><td>January</td><td><code>new Date(2026, 0, 1)</code></td></tr>
+            <tr><td class="idx">1</td><td class="az">Fevral</td><td>February</td><td><code>new Date(2026, 1, 1)</code></td></tr>
+            <tr><td class="idx">2</td><td class="az">Mart</td><td>March</td><td><code>new Date(2026, 2, 1)</code></td></tr>
+            <tr><td class="idx">3</td><td class="az">Aprel</td><td>April</td><td><code>new Date(2026, 3, 1)</code></td></tr>
+            <tr><td class="idx">4</td><td class="az">May</td><td>May</td><td><code>new Date(2026, 4, 1)</code></td></tr>
+            <tr><td class="idx">5</td><td class="az">İyun</td><td>June</td><td><code>new Date(2026, 5, 1)</code></td></tr>
+            <tr><td class="idx">6</td><td class="az">İyul</td><td>July</td><td><code>new Date(2026, 6, 1)</code></td></tr>
+            <tr><td class="idx">7</td><td class="az">Avqust</td><td>August</td><td><code>new Date(2026, 7, 1)</code></td></tr>
+            <tr><td class="idx">8</td><td class="az">Sentyabr</td><td>September</td><td><code>new Date(2026, 8, 1)</code></td></tr>
+            <tr><td class="idx">9</td><td class="az">Oktyabr</td><td>October</td><td><code>new Date(2026, 9, 1)</code></td></tr>
+            <tr><td class="idx">10</td><td class="az">Noyabr</td><td>November</td><td><code>new Date(2026, 10, 1)</code></td></tr>
+            <tr class="highlight"><td class="idx">11</td><td class="az">Dekabr</td><td>December</td><td><code>new Date(2026, 11, 1)</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SET metodları -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge date">SET Metodları</span>
+      <div class="lesson-head-text">
+        <h3>Tarixi Dəyişdirmək</h3>
+        <p>setFullYear, setMonth, setDate, setHours...</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <p>Set metodları mövcud Date obyektini <em>yerindəcə dəyişdirir</em> (mutates). Hər biri uyğun get metodunun əksidir.</p>
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript – SET metodları</span>
+        </div>
+<pre><span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>   <span class="cmt">// cari tarix</span>
+
+<span class="cmt">// İli dəyişdir</span>
+<span class="var">d</span>.<span class="fn">setFullYear</span>(<span class="num">2030</span>)<span class="pn">;</span>
+
+<span class="cmt">// Ayı dəyişdir (0=Yanvar, 11=Dekabr)</span>
+<span class="var">d</span>.<span class="fn">setMonth</span>(<span class="num">0</span>)<span class="pn">;</span>        <span class="cmt">// → Yanvar</span>
+
+<span class="cmt">// Ayın gününü dəyişdir</span>
+<span class="var">d</span>.<span class="fn">setDate</span>(<span class="num">1</span>)<span class="pn">;</span>         <span class="cmt">// → Ayın 1-i</span>
+
+<span class="cmt">// Saatı dəyişdir</span>
+<span class="var">d</span>.<span class="fn">setHours</span>(<span class="num">9</span><span class="pn">,</span> <span class="num">0</span><span class="pn">,</span> <span class="num">0</span>)<span class="pn">;</span> <span class="cmt">// 09:00:00</span>
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">d</span><span class="pn">)</span><span class="pn">;</span>
+<span class="cmt">// → Thu Jan 01 2030 09:00:00</span>
+
+<span class="cmt">// ── Praktiki: sabahın tarixi ────────────</span>
+<span class="kw">let</span> <span class="var">sabah</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="var">sabah</span>.<span class="fn">setDate</span>(<span class="var">sabah</span>.<span class="fn">getDate</span>() <span class="op">+</span> <span class="num">1</span>)<span class="pn">;</span>
+<span class="cmt">// → yeni Date obyekti yaratmadan tarix irəlilədi</span>
+
+<span class="cmt">// ── Praktiki: 30 gün sonra ──────────────</span>
+<span class="kw">let</span> <span class="var">gec</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="var">gec</span>.<span class="fn">setDate</span>(<span class="var">gec</span>.<span class="fn">getDate</span>() <span class="op">+</span> <span class="num">30</span>)<span class="pn">;</span>
+<span class="cmt">// → ay keçsə belə, düzgün hesablanır</span></pre>
+      </div>
+      <div class="demo-box">
+        <h4>Sabahın Tarixini Hesabla</h4>
+        <div class="demo-controls">
+          <input class="demo-input" type="number" id="days-ahead" value="30" min="1" max="365" style="width:100px">
+          <span style="color:var(--text-muted);font-size:.85rem">gün sonra</span>
+          <button class="btn btn-date" onclick="calcFuture()">📅 Hesabla</button>
+        </div>
+        <div class="demo-output empty" id="future-out">Nəticə burada görünəcək...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Praktik: Tarix formatı -->
+  <div class="lesson">
+    <div class="lesson-head">
+      <span class="method-badge date">Praktiki Nümunə</span>
+      <div class="lesson-head-text">
+        <h3>Tarix Formatlama — Real Layihə Nümunəsi</h3>
+        <p>Tarixin DD/MM/YYYY formatında göstərilməsi</p>
+      </div>
+    </div>
+    <div class="lesson-body">
+      <div class="code-wrap">
+        <div class="code-label">
+          <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+          <span>JavaScript – tarix formatı funksiyası</span>
+        </div>
+<pre><span class="kw">function</span> <span class="fn">formatTarix</span>(<span class="var">tarix</span>) <span class="pn">{</span>
+  <span class="kw">let</span> <span class="var">gun</span>  <span class="op">=</span> <span class="obj">String</span>(<span class="var">tarix</span>.<span class="fn">getDate</span>()).<span class="fn">padStart</span>(<span class="num">2</span><span class="pn">,</span> <span class="str">'0'</span>)<span class="pn">;</span>
+  <span class="kw">let</span> <span class="var">ay</span>   <span class="op">=</span> <span class="obj">String</span>(<span class="var">tarix</span>.<span class="fn">getMonth</span>() <span class="op">+</span> <span class="num">1</span>).<span class="fn">padStart</span>(<span class="num">2</span><span class="pn">,</span> <span class="str">'0'</span>)<span class="pn">;</span>
+  <span class="cmt">//                          ↑ +1 unutma!</span>
+  <span class="kw">let</span> <span class="var">il</span>   <span class="op">=</span> <span class="var">tarix</span>.<span class="fn">getFullYear</span>()<span class="pn">;</span>
+  <span class="kw">return</span> <span class="str">`${<span class="var">gun</span>}/${<span class="var">ay</span>}/${<span class="var">il</span>}`</span><span class="pn">;</span>
+<span class="pn">}</span>
+
+<span class="cmt">// İstifadəsi:</span>
+<span class="kw">let</span> <span class="var">bu_gun</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">formatTarix</span>(<span class="var">bu_gun</span>));
+<span class="cmt">// → "18/06/2026"</span>
+
+<span class="cmt">// Azərbaycan formatı ilə ay adları:</span>
+<span class="kw">const</span> <span class="var">AYLAR</span> <span class="op">=</span> <span class="pn">[</span>
+  <span class="str">"Yanvar"</span><span class="pn">,</span> <span class="str">"Fevral"</span><span class="pn">,</span> <span class="str">"Mart"</span><span class="pn">,</span>    <span class="str">"Aprel"</span><span class="pn">,</span>
+  <span class="str">"May"</span><span class="pn">,</span>    <span class="str">"İyun"</span><span class="pn">,</span>   <span class="str">"İyul"</span><span class="pn">,</span>    <span class="str">"Avqust"</span><span class="pn">,</span>
+  <span class="str">"Sentyabr"</span><span class="pn">,</span> <span class="str">"Oktyabr"</span><span class="pn">,</span> <span class="str">"Noyabr"</span><span class="pn">,</span> <span class="str">"Dekabr"</span>
+<span class="pn">]</span><span class="pn">;</span>
+
+<span class="kw">function</span> <span class="fn">azFormat</span>(<span class="var">tarix</span>) <span class="pn">{</span>
+  <span class="kw">let</span> <span class="var">g</span> <span class="op">=</span> <span class="var">tarix</span>.<span class="fn">getDate</span>()<span class="pn">;</span>
+  <span class="kw">let</span> <span class="var">a</span> <span class="op">=</span> <span class="var">AYLAR</span><span class="pn">[</span><span class="var">tarix</span>.<span class="fn">getMonth</span>()<span class="pn">]</span><span class="pn">;</span>
+  <span class="kw">let</span> <span class="var">i</span> <span class="op">=</span> <span class="var">tarix</span>.<span class="fn">getFullYear</span>()<span class="pn">;</span>
+  <span class="kw">return</span> <span class="str">`${<span class="var">g</span>} ${<span class="var">a</span>} ${<span class="var">i</span>}`</span><span class="pn">;</span>
+<span class="pn">}</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">azFormat</span>(<span class="var">bu_gun</span>));
+<span class="cmt">// → "18 İyun 2026"</span></pre>
+      </div>
+    </div>
+  </div>
+
+</section><!-- /date -->
+
+<hr class="section-divider">
+
+<!-- ═══════════════════════════════════════════
+     SECTION 3 – Kritik Xətalar
+═══════════════════════════════════════════ -->
+<section id="bugs">
+  <div class="section-header">
+    <div class="section-icon bug">⚠️</div>
+    <div class="section-title">
+      <h2><span class="bug-color">Kritik Xətalar</span></h2>
+      <p>Tələbələrin ən çox etdiyi səhvlər və onların həlli</p>
+    </div>
+  </div>
+
+  <!-- Xəta 1: Böyük/kiçik hərf -->
+  <div class="warning-box warn-error">
+    <div class="warn-head">🐛 Xəta #1 — Math-ı kiçik hərflə yazmaq</div>
+    <p>JavaScript-də <code>Math</code> obyektinin adı həmişə <strong>böyük M</strong> ilə başlamalıdır. Kiçik <code>math</code> yazılsa, <em>"math is not defined"</em> xətası alınır.</p>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-card-head wrong">❌ Yanlış</div>
+      <pre><span class="cmt">// ReferenceError!</span>
+<span class="var">math</span>.<span class="fn">round</span>(<span class="num">4.5</span>);
+<span class="var">MATH</span>.<span class="fn">floor</span>(<span class="num">3.9</span>);
+<span class="var">Math</span>.<span class="fn">Round</span>(<span class="num">4.5</span>);
+<span class="cmt">// TypeError!</span></pre>
+    </div>
+    <div class="compare-card">
+      <div class="compare-card-head right">✅ Düzgün</div>
+      <pre><span class="cmt">// Həmişə böyük M!</span>
+<span class="obj">Math</span>.<span class="fn">round</span>(<span class="num">4.5</span>);
+<span class="obj">Math</span>.<span class="fn">floor</span>(<span class="num">3.9</span>);
+<span class="obj">Math</span>.<span class="fn">ceil</span>(<span class="num">2.1</span>);</pre>
+    </div>
+  </div>
+
+  <!-- Xəta 2: new olmadan Date -->
+  <div class="warning-box warn-error">
+    <div class="warn-head">🐛 Xəta #2 — "new" olmadan Date çağırmaq</div>
+    <p><code>Date()</code> şəklində (<code>new</code> olmadan) çağırılsa, nəticə <strong>String</strong> qaytarır — Date obyekti deyil! <code>.getFullYear()</code> kimi metodları çağıra bilməzsiniz.</p>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-card-head wrong">❌ Yanlış</div>
+      <pre><span class="cmt">// Date() → String qaytarır!</span>
+<span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="var">d</span>);
+<span class="cmt">// → "string"</span>
+<span class="var">d</span>.<span class="fn">getFullYear</span>();
+<span class="cmt">// TypeError: not a function!</span></pre>
+    </div>
+    <div class="compare-card">
+      <div class="compare-card-head right">✅ Düzgün</div>
+      <pre><span class="cmt">// new Date() → Object!</span>
+<span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> <span class="var">d</span>);
+<span class="cmt">// → "object"</span>
+<span class="var">d</span>.<span class="fn">getFullYear</span>();
+<span class="cmt">// → 2026 ✓</span></pre>
+    </div>
+  </div>
+
+  <!-- Xəta 3: getMonth() -->
+  <div class="warning-box warn-error">
+    <div class="warn-head">🐛 Xəta #3 — getMonth() nəticəsini real ay ilə qarışdırmaq</div>
+    <p><code>getMonth()</code> <strong>0-dan 11-ə qədər</strong> qaytarır. İyun ayı üçün <code>5</code> qaytarır, <code>6</code> deyil! İstifadəçiyə göstərərkən <strong>+1 əlavə etmək şərtdir</strong>.</p>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-card-head wrong">❌ Yanlış</div>
+      <pre><span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="cmt">// Birbaşa göstərmək:</span>
+<span class="fn">console</span>.<span class="fn">log</span>(
+  <span class="str">"Ay: "</span> <span class="op">+</span> <span class="var">d</span>.<span class="fn">getMonth</span>()
+)<span class="pn">;</span>
+<span class="cmt">// → "Ay: 5"  ← Yanvar→0 sistemi!</span>
+<span class="cmt">// İyun üçün 5 göstərir → yanlış!</span></pre>
+    </div>
+    <div class="compare-card">
+      <div class="compare-card-head right">✅ Düzgün</div>
+      <pre><span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="cmt">// +1 əlavə etmək:</span>
+<span class="fn">console</span>.<span class="fn">log</span>(
+  <span class="str">"Ay: "</span> <span class="op">+</span> (<span class="var">d</span>.<span class="fn">getMonth</span>() <span class="op">+</span> <span class="num">1</span>)
+)<span class="pn">;</span>
+<span class="cmt">// → "Ay: 6"  ← İyun üçün doğru!</span></pre>
+    </div>
+  </div>
+
+  <!-- Xəta 4: getYear -->
+  <div class="warning-box warn-error">
+    <div class="warn-head">🐛 Xəta #4 — getYear() yerinə getFullYear() istifadə etmək</div>
+    <p><code>getYear()</code> köhnə metoddur və <strong>1900 çıxılmış</strong> ildən etibarən qaytarır (2026 → 126 qaytarır). Həmişə <code>getFullYear()</code> istifadə edin!</p>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-card-head wrong">❌ Yanlış (köhnə)</div>
+      <pre><span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="var">d</span>.<span class="fn">getYear</span>();
+<span class="cmt">// → 126  (2026 - 1900)</span>
+<span class="cmt">// İstifadəçiyə 126 göstərir — çox yanlış!</span></pre>
+    </div>
+    <div class="compare-card">
+      <div class="compare-card-head right">✅ Düzgün</div>
+      <pre><span class="kw">let</span> <span class="var">d</span> <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>()<span class="pn">;</span>
+<span class="var">d</span>.<span class="fn">getFullYear</span>();
+<span class="cmt">// → 2026  (tam il)</span></pre>
+    </div>
+  </div>
+
+  <!-- Xəta 5: Math.random() tam ədəd -->
+  <div class="warning-box warn-error">
+    <div class="warn-head">🐛 Xəta #5 — Math.random() ilə tam ədəd almaq</div>
+    <p><code>Math.random()</code> heç vaxt tam ədəd (<code>int</code>) qaytarmır — həmişə <code>0</code> ilə <code>1</code> arasında onluq ədəd qaytarır. Tam ədəd lazımdırsa, <code>Math.floor()</code> ilə birləşdirin.</p>
+  </div>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-card-head wrong">❌ Yanlış</div>
+      <pre><span class="cmt">// 1-6 arası tam ədəd istəyir...</span>
+<span class="kw">let</span> <span class="var">zer</span> <span class="op">=</span> <span class="obj">Math</span>.<span class="fn">random</span>() <span class="op">*</span> <span class="num">6</span><span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">zer</span>);
+<span class="cmt">// → 3.7291...  tam ədəd deyil!</span></pre>
+    </div>
+    <div class="compare-card">
+      <div class="compare-card-head right">✅ Düzgün</div>
+      <pre><span class="cmt">// floor + düstur:</span>
+<span class="kw">let</span> <span class="var">zer</span> <span class="op">=</span> <span class="obj">Math</span>.<span class="fn">floor</span>(
+  <span class="obj">Math</span>.<span class="fn">random</span>() <span class="op">*</span> <span class="num">6</span>
+) <span class="op">+</span> <span class="num">1</span><span class="pn">;</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="var">zer</span>);
+<span class="cmt">// → 1, 2, 3, 4, 5 və ya 6 ✓</span></pre>
+    </div>
+  </div>
+
+  <!-- Məsləhət bölməsi -->
+  <div class="warning-box warn-tip">
+    <div class="warn-head">✅ Ümumi Məsləhətlər</div>
+    <p>1. Math metodlarını yazmadan əvvəl həmişə <strong>böyük M</strong> ilə başladığınızı yoxlayın.</p>
+    <p>2. Date yaratarkən <code>new</code> sözünü unutmayın — linteriniz xəbərdarlıq vermirsə, <strong>typeof</strong> ilə yoxlayın: <code>typeof d === 'object'</code> olmalıdır.</p>
+    <p>3. <code>getMonth()</code> nəticəsini göstərərkən mütləq <strong>+1</strong> əlavə edin. Bu xətanı önləmək üçün <code>AYLAR[d.getMonth()]</code> kimi ay adları massivindən istifadə etmək daha yaxşı yanaşmadır.</p>
+    <p>4. <code>Math.random()</code> ilə tam ədəd üçün həmişə <code>Math.floor(Math.random() * (max - min + 1)) + min</code> düsturunu yadda saxlayın.</p>
+  </div>
+
+  <div class="warning-box warn-note">
+    <div class="warn-head">💡 Yadda saxla: getDay() vs getDate()</div>
+    <p><code>getDate()</code> — ayın <strong>gününü</strong> qaytarır (1–31).</p>
+    <p><code>getDay()</code> — həftənin <strong>gününü</strong> qaytarır (0=Bazar, 1=Bazar ertəsi, ... 6=Şənbə).</p>
+    <p>Bu iki metodu çox tez-tez qarışdırırlar!</p>
+  </div>
+
+</section><!-- /bugs -->
+
+</div><!-- /container -->
+</main>
+
+<footer>
+  <div class="container">
+    <p>JavaScript <strong>Math</strong> və <strong>Date</strong> Obyektləri Dərsliki &nbsp;·&nbsp; Azərbaycan dilində</p>
+    <p style="margin-top:8px;font-size:.75rem;color:#546e7a">Bu dərsliyin məzmunu tədris məqsədi daşıyır. Kod nümunələri birbaşa brauzer konsolunda sınana bilər.</p>
+  </div>
+</footer>
+
+<script>
+  // ── NAV: Active state ──────────────────────────────
+  (function() {
+    const tabs = document.querySelectorAll('.nav-tab');
+    const sections = document.querySelectorAll('section[id]');
+    const offset = 90;
+    function setActive() {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - offset) current = s.id;
+      });
+      tabs.forEach(t => {
+        t.classList.toggle('active', t.getAttribute('href') === '#' + current);
+      });
+    }
+    window.addEventListener('scroll', setActive, {passive: true});
+    setActive();
+  })();
+
+  // ── LIVE CLOCK ────────────────────────────────────
+  const AY_ADLARI = [
+    "Yanvar","Fevral","Mart","Aprel","May","İyun",
+    "İyul","Avqust","Sentyabr","Oktyabr","Noyabr","Dekabr"
+  ];
+  const HEF_GUNLERI = [
+    "Bazar","Bazar ertəsi","Çərşənbə axşamı",
+    "Çərşənbə","Cümə axşamı","Cümə","Şənbə"
+  ];
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  function updateClock() {
+    const d = new Date();
+    const tEl = document.getElementById('live-time');
+    const dEl = document.getElementById('live-date');
+    if (tEl) {
+      tEl.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+    if (dEl) {
+      dEl.textContent = `${d.getDate()} ${AY_ADLARI[d.getMonth()]} ${d.getFullYear()} — ${HEF_GUNLERI[d.getDay()]}`;
+    }
+    const ids = ['cp-year','cp-month','cp-date','cp-day','cp-hours','cp-mins'];
+    const vals = [
+      d.getFullYear(),
+      d.getMonth() + ' (' + AY_ADLARI[d.getMonth()] + ')',
+      d.getDate(),
+      d.getDay() + ' (' + HEF_GUNLERI[d.getDay()].substring(0,3) + ')',
+      pad(d.getHours()),
+      pad(d.getMinutes())
+    ];
+    ids.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = vals[i];
+    });
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ── Math.round demo ───────────────────────────────
+  function runRound() {
+    const v = parseFloat(document.getElementById('r-input').value);
+    if (isNaN(v)) { setOut('r-out','❌ Düzgün ədəd daxil edin!'); return; }
+    const r = Math.round(v);
+    setOut('r-out',
+      `Math.round(${v}) → ${r}\n` +
+      `Kəsr hissə: .${String(v).split('.')[1] || '0'}  →  ${Math.abs(v - Math.trunc(v)) >= 0.5 ? 'yuxarı' : 'aşağı'} yuvarlaqlaşdırıldı`
+    );
+  }
+
+  // ── Floor/Ceil/Trunc demo ─────────────────────────
+  function runFCT() {
+    const v = parseFloat(document.getElementById('fct-input').value);
+    if (isNaN(v)) { setOut('fct-out','❌ Düzgün ədəd daxil edin!'); return; }
+    setOut('fct-out',
+      `Math.floor(${v})  →  ${Math.floor(v)}\n` +
+      `Math.ceil(${v})   →  ${Math.ceil(v)}\n` +
+      `Math.trunc(${v})  →  ${Math.trunc(v)}\n` +
+      `Math.round(${v})  →  ${Math.round(v)}`
+    );
+  }
+
+  // ── Min/Max demo ──────────────────────────────────
+  function runMinMax() {
+    const raw = document.getElementById('minmax-input').value;
+    const nums = raw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+    if (nums.length < 2) { setOut('minmax-out','❌ Ən az 2 ədəd daxil edin (vergüllə)'); return; }
+    setOut('minmax-out',
+      `Ədədlər: [${nums.join(', ')}]\n` +
+      `Math.min() → ${Math.min(...nums)}\n` +
+      `Math.max() → ${Math.max(...nums)}`
+    );
+  }
+
+  // ── Random demo ───────────────────────────────────
+  function genRandom() {
+    const r = Math.random();
+    document.getElementById('rand-display').textContent = r.toFixed(15);
+    const pct = (r * 100).toFixed(1);
+    document.getElementById('rand-explain').textContent =
+      `Bu ədəd 0-1 arasındadır. 100 ilə vursaq: ${pct} alırıq.`;
+  }
+
+  // ── Dice demo ─────────────────────────────────────
+  function rollDice() {
+    const min = parseInt(document.getElementById('dice-min').value);
+    const max = parseInt(document.getElementById('dice-max').value);
+    if (isNaN(min) || isNaN(max) || min > max) {
+      setOut('dice-out','❌ Min ≤ Max olmalıdır!'); return;
+    }
+    const results = [];
+    for (let i = 0; i < 5; i++) {
+      results.push(Math.floor(Math.random() * (max - min + 1)) + min);
+    }
+    setOut('dice-out',
+      `5 dəfə atış [${min}-${max}]:\n` + results.map((r,i) => `  ${i+1}. atış → ${r}`).join('\n') +
+      `\n\nDüstur: Math.floor(Math.random() * (${max}-${min}+1)) + ${min}`
+    );
+  }
+
+  // ── Date analyze demo ─────────────────────────────
+  (function() {
+    const inp = document.getElementById('date-analyze');
+    if (inp) {
+      const now = new Date();
+      inp.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+    }
+  })();
+
+  function analyzeDate() {
+    const val = document.getElementById('date-analyze').value;
+    if (!val) { setOut('date-out','❌ Tarix seçin!'); return; }
+    const d = new Date(val + 'T00:00:00');
+    const realMonth = d.getMonth() + 1;
+    setOut('date-out',
+      `new Date("${val}")\n` +
+      `─────────────────────────────\n` +
+      `getFullYear()  → ${d.getFullYear()}  (il)\n` +
+      `getMonth()     → ${d.getMonth()}  ← indeks  (real: ${realMonth} = ${AY_ADLARI[d.getMonth()]})\n` +
+      `getDate()      → ${d.getDate()}  (ayın günü)\n` +
+      `getDay()       → ${d.getDay()}  (${HEF_GUNLERI[d.getDay()]})\n` +
+      `─────────────────────────────\n` +
+      `İstifadəçi üçün: ${d.getDate()} ${AY_ADLARI[d.getMonth()]} ${d.getFullYear()}`
+    );
+  }
+
+  // ── Future date demo ──────────────────────────────
+  function calcFuture() {
+    const days = parseInt(document.getElementById('days-ahead').value);
+    if (isNaN(days) || days < 1) { setOut('future-out','❌ Müsbət ədəd daxil edin!'); return; }
+    const future = new Date();
+    future.setDate(future.getDate() + days);
+    const today = new Date();
+    setOut('future-out',
+      `Bu gün: ${today.getDate()} ${AY_ADLARI[today.getMonth()]} ${today.getFullYear()}\n` +
+      `${days} gün sonra → ${future.getDate()} ${AY_ADLARI[future.getMonth()]} ${future.getFullYear()}\n` +
+      `(${HEF_GUNLERI[future.getDay()]})`
+    );
+  }
+
+  // ── Helper ────────────────────────────────────────
+  function setOut(id, text) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove('empty');
+  }
+
+  // ── Init genRandom on load ────────────────────────
+  window.addEventListener('load', genRandom);
+</script>
+</body>
+</html>

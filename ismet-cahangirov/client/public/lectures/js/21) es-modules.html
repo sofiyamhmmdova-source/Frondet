@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ES Modules — JS Dərsliyi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blueprint: #0f2a44;
+    --blueprint-2: #0c2138;
+    --blueprint-card: #12395c;
+    --line: #6fa8d0;
+    --line-soft: rgba(111,168,208,.28);
+    --paper: #f4efe2;
+    --paper-2: #ece4d1;
+    --ink: #17232e;
+    --ink-soft: #51606c;
+    --named: #3f9c8e;
+    --named-deep: #256359;
+    --default: #cf7d33;
+    --default-deep: #8f5620;
+    --warn: #b8433a;
+    --warn-bg: #fbeae6;
+    --sans: 'Inter', 'Segoe UI', Arial, sans-serif;
+    --mono: 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{max-width:100%;display:block;}
+  a{color:var(--named-deep);}
+  ::selection{background:var(--named);color:#fff;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 18px 18px, var(--line-soft) 1px, transparent 1.4px) 0 0/36px 36px,
+      linear-gradient(180deg, var(--blueprint) 0%, var(--blueprint-2) 100%);
+    color:#eaf3fa;
+    padding:clamp(28px,6vw,64px) clamp(18px,6vw,64px) clamp(36px,6vw,56px);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; inset:10px;
+    border:1px solid var(--line-soft);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--line);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{content:"◈"; color:var(--default);}
+  h1.title{
+    font-size:clamp(38px,9vw,74px);
+    font-weight:900;
+    letter-spacing:-.03em;
+    margin:0 0 6px;
+    line-height:1.0;
+  }
+  .subtitle{
+    font-family:var(--mono);
+    font-size:clamp(13px,2.6vw,17px);
+    color:#bcd6e8;
+    margin:0 0 28px;
+    max-width:60ch;
+  }
+  .lead{
+    max-width:62ch;
+    font-size:clamp(15px,2.2vw,17px);
+    color:#d8e6f0;
+    margin:0 0 30px;
+  }
+  .legend{
+    display:flex; flex-wrap:wrap; gap:18px;
+    font-family:var(--mono); font-size:12.5px; color:#cfe1ee;
+    margin-bottom:34px;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:8px;}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none;}
+  .dot.named{background:var(--named);}
+  .dot.default{background:var(--default);}
+
+  .diagram-wrap{
+    background:rgba(255,255,255,.03);
+    border:1px solid var(--line-soft);
+    border-radius:4px;
+    padding:clamp(10px,3vw,22px);
+  }
+
+  /* ---------- TOC BAR ---------- */
+  .toc-bar{
+    position:sticky; top:0; z-index:50;
+    background:var(--paper);
+    border-bottom:1px solid #d9cfb4;
+    box-shadow:0 2px 10px rgba(15,42,68,.06);
+  }
+  .toc-inner{
+    display:flex; align-items:center; gap:14px;
+    padding:10px clamp(18px,6vw,64px);
+    max-width:1180px; margin:0 auto;
+  }
+  .toc-toggle{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:9px 14px;
+    border-radius:3px;
+    cursor:pointer;
+    flex:none;
+  }
+  .toc-list{
+    display:flex; gap:4px; overflow-x:auto;
+    scrollbar-width:none;
+    list-style:none; margin:0; padding:0;
+  }
+  .toc-list::-webkit-scrollbar{display:none;}
+  .toc-list li{flex:none;}
+  .toc-list a{
+    display:block;
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    white-space:nowrap;
+    padding:8px 12px;
+    border-radius:3px;
+    border:1px solid transparent;
+  }
+  .toc-list a.active{
+    color:var(--ink);
+    border-color:#d9cfb4;
+    background:var(--paper-2);
+  }
+  .toc-bar.open .toc-list{
+    display:flex; flex-direction:column; overflow:visible;
+  }
+  @media (max-width:760px){
+    .toc-list{display:none;}
+    .toc-bar.open .toc-list li a{padding:11px 6px; border-bottom:1px solid #e3dac0;}
+  }
+  @media (min-width:761px){
+    .toc-toggle{display:none;}
+  }
+
+  /* ---------- MAIN / SHEETS ---------- */
+  main{max-width:880px; margin:0 auto; padding:clamp(24px,5vw,50px) clamp(18px,6vw,32px) 20px;}
+
+  .sheet{
+    position:relative;
+    background:#fffdf7;
+    border:1px solid #ddd2b3;
+    border-radius:4px;
+    padding:clamp(20px,4.5vw,40px);
+    margin-bottom:34px;
+  }
+  .sheet-tab{
+    position:absolute;
+    top:-13px; left:22px;
+    background:var(--blueprint);
+    color:#cfe6f5;
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.08em;
+    padding:4px 10px;
+    border-radius:3px;
+  }
+  h2.h-title{
+    font-size:clamp(22px,4vw,30px);
+    font-weight:800;
+    letter-spacing:-.01em;
+    margin:14px 0 6px;
+  }
+  .h-desc{color:var(--ink-soft); margin:0 0 22px; max-width:64ch;}
+  h3.h-sub{
+    font-size:17px; font-weight:700; margin:26px 0 8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  p{margin:0 0 14px;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px;}
+  strong{color:var(--ink);}
+  code.inline{
+    font-family:var(--mono); font-size:.88em;
+    background:var(--paper-2); border:1px solid #ddd2b3;
+    padding:1px 6px; border-radius:3px;
+  }
+
+  /* ---------- CODE BLOCKS ---------- */
+  .code-card{
+    background:var(--blueprint-2);
+    border:1px solid var(--blueprint-card);
+    border-radius:5px;
+    overflow:hidden;
+    margin:0 0 18px;
+  }
+  .code-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 14px;
+    background:var(--blueprint);
+    font-family:var(--mono); font-size:11.5px; color:#a9c8dc;
+    letter-spacing:.04em;
+  }
+  .code-card pre{
+    margin:0; padding:16px; overflow-x:auto;
+    font-family:var(--mono); font-size:13px; line-height:1.6;
+    color:#e9f2f8;
+  }
+  .kw{color:#7fb6e0; font-weight:600;}
+  .st{color:#e2b06b;}
+  .cm{color:#7c93a3; font-style:italic;}
+  .fn{color:#8fd6c4;}
+  .df{color:var(--default); font-weight:700;}
+  .nm{color:var(--named); font-weight:700;}
+
+  .compare-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+    margin-bottom:18px;
+  }
+  @media (max-width:620px){.compare-grid{grid-template-columns:1fr;}}
+  .compare-col{border-radius:5px; padding:16px; border:1px solid;}
+  .compare-col.no{background:var(--warn-bg); border-color:#e3b6ae;}
+  .compare-col.yes{background:#e9f4f1; border-color:#b7d8cf;}
+  .compare-label{
+    font-family:var(--mono); font-size:12px; font-weight:700;
+    letter-spacing:.05em; margin-bottom:8px; display:block;
+  }
+  .compare-label.no{color:var(--warn);}
+  .compare-label.yes{color:var(--named-deep);}
+  .compare-col pre{background:transparent; margin:0; padding:0; font-family:var(--mono); font-size:12.5px; white-space:pre-wrap; word-break:break-word;}
+
+  .badge{
+    display:inline-block; font-family:var(--mono); font-size:11px;
+    font-weight:700; letter-spacing:.06em; padding:2px 8px; border-radius:3px;
+    text-transform:uppercase;
+  }
+  .badge.named{background:rgba(63,156,142,.15); color:var(--named-deep);}
+  .badge.default{background:rgba(207,125,51,.15); color:var(--default-deep);}
+
+  table{width:100%; border-collapse:collapse; margin-bottom:20px; font-size:14.5px;}
+  th,td{text-align:left; padding:10px 12px; border-bottom:1px solid #e3dac0; vertical-align:top;}
+  th{font-family:var(--mono); font-size:12px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft);}
+
+  /* ---------- BUG / REVISION CLOUD CALLOUT ---------- */
+  .bug{
+    position:relative;
+    background:var(--warn-bg);
+    border:2px solid #dba69c;
+    border-radius:38% 12% 32% 14% / 14% 32% 12% 38%;
+    padding:20px 22px 18px;
+    margin:18px 0 26px;
+  }
+  .bug-tag{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--mono); font-size:11.5px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase;
+    color:#fff; background:var(--warn);
+    padding:4px 10px; border-radius:3px;
+    margin-bottom:10px;
+  }
+  .bug h4{margin:0 0 8px; font-size:16px;}
+  .bug p:last-child{margin-bottom:0;}
+  .bug .code-card{background:#3a1712; border-color:#5c2620;}
+  .bug .code-card .code-head{background:#4a1e17; color:#e8b9ad;}
+
+  /* ---------- TIP / GOOD PRACTICE ---------- */
+  .tip{
+    background:#eaf2ee;
+    border-left:4px solid var(--named);
+    border-radius:0 5px 5px 0;
+    padding:16px 20px;
+    margin:0 0 18px;
+  }
+  .tip strong{color:var(--named-deep);}
+
+  /* ---------- QUIZ ---------- */
+  details.quiz{
+    background:var(--paper-2);
+    border:1px solid #ddd2b3;
+    border-radius:5px;
+    padding:14px 18px;
+    margin-bottom:12px;
+  }
+  details.quiz summary{
+    cursor:pointer;
+    font-weight:700;
+    list-style:none;
+    display:flex; align-items:center; gap:10px;
+  }
+  details.quiz summary::-webkit-details-marker{display:none;}
+  details.quiz summary::before{
+    content:"+"; font-family:var(--mono); font-weight:900;
+    color:var(--default-deep); flex:none;
+    width:20px; text-align:center;
+  }
+  details.quiz[open] summary::before{content:"–";}
+  .quiz-answer{margin-top:10px; padding-top:10px; border-top:1px dashed #cfc4a3; color:var(--ink-soft);}
+
+  footer{
+    text-align:center; padding:40px 20px 60px;
+    font-family:var(--mono); font-size:12.5px; color:var(--ink-soft);
+  }
+
+  .back-top{
+    position:fixed; right:18px; bottom:18px;
+    width:42px; height:42px; border-radius:50%;
+    background:var(--ink); color:var(--paper);
+    border:none; font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .2s;
+    z-index:60;
+  }
+  .back-top.show{opacity:1; pointer-events:auto;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .back-top{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">JS Dərsliyi · Sheet A</div>
+  <h1 class="title">ES Modules</h1>
+  <p class="subtitle">import / export, default vs named, modul arxitekturası</p>
+  <p class="lead">JavaScript-i kiçik, idarə oluna bilən parçalara bölmək üçün rəsmi standart. Bu dərsdə sintaksisdən tutmuş, ən çox rast gəlinən xətalara və performans nüanslarına qədər hər şeyi addım-addım, real kod nümunələri ilə izah edəcəyik.</p>
+  <div class="legend">
+    <span><span class="dot named"></span> Named export/import</span>
+    <span><span class="dot default"></span> Default export/import</span>
+  </div>
+
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Modullar arasında import/export sxemi">
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,.05)"/>
+        </pattern>
+      </defs>
+      <rect width="760" height="300" fill="url(#grid)"/>
+
+      <!-- Box A: calculator.js -->
+      <g>
+        <rect x="18" y="34" width="300" height="232" rx="3" fill="rgba(255,255,255,.02)" stroke="#6fa8d0" stroke-opacity=".55"/>
+        <rect x="18" y="34" width="300" height="30" fill="rgba(111,168,208,.14)"/>
+        <text x="34" y="54" font-family="JetBrains Mono, monospace" font-size="13" fill="#cfe6f5">calculator.js</text>
+
+        <text x="34" y="98" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#3f9c8e" font-weight="700">export function add()</text>
+        <text x="34" y="128" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#3f9c8e" font-weight="700">export function subtract()</text>
+        <text x="34" y="178" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#cf7d33" font-weight="700">export default class</text>
+        <text x="34" y="196" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#cf7d33" font-weight="700">  Calculator</text>
+
+        <!-- corner brackets -->
+        <path d="M18 46 V34 H30" fill="none" stroke="#6fa8d0"/>
+        <path d="M306 34 H318 V46" fill="none" stroke="#6fa8d0"/>
+        <path d="M18 254 V266 H30" fill="none" stroke="#6fa8d0"/>
+        <path d="M306 266 H318 V254" fill="none" stroke="#6fa8d0"/>
+      </g>
+
+      <!-- Box B: app.js -->
+      <g>
+        <rect x="442" y="34" width="300" height="232" rx="3" fill="rgba(255,255,255,.02)" stroke="#6fa8d0" stroke-opacity=".55"/>
+        <rect x="442" y="34" width="300" height="30" fill="rgba(111,168,208,.14)"/>
+        <text x="458" y="54" font-family="JetBrains Mono, monospace" font-size="13" fill="#cfe6f5">app.js</text>
+
+        <text x="458" y="98" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#3f9c8e" font-weight="700">import { add, subtract }</text>
+        <text x="458" y="116" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#9fc8b9">  from './calculator.js'</text>
+        <text x="458" y="178" font-family="JetBrains Mono, monospace" font-size="12.5" fill="#cf7d33" font-weight="700">import Calculator</text>
+        <text x="458" y="196" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#e0b98e">  from './calculator.js'</text>
+
+        <path d="M442 46 V34 H454" fill="none" stroke="#6fa8d0"/>
+        <path d="M730 34 H742 V46" fill="none" stroke="#6fa8d0"/>
+        <path d="M442 254 V266 H454" fill="none" stroke="#6fa8d0"/>
+        <path d="M730 266 H742 V254" fill="none" stroke="#6fa8d0"/>
+      </g>
+
+      <!-- connecting lines -->
+      <path d="M318 105 C 380 105, 380 100, 442 100" fill="none" stroke="#3f9c8e" stroke-width="2" stroke-dasharray="5 5"/>
+      <path d="M318 178 C 380 178, 380 185, 442 185" fill="none" stroke="#cf7d33" stroke-width="2.4"/>
+    </svg>
+  </div>
+</header>
+
+<nav class="toc-bar" id="tocBar">
+  <div class="toc-inner">
+    <button class="toc-toggle" id="tocToggle">Mündəricat</button>
+    <ul class="toc-list" id="tocList">
+      <li><a href="#giris">01 · Nədir</a></li>
+      <li><a href="#sintaksis">02 · Sintaksis</a></li>
+      <li><a href="#named-default">03 · Named/Default</a></li>
+      <li><a href="#arxitektura">04 · Arxitektura</a></li>
+      <li><a href="#dinamik">05 · Dinamik import</a></li>
+      <li><a href="#muhit">06 · Brauzer/Node</a></li>
+      <li><a href="#xetalar">07 · Xətalar</a></li>
+      <li><a href="#best-practice">08 · Best practice</a></li>
+      <li><a href="#performans">09 · Tree-shaking</a></li>
+      <li><a href="#yoxlama">10 · Özünü yoxla</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+
+  <!-- 01 -->
+  <section class="sheet" id="giris">
+    <span class="sheet-tab">A · 01</span>
+    <h2 class="h-title">ES Modules nədir?</h2>
+    <p class="h-desc">Modul sisteminin JavaScript-ə niyə lazım olduğunu və köhnə üsullardan nə ilə fərqləndiyini anlayaq.</p>
+
+    <p>2015-ci ilə qədər JavaScript-də rəsmi modul sistemi yox idi. Böyük layihələrdə kod ya bir-birinin üstünə yazılan <code class="inline">&lt;script&gt;</code> teqləri ilə, ya IIFE (dərhal çağırılan funksiya) ilə, ya da Node.js-də CommonJS (<code class="inline">require</code> / <code class="inline">module.exports</code>) ilə təşkil olunurdu.</p>
+
+    <p><strong>ES Modules (ESM)</strong> — ECMAScript 2015 standartı ilə gələn rəsmi modul sistemidir. Həm brauzerlərdə, həm də Node.js-də dəstəklənir və bu gün JavaScript ekosisteminin əsas modul formatıdır.</p>
+
+    <h3 class="h-sub">Klassik skriptdən nə ilə fərqlənir?</h3>
+    <ul>
+      <li><strong>Hər fayl öz scope-una malikdir.</strong> Modulun içindəki dəyişənlər avtomatik olaraq <code class="inline">window</code>/qlobal obyektə əlavə olunmur.</li>
+      <li><strong>Strict mode avtomatik aktivdir</strong> — <code class="inline">"use strict"</code> yazmağa ehtiyac yoxdur.</li>
+      <li><strong>Top-level <code class="inline">this</code></strong> — modulun içində <code class="inline">this</code> <code class="inline">undefined</code>-dir (klassik skriptdə isə <code class="inline">window</code>-a bərabərdir).</li>
+      <li><strong>Statik strukturdur.</strong> <code class="inline">import</code>/<code class="inline">export</code> yalnız faylın ən yuxarı səviyyəsində yazıla bilər (şərt daxilində yox), buna görə alətlər faylların bir-birinə necə bağlı olduğunu icra olmadan öncə təhlil edə bilir. Elə bu xüsusiyyət tree-shaking-i mümkün edir (9-cu bölmədə).</li>
+      <li><strong>Bir dəfə icra olunur.</strong> Modul neçə yerdən import olunsa da, onun kodu yalnız bir dəfə işə düşür, nəticə keşlənir.</li>
+    </ul>
+  </section>
+
+  <!-- 02 -->
+  <section class="sheet" id="sintaksis">
+    <span class="sheet-tab">A · 02</span>
+    <h2 class="h-title">Əsas sintaksis: export və import</h2>
+    <p class="h-desc">Bir faylın kodu necə "ixrac" edilir və başqa fayldan necə "idxal" olunur.</p>
+
+    <div class="code-card">
+      <div class="code-head">mathUtils.js</div>
+      <pre><span class="kw">export const</span> PI = <span class="st">3.14159</span>;
+
+<span class="kw">export function</span> <span class="fn">add</span>(a, b) {
+  <span class="kw">return</span> a + b;
+}
+
+<span class="kw">export function</span> <span class="fn">subtract</span>(a, b) {
+  <span class="kw">return</span> a - b;
+}</pre>
+    </div>
+
+    <div class="code-card">
+      <div class="code-head">app.js</div>
+      <pre><span class="kw">import</span> { PI, add, subtract } <span class="kw">from</span> <span class="st">'./mathUtils.js'</span>;
+
+console.log(add(<span class="st">2</span>, <span class="st">3</span>)); <span class="cm">// 5</span></pre>
+    </div>
+
+    <p>İstəsən, export-ları funksiyaların yanında yazmaq əvəzinə, faylın sonunda tək bir yerdə toplaya bilərsən:</p>
+
+    <div class="code-card">
+      <div class="code-head">mathUtils.js — alternativ yazılış</div>
+      <pre><span class="kw">const</span> PI = <span class="st">3.14159</span>;
+<span class="kw">function</span> <span class="fn">add</span>(a, b) { <span class="kw">return</span> a + b; }
+<span class="kw">function</span> <span class="fn">subtract</span>(a, b) { <span class="kw">return</span> a - b; }
+
+<span class="kw">export</span> { PI, add, subtract };</pre>
+    </div>
+
+    <div class="tip"><strong>Nüans:</strong> import zamanı ad dəyişmək istəsən, <code class="inline">as</code> açar sözündən istifadə et: <code class="inline">import { add as toplama } from './mathUtils.js'</code>. Eyni şəkildə export edərkən də <code class="inline">export { add as cəm }</code> yaza bilərsən.</div>
+  </section>
+
+  <!-- 03 -->
+  <section class="sheet" id="named-default">
+    <span class="sheet-tab">A · 03</span>
+    <h2 class="h-title">Named export vs Default export</h2>
+    <p class="h-desc">İkisi arasındakı fərqi bilməmək ən çox rast gəlinən qarışıqlıqlardan biridir.</p>
+
+    <table>
+      <tr><th></th><th><span class="badge named">Named</span></th><th><span class="badge default">Default</span></th></tr>
+      <tr><td>Sayı</td><td>Bir modulda istənilən qədər ola bilər</td><td>Bir modulda yalnız <strong>bir</strong> dənə ola bilər</td></tr>
+      <tr><td>Import zamanı ad</td><td>Mötərizə <code class="inline">{ }</code> daxilində, orijinal adla <strong>eyni</strong> olmalıdır (və ya <code class="inline">as</code> ilə çevrilməlidir)</td><td>Mötərizə lazım deyil, istənilən adı özün seçə bilərsən</td></tr>
+      <tr><td>Tipik istifadə</td><td>Util funksiyalar, sabitlər, çoxlu köməkçi ifadələr</td><td>Bir faylın "əsas" ixracı — məs. tək bir komponent və ya class</td></tr>
+      <tr><td>Refaktorinq</td><td>IDE adı avtomatik izləyir, səhv adı asan tapılır</td><td>Ad sərbəst olduğu üçün eyni şeyin fərqli fayllarda fərqli adlanma riski var</td></tr>
+    </table>
+
+    <div class="compare-grid">
+      <div class="compare-col yes">
+        <span class="compare-label yes">Named export</span>
+        <pre><span class="kw">export function</span> formatDate(d) {...}
+<span class="cm">// başqa fayldan:</span>
+<span class="kw">import</span> { formatDate } <span class="kw">from</span> <span class="st">'./date.js'</span>;</pre>
+      </div>
+      <div class="compare-col yes">
+        <span class="compare-label yes" style="color:var(--default-deep)">Default export</span>
+        <pre><span class="kw">export default function</span> Button(props) {...}
+<span class="cm">// başqa fayldan, istənilən adla:</span>
+<span class="kw">import</span> Duyme <span class="kw">from</span> <span class="st">'./Button.js'</span>;</pre>
+      </div>
+    </div>
+
+    <h3 class="h-sub">Nə vaxt hansını seçmək lazımdır?</h3>
+    <p>Bir modulda hər ikisini eyni anda istifadə etmək də olar:</p>
+    <div class="code-card">
+      <div class="code-head">import — həm default, həm named</div>
+      <pre><span class="kw">import</span> Calculator, { add, subtract } <span class="kw">from</span> <span class="st">'./Calculator.js'</span>;</pre>
+    </div>
+    <p>Əksər müasir layihələrdə (məsələn Airbnb JS Style Guide) <strong>named export-a üstünlük vermək</strong> tövsiyə olunur: ad sərbəstliyi olmadığı üçün import olunan adlar bütün layihə boyu eyni qalır, bu da axtarışı və avtomatik refaktorinqi asanlaşdırır. Default export daha çox "bu faylın tək bir əsas nəticəsi var" mənasını daşıyan hallarda (məs. bir React komponenti) məntiqlidir — amma bunun da öz xətaları var (7-ci bölmədə).</p>
+  </section>
+
+  <!-- 04 -->
+  <section class="sheet" id="arxitektura">
+    <span class="sheet-tab">A · 04</span>
+    <h2 class="h-title">Modul arxitekturası</h2>
+    <p class="h-desc">Faylları necə təşkil etmək, "barrel" fayllar və dairəvi asılılıq problemi.</p>
+
+    <h3 class="h-sub">Tipik qovluq strukturu</h3>
+    <div class="code-card">
+      <div class="code-head">qovluq ağacı</div>
+      <pre>src/
+├── components/
+│   ├── Button.js
+│   ├── Modal.js
+│   └── index.js        <span class="cm">// "barrel" fayl</span>
+├── utils/
+│   ├── formatDate.js
+│   └── validate.js
+└── app.js</pre>
+    </div>
+
+    <h3 class="h-sub">Barrel fayl (index.js)</h3>
+    <p>Barrel fayl bir qovluqdakı bütün modulları tək yerdən yenidən ixrac edir ki, import yolları qısa olsun:</p>
+    <div class="code-card">
+      <div class="code-head">components/index.js</div>
+      <pre><span class="kw">export</span> { <span class="kw">default</span> <span class="kw">as</span> Button } <span class="kw">from</span> <span class="st">'./Button.js'</span>;
+<span class="kw">export</span> { <span class="kw">default</span> <span class="kw">as</span> Modal } <span class="kw">from</span> <span class="st">'./Modal.js'</span>;</pre>
+    </div>
+    <p>Nəticədə başqa fayldan <code class="inline">import { Button, Modal } from './components'</code> yazmaq kifayətdir. Rahatdır, amma qiyməti var:</p>
+    <ul>
+      <li>Bəzi bundler-lər barrel faylın <strong>bütün</strong> tərkibini yükləyə bilir, hətta yalnız bir hissəsi lazım olsa belə — bu tree-shaking-i çətinləşdirir.</li>
+      <li>Böyük layihələrdə barrel fayllar <strong>dairəvi asılılıq (circular dependency)</strong> riskini artırır, çünki bir-birinə bağlı çoxlu fayl eyni giriş nöqtəsindən keçir.</li>
+    </ul>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Diqqət — Dairəvi asılılıq</span>
+      <h4>a.js və b.js bir-birini import edir</h4>
+      <p>Modullar yuxarıdan aşağı, bir dəfə icra olunur. Əgər <code class="inline">a.js</code> icra olunarkən <code class="inline">b.js</code>-i çağırır, o da öz növbəsində hələ tam icra olunmamış <code class="inline">a.js</code>-dən bir dəyər istəyirsə, həmin dəyər həmin an <code class="inline">undefined</code> ola bilər.</p>
+      <div class="code-card">
+        <div class="code-head">a.js</div>
+        <pre><span class="kw">import</span> { b } <span class="kw">from</span> <span class="st">'./b.js'</span>;
+<span class="kw">export const</span> a = <span class="st">'A'</span>;
+console.log(b); <span class="cm">// çox güman ki undefined</span></pre>
+      </div>
+      <p><strong>Həll yolu:</strong> arxitekturanı qatlara (layers) böl — ortaq lazım olan dəyəri ayrıca, üçüncü bir modula çıxar ki, hər iki fayl ondan asılı olsun, bir-birindən yox.</p>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="sheet" id="dinamik">
+    <span class="sheet-tab">A · 05</span>
+    <h2 class="h-title">Dinamik import()</h2>
+    <p class="h-desc">Modulu yalnız lazım olduğu anda, işə düşərkən yükləmək — code-splitting üçün əsas mexanizm.</p>
+
+    <p>İndiyə qədər gördüyümüz <code class="inline">import</code> ifadəsi <strong>statikdir</strong> — faylın ən yuxarısında yazılır və modul yüklənən kimi işə düşür. <code class="inline">import()</code> funksiyası isə fərqli işləyir: istənilən yerdə çağırıla bilər və bir <strong>Promise</strong> qaytarır.</p>
+
+    <div class="code-card">
+      <div class="code-head">lazy-load nümunəsi</div>
+      <pre>button.addEventListener(<span class="st">'click'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> module = <span class="kw">await</span> <span class="fn">import</span>(<span class="st">'./heavyChart.js'</span>);
+  module.<span class="fn">renderChart</span>();
+});</pre>
+    </div>
+
+    <p>Bu üsul <strong>code-splitting</strong> adlanır: istifadəçi düyməni basmayana qədər <code class="inline">heavyChart.js</code> ümumiyyətlə brauzerə yüklənmir. Nəticədə ilkin səhifə yükləmə vaxtı qısalır. Bundler-lər (Vite, Webpack) <code class="inline">import()</code> gördükdə həmin kodu avtomatik ayrı bir fayla ("chunk") bölür.</p>
+
+    <div class="tip"><strong>Nüans:</strong> Modulun ən yuxarı səviyyəsində <code class="inline">await import(...)</code> yazmaq da mümkündür — buna <strong>top-level await</strong> deyilir, amma bu, həmin modulu import edən bütün digər modulların yüklənməsini gecikdirə bilər, ona görə diqqətli istifadə et.</div>
+  </section>
+
+  <!-- 06 -->
+  <section class="sheet" id="muhit">
+    <span class="sheet-tab">A · 06</span>
+    <h2 class="h-title">Brauzer və Node.js fərqləri</h2>
+    <p class="h-desc">Eyni sintaksis, iki fərqli mühit — hər birinin öz qaydaları var.</p>
+
+    <h3 class="h-sub">Brauzerdə</h3>
+    <ul>
+      <li>HTML-də <code class="inline">&lt;script type="module"&gt;</code> yazılmalıdır, əks halda import/export tanınmır.</li>
+      <li>Modul skriptləri avtomatik <strong>defer</strong> olunur — HTML tam təhlil olunandan sonra icra olunur.</li>
+      <li>Nisbi yol mütləq faylın <strong>tam uzantısı</strong> ilə yazılmalıdır: <code class="inline">./utils.js</code>, təkcə <code class="inline">./utils</code> yox.</li>
+      <li>Modulları birbaşa <code class="inline">file://</code> protokolu ilə (fayl ikonuna iki dəfə klikləməklə) açmaq CORS xətası verir — lokal server lazımdır (məs. VS Code-da "Live Server" əlavəsi).</li>
+    </ul>
+
+    <h3 class="h-sub">Node.js-də</h3>
+    <ul>
+      <li>Fayl uzantısı <code class="inline">.mjs</code> olsun, <strong>və ya</strong> <code class="inline">package.json</code> faylına <code class="inline">"type": "module"</code> əlavə et.</li>
+      <li>CommonJS (<code class="inline">require</code>/<code class="inline">module.exports</code>) və ESM (<code class="inline">import</code>/<code class="inline">export</code>) qarışdırılanda gözlənilməz problemlər yarana bilər — bir layihə daxilində, mümkünsə, yalnız birini seç.</li>
+      <li>ESM-də relyativ importlarda da uzantı tələb olunur — bu, CommonJS-dən (<code class="inline">require('./utils')</code> uzantısız işləyir) gələnlər üçün ən çox rast gəlinən sürprizlərdən biridir.</li>
+    </ul>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Diqqət — bare specifier</span>
+      <h4>npm paketini brauzerdə birbaşa import etmək</h4>
+      <p>Bundler və ya Node.js-də <code class="inline">import react from 'react'</code> normal işləyir, çünki <code class="inline">node_modules</code> qovluğunda axtarış aparılır. Sadə bir <code class="inline">&lt;script type="module"&gt;</code>-də (bundler olmadan) bu, brauzerdə <strong>"Failed to resolve module specifier"</strong> xətası verir — brauzer <code class="inline">/</code>, <code class="inline">./</code> və ya <code class="inline">../</code> ilə başlamayan yolu haradan tapacağını bilmir. Həll: tam CDN URL-i yaz və ya bir <code class="inline">&lt;script type="importmap"&gt;</code> təyin et.</p>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="sheet" id="xetalar">
+    <span class="sheet-tab">A · 07</span>
+    <h2 class="h-title">Ən çox rast gəlinən xətalar</h2>
+    <p class="h-desc">Bu bölmədəki hər kart real konsol xətasını və düzəlişini göstərir.</p>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 1</span>
+      <h4>"Cannot use import statement outside a module"</h4>
+      <p>Ən klassik xəta. Səbəb: HTML-də skript teqinə <code class="inline">type="module"</code> yazılmayıb.</p>
+      <div class="compare-grid">
+        <div class="compare-col no"><span class="compare-label no">❌ Səhv</span><pre>&lt;script src="app.js"&gt;&lt;/script&gt;</pre></div>
+        <div class="compare-col yes"><span class="compare-label yes">✅ Düzgün</span><pre>&lt;script type="module" src="app.js"&gt;&lt;/script&gt;</pre></div>
+      </div>
+    </div>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 2</span>
+      <h4>CORS xətası — "has been blocked by CORS policy"</h4>
+      <p>Səbəb: HTML faylı birbaşa <code class="inline">file://</code> ilə açılıb. Modul faylları təhlükəsizlik qaydalarına görə HTTP protokolu üzərindən yüklənməlidir.</p>
+      <p><strong>Həll:</strong> layihəni lokal bir serverdən (VS Code Live Server, <code class="inline">npx serve</code>, <code class="inline">python -m http.server</code> və s.) aç.</p>
+    </div>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 3</span>
+      <h4>Fayl yolunda uzantını unutmaq</h4>
+      <div class="compare-grid">
+        <div class="compare-col no"><span class="compare-label no">❌ Səhv (brauzerdə işləmir)</span><pre><span class="kw">import</span> { add } <span class="kw">from</span> <span class="st">'./mathUtils'</span>;</pre></div>
+        <div class="compare-col yes"><span class="compare-label yes">✅ Düzgün</span><pre><span class="kw">import</span> { add } <span class="kw">from</span> <span class="st">'./mathUtils.js'</span>;</pre></div>
+      </div>
+    </div>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 4</span>
+      <h4>Default export-u mötərizə ilə import etmək</h4>
+      <div class="compare-grid">
+        <div class="compare-col no"><span class="compare-label no">❌ Səhv</span><pre><span class="cm">// Calculator default ixrac olunub, amma</span>
+<span class="kw">import</span> { Calculator } <span class="kw">from</span> <span class="st">'./Calculator.js'</span>;
+<span class="cm">// nəticə: undefined</span></pre></div>
+        <div class="compare-col yes"><span class="compare-label yes">✅ Düzgün</span><pre><span class="kw">import</span> Calculator <span class="kw">from</span> <span class="st">'./Calculator.js'</span>;</pre></div>
+      </div>
+      <p>Əksinə də olur: named export-u mötərizəsiz import etməyə çalışmaq — bu isə birbaşa <strong>"SyntaxError"</strong> ilə nəticələnir.</p>
+    </div>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 5</span>
+      <h4>Named export adını səhv yazmaq</h4>
+      <p>Import edilən ad mənbə fayldakı adla hərfbəhərf üst-üstə düşməlidir. Kiçik bir yazı səhvi (<code class="inline">formatdate</code> əvəzinə <code class="inline">formatDate</code>) bəzi bundler quraşdırmalarında sakit şəkildə <code class="inline">undefined</code> qaytara bilər, əsl ES modullarında isə birbaşa xəta verir — hər iki halda ilk yoxlanmalı yer import adının orfoqrafiyasıdır.</p>
+    </div>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 6</span>
+      <h4>"Live binding" ilə bağlı çaşqınlıq</h4>
+      <p>İdxal olunan ad öz modulunda <strong>oxu-yalnız (read-only)</strong> bağlamadır — bu, dəyərin köçürülməsi deyil, canlı bir istinaddır. Mənbə fayl dəyəri sonradan dəyişsə, import edən tərəfdə də avtomatik yenilənir. Amma import edən tərəf həmin adı özü yenidən mənimsətməyə çalışsa, JavaScript xəta verəcək.</p>
+      <div class="code-card">
+        <div class="code-head">counter.js</div>
+        <pre><span class="kw">export let</span> count = <span class="st">0</span>;
+<span class="kw">export function</span> <span class="fn">increment</span>() { count++; }</pre>
+      </div>
+      <div class="compare-grid">
+        <div class="compare-col no"><span class="compare-label no">❌ Xəta verir</span><pre><span class="kw">import</span> { count } <span class="kw">from</span> <span class="st">'./counter.js'</span>;
+count = <span class="st">5</span>; <span class="cm">// import bağlaması oxu-yalnızdır</span></pre></div>
+        <div class="compare-col yes"><span class="compare-label yes">✅ Düzgün üsul</span><pre><span class="kw">import</span> { count, increment } <span class="kw">from</span> <span class="st">'./counter.js'</span>;
+increment(); <span class="cm">// count indi mənbədə də yenilənib</span></pre></div>
+      </div>
+    </div>
+
+    <div class="bug">
+      <span class="bug-tag">⚠ Bug 7</span>
+      <h4>Gözlənilən tree-shaking baş vermir</h4>
+      <p>Bəzən istifadə olunmayan kod bundle-dan çıxarılmır. Ən çox səbəb: modulun daxilində "yan təsirli" (side-effect) kod olması — məsələn faylın ən yuxarısında birbaşa işə düşən bir <code class="inline">console.log()</code> və ya qlobal state dəyişikliyi. Bundler bu cür kodu təhlükəsiz şəkildə silə bilmədiyi üçün ehtiyat edib bütün modulu saxlayır. 9-cu bölmədə bunun həllini görəcəyik.</p>
+    </div>
+  </section>
+
+  <!-- 08 -->
+  <section class="sheet" id="best-practice">
+    <span class="sheet-tab">A · 08</span>
+    <h2 class="h-title">Ən yaxşı təcrübələr</h2>
+    <p class="h-desc">Böyüyən layihələrdə modul kodu təmiz saxlamaq üçün qısa qaydalar.</p>
+
+    <div class="tip"><strong>1. Əksər hallarda named export seç.</strong> İstisna olaraq, bir faylın həqiqətən tək bir "əsas" ixracı varsa (məs. tək bir komponent), default məntiqli ola bilər.</div>
+    <div class="tip"><strong>2. Bir fayl = bir məsuliyyət.</strong> Hər modul aydın, dar bir işi görsün; bu həm oxunaqlılığı, həm tree-shaking-i yaxşılaşdırır.</div>
+    <div class="tip"><strong>3. Barrel fayllardan ehtiyatla istifadə et.</strong> Kiçik, sabit qovluqlarda rahatdır, amma böyük, tez-tez dəyişən modullarda performans və dairəvi asılılıq riskini artıra bilər.</div>
+    <div class="tip"><strong>4. Importları qruplaşdır.</strong> Əvvəlcə xarici paketlər (<code class="inline">react</code>, <code class="inline">lodash</code>), sonra daxili modullar (<code class="inline">./utils</code>) — kodu tez oxumaq üçün faydalıdır.</div>
+    <div class="tip"><strong>5. Nisbi yollarda uzantını həmişə yaz.</strong> Brauzer və Node ESM-də bu, seçim deyil, tələbdir.</div>
+    <div class="tip"><strong>6. Arxitekturanı qatlara böl.</strong> A → B → C istiqamətində axan aydın bir asılılıq zənciri qur ki, dairəvi importlara ehtiyac qalmasın.</div>
+  </section>
+
+  <!-- 09 -->
+  <section class="sheet" id="performans">
+    <span class="sheet-tab">A · 09</span>
+    <h2 class="h-title">Performans: Tree-Shaking necə işləyir?</h2>
+    <p class="h-desc">ES Modules-in statik strukturu bundler-lərə istifadə olunmayan kodu silmək imkanı verir.</p>
+
+    <p>CommonJS-də <code class="inline">require()</code> istənilən yerdə, şərt daxilində, hətta dəyişən adla çağırıla bilər — bu, tam dinamikdir. Bundler icra olmadan əvvəl hansı export-un istifadə olunacağını əminliklə bilə bilmir, ona görə CommonJS kodunu etibarlı şəkildə "silkələyib" (shake) təmizləmək çətindir.</p>
+
+    <p>ES Modules isə əksinədir: <code class="inline">import</code>/<code class="inline">export</code> yalnız faylın ən yuxarısında, sabit adlarla yazıla bilər. Bu, bundler-ə (Webpack, Rollup, esbuild, Vite) icra olmadan əvvəl bütün asılılıq qrafikini dəqiq təhlil etmək imkanı verir — istifadə olunmayan export-lar isə son bundle-dan çıxarılır.</p>
+
+    <div class="code-card">
+      <div class="code-head">package.json — side-effect siqnalı</div>
+      <pre>{
+  <span class="st">"name"</span>: <span class="st">"my-lib"</span>,
+  <span class="st">"sideEffects"</span>: <span class="kw">false</span>
+}</pre>
+    </div>
+    <p><code class="inline">"sideEffects": false</code> bundler-ə "bu paketdəki modulları import etmək özlüyündə heç bir qlobal təsir yaratmır, istifadə olunmayan hissələri arxayın sil" siqnalını verir. Əgər bəzi fayllarda həqiqətən yan təsir varsa (məs. bir CSS faylını qlobal tətbiq edən import), o faylları massiv şəklində istisna kimi göstərmək lazımdır.</p>
+  </section>
+
+  <!-- 10 -->
+  <section class="sheet" id="yoxlama">
+    <span class="sheet-tab">A · 10</span>
+    <h2 class="h-title">Özünü yoxla</h2>
+    <p class="h-desc">Cavabı görmək üçün sualın üzərinə klikləyin.</p>
+
+    <details class="quiz">
+      <summary>Bir modulda neçə default export ola bilər?</summary>
+      <div class="quiz-answer">Yalnız bir dənə. Named export isə istənilən sayda ola bilər.</div>
+    </details>
+
+    <details class="quiz">
+      <summary>Brauzerdə <code class="inline">import</code> işləməsi üçün skript teqinə nə yazılmalıdır?</summary>
+      <div class="quiz-answer"><code class="inline">type="module"</code> — yəni <code class="inline">&lt;script type="module" src="app.js"&gt;&lt;/script&gt;</code>.</div>
+    </details>
+
+    <details class="quiz">
+      <summary>Niyə CommonJS-i tam etibarlı şəkildə tree-shake etmək çətindir?</summary>
+      <div class="quiz-answer"><code class="inline">require()</code> dinamik olduğu üçün (şərt daxilində, dəyişən adla çağırıla bilər) bundler icra olmadan əvvəl hansı kodun lazım olduğunu dəqiq bilə bilmir.</div>
+    </details>
+
+    <details class="quiz">
+      <summary>İdxal olunan (import edilən) adı birbaşa yenidən mənimsətmək (<code class="inline">=</code>) olur mu?</summary>
+      <div class="quiz-answer">Xeyr. İmport bağlaması oxu-yalnızdır (read-only, "live binding"). Dəyəri dəyişmək üçün mənbə moduldakı bir funksiyadan (məs. <code class="inline">increment()</code>) istifadə olunmalıdır.</div>
+    </details>
+
+    <details class="quiz">
+      <summary>Node.js-də bir <code class="inline">.js</code> faylını ESM kimi işə salmağın iki yolu nədir?</summary>
+      <div class="quiz-answer">1) faylın uzantısını <code class="inline">.mjs</code> etmək, 2) <code class="inline">package.json</code>-a <code class="inline">"type": "module"</code> əlavə etmək.</div>
+    </details>
+  </section>
+
+</main>
+
+<footer>ES Modules · JS Dərsliyi — Sheet A/01–10</footer>
+
+<button class="back-top" id="backTop" aria-label="Yuxarı qayıt">↑</button>
+
+<script>
+  // mobil TOC toggle
+  var tocToggle = document.getElementById('tocToggle');
+  var tocBar = document.getElementById('tocBar');
+  tocToggle.addEventListener('click', function(){
+    tocBar.classList.toggle('open');
+  });
+  document.querySelectorAll('.toc-list a').forEach(function(a){
+    a.addEventListener('click', function(){ tocBar.classList.remove('open'); });
+  });
+
+  // scrollspy
+  var links = document.querySelectorAll('.toc-list a');
+  var sections = document.querySelectorAll('main .sheet');
+  if ('IntersectionObserver' in window){
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          links.forEach(function(l){ l.classList.remove('active'); });
+          var match = document.querySelector('.toc-list a[href="#' + entry.target.id + '"]');
+          if (match) match.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    sections.forEach(function(s){ observer.observe(s); });
+  }
+
+  // back to top
+  var backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', function(){
+    if (window.scrollY > 500) backTop.classList.add('show');
+    else backTop.classList.remove('show');
+  });
+  backTop.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>

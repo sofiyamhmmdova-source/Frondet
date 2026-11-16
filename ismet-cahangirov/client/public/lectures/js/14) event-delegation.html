@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Dərs 23 — Event Delegation &amp; Advanced DOM: event bubbling, event.target, event.currentTarget, dinamik DOM, parentElement və closest() haqqında tam təfərrüatlı, canlı nümunəli dərs.">
+<title>Dərs 23 · Event Delegation &amp; Advanced DOM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12181A;
+    --bg-raised: #1B2326;
+    --bg-inset: #0E1315;
+    --line: #2A3437;
+    --line-soft: #202A2D;
+    --ink: #EDEAE2;
+    --ink-dim: #C7C2B6;
+    --muted: #8B9591;
+    --ember: #F0A860;
+    --ember-soft: rgba(240,168,96,0.14);
+    --leaf: #7FB69E;
+    --leaf-soft: rgba(127,182,158,0.14);
+    --danger: #E2685A;
+    --danger-soft: rgba(226,104,90,0.14);
+    --fn: #E8C177;
+    --code-bg: #171F22;
+    --font-display: 'Space Grotesk','Inter','Noto Sans',system-ui,sans-serif;
+    --font-body: 'Inter','Noto Sans',system-ui,-apple-system,sans-serif;
+    --font-mono: 'JetBrains Mono','Fira Code',Consolas,monospace;
+    --header-h: 64px;
+    --radius: 14px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16.5px;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{ max-width:100%; display:block; }
+  a{ color:var(--ember); text-decoration-color: rgba(240,168,96,0.4); }
+  a:hover{ text-decoration-color: currentColor; }
+
+  .skip-link{ position:absolute; left:-9999px; top:0; background:var(--ember); color:#12181A; padding:10px 16px; border-radius:0 0 8px 0; z-index:100; font-weight:600; text-decoration:none; }
+  .skip-link:focus{ left:0; }
+
+  :focus-visible{ outline:2px solid var(--ember); outline-offset:3px; border-radius:4px; }
+
+  section[id]{ scroll-margin-top: calc(var(--header-h) + 14px); }
+
+  /* ---------- Header ---------- */
+  .site-header{
+    position:sticky; top:0; z-index:50; height:var(--header-h);
+    background:rgba(18,24,26,0.9); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line); display:flex; align-items:center;
+  }
+  .header-inner{
+    width:100%; max-width:1200px; margin:0 auto; padding:0 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .lesson-id{ display:flex; align-items:center; gap:12px; min-width:0; }
+  .lesson-badge{
+    flex-shrink:0; width:34px; height:34px; border-radius:50%;
+    background:var(--ember-soft); border:1px solid rgba(240,168,96,0.5); color:var(--ember);
+    display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:600; font-size:14px;
+  }
+  .lesson-title-short{
+    font-family:var(--font-display); font-weight:600; font-size:15px; color:var(--ink);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .toc-toggle{
+    display:none; align-items:center; gap:8px; background:var(--bg-raised); border:1px solid var(--line); color:var(--ink);
+    padding:8px 14px; border-radius:999px; font-family:var(--font-body); font-size:14px; cursor:pointer; flex-shrink:0;
+  }
+  .toc-toggle:hover{ border-color:var(--ember); }
+
+  /* ---------- Layout / TOC ---------- */
+  .layout{ display:grid; grid-template-columns:248px 1fr; max-width:1200px; margin:0 auto; align-items:start; }
+  .toc{ position:sticky; top:var(--header-h); align-self:start; height:calc(100vh - var(--header-h)); overflow-y:auto; padding:36px 18px 40px; border-right:1px solid var(--line); }
+  .toc-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+  .toc-list a{
+    display:flex; align-items:baseline; gap:10px; padding:8px 10px; border-radius:8px; color:var(--muted);
+    text-decoration:none; font-size:13.5px; transition:background .15s,color .15s;
+  }
+  .toc-list a:hover{ background:var(--bg-raised); color:var(--ink); }
+  .toc-num{ font-family:var(--font-mono); font-size:11px; color:var(--ember); opacity:.85; flex-shrink:0; }
+
+  @media (max-width:900px){
+    .layout{ display:block; }
+    .toc-toggle{ display:inline-flex; }
+    .toc{
+      position:fixed; left:0; right:0; top:var(--header-h); bottom:auto; height:auto; max-height:calc(100vh - var(--header-h));
+      background:var(--bg-raised); border-right:none; border-bottom:1px solid var(--line);
+      transform:translateY(-8px); opacity:0; visibility:hidden; pointer-events:none;
+      transition:transform .2s ease, opacity .2s ease; z-index:40; padding:16px 20px 24px;
+    }
+    .toc.open{ transform:translateY(0); opacity:1; visibility:visible; pointer-events:auto; }
+  }
+
+  /* ---------- Content typography ---------- */
+  .content{ min-width:0; padding:0 24px 100px; }
+  .hero{ max-width:760px; margin:0 auto; padding:56px 0 44px; }
+  .eyebrow-hero{ font-family:var(--font-mono); color:var(--ember); font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0 0 14px; }
+  .hero h1{ font-family:var(--font-display); font-size:clamp(30px,5.2vw,46px); line-height:1.12; margin:0 0 20px; font-weight:600; }
+  .hero .lead{ font-size:clamp(16px,2.4vw,19px); color:var(--ink-dim); max-width:60ch; margin:0 0 24px; }
+  .hero .lead-sub{ font-size:15px; color:var(--muted); max-width:62ch; margin:0 0 28px; }
+  .topic-chips{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 40px; }
+  .topic-chip{ font-family:var(--font-mono); font-size:12.5px; background:var(--bg-raised); border:1px solid var(--line); color:var(--leaf); padding:6px 12px; border-radius:999px; }
+
+  .hero-visual{ display:flex; justify-content:center; padding:14px 0 6px; }
+  .pulse-track{ display:flex; flex-direction:column-reverse; align-items:center; gap:16px; position:relative; padding:6px 0; }
+  .pulse-track::before{ content:''; position:absolute; top:0; bottom:0; left:50%; width:2px; background:var(--line); transform:translateX(-50%); }
+  .pulse-dot{ width:9px; height:9px; border-radius:50%; background:var(--leaf); opacity:.55; position:relative; z-index:1; animation:risePulse 2.6s ease-in-out infinite; animation-delay:var(--d); }
+  @keyframes risePulse{ 0%,100%{ box-shadow:none; opacity:.5; transform:scale(1);} 45%{ background:var(--ember); box-shadow:0 0 16px 4px rgba(240,168,96,.5); opacity:1; transform:scale(1.3);} }
+
+  .section{ max-width:760px; margin:0 auto; padding:52px 0; border-top:1px solid var(--line-soft); }
+  .section:first-of-type{ border-top:none; }
+  .eyebrow{ font-family:var(--font-mono); color:var(--ember); font-size:13px; letter-spacing:.05em; margin:0 0 10px; }
+  .section h2{ font-family:var(--font-display); font-size:clamp(22px,3.4vw,30px); margin:0 0 18px; font-weight:600; line-height:1.25; }
+  .section h3{ font-family:var(--font-display); font-size:17.5px; margin:26px 0 10px; font-weight:600; color:var(--ink); }
+  .section p{ margin:0 0 16px; color:var(--ink-dim); }
+  .section p strong, .section li strong{ color:var(--ink); font-weight:600; }
+  .section ul, .section ol{ color:var(--ink-dim); padding-left:22px; margin:0 0 16px; }
+  .section li{ margin-bottom:8px; }
+  .section-intro{ font-size:15px; color:var(--muted); margin:0 0 24px; }
+
+  /* ---------- Callouts ---------- */
+  .callout{ display:flex; gap:12px; background:var(--bg-raised); border:1px solid var(--line); border-left:3px solid var(--ember); border-radius:10px; padding:16px 18px; margin:20px 0; }
+  .callout.callout-warn{ border-left-color:var(--danger); }
+  .callout-icon{ flex-shrink:0; font-size:18px; line-height:1; }
+  .callout p{ margin:0; color:var(--ink-dim); font-size:14.5px; }
+  .callout p:not(:last-child){ margin-bottom:8px; }
+  .callout strong{ color:var(--ink); }
+
+  /* ---------- Code blocks ---------- */
+  .code-block{ background:var(--code-bg); border:1px solid var(--line); border-radius:10px; margin:18px 0; overflow:hidden; }
+  .code-label{ display:flex; align-items:center; justify-content:space-between; padding:9px 16px; font-family:var(--font-mono); font-size:12px; color:var(--muted); border-bottom:1px solid var(--line); letter-spacing:.03em; }
+  .code-label.good{ color:var(--leaf); }
+  .code-label.bad{ color:var(--danger); }
+  .code-block pre{ margin:0; padding:16px 18px; overflow-x:auto; }
+  .code-block code{ font-family:var(--font-mono); font-size:13.2px; line-height:1.65; color:var(--ink-dim); white-space:pre; }
+  .tok-kw{ color:var(--ember); }
+  .tok-str{ color:var(--leaf); }
+  .tok-com{ color:var(--muted); font-style:italic; }
+  .tok-fn{ color:var(--fn); }
+  .tok-tag{ color:var(--leaf); }
+
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .compare-grid .code-block{ margin:0; }
+  @media (max-width:700px){ .compare-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- Tables ---------- */
+  .table-wrap{ overflow-x:auto; margin:18px 0; border:1px solid var(--line); border-radius:10px; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; min-width:480px; }
+  th,td{ text-align:left; padding:12px 16px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ember); background:var(--bg-raised); }
+  tr:last-child td{ border-bottom:none; }
+  td{ color:var(--ink-dim); }
+  .inline-code{ font-family:var(--font-mono); background:var(--bg-inset); padding:2px 6px; border-radius:5px; font-size:12.5px; color:var(--leaf); white-space:nowrap; }
+
+  /* ---------- Demo panel ---------- */
+  .demo-panel{ background:var(--bg-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px; margin:22px 0; }
+  .demo-instructions{ font-size:14px; color:var(--muted); margin:0 0 18px; padding-left:20px; }
+  .demo-instructions li{ margin-bottom:6px; }
+  .demo-tree{ background:var(--bg-inset); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:18px; }
+  .node{ border-left:2px solid var(--line); padding:10px 0 10px 16px; margin-left:4px; border-radius:4px; transition:background .2s, box-shadow .2s; }
+  .node-tag{ display:inline-block; font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-bottom:6px; }
+  .node.leaf{
+    cursor:pointer; background:var(--bg-raised); border:1px solid var(--line); border-radius:8px; padding:9px 14px; margin:6px 8px 6px 16px;
+    font-size:14px; color:var(--ink-dim); display:inline-block; user-select:none;
+  }
+  .node.leaf:hover{ border-color:var(--leaf); color:var(--ink); }
+  .node.pulse{ background:var(--ember-soft) !important; box-shadow:0 0 0 1px var(--ember), 0 0 18px rgba(240,168,96,.35); }
+  .node.listening{ border-left-color:var(--ember); }
+  .node.listening > .node-tag{ color:var(--ember); }
+  .node.closest-hit{ box-shadow:0 0 0 2px var(--leaf), 0 0 18px rgba(127,182,158,.4); background:var(--leaf-soft) !important; }
+
+  .demo-controls{ display:flex; flex-wrap:wrap; gap:20px; margin-bottom:18px; }
+  .control-group{ display:flex; flex-direction:column; gap:8px; }
+  .control-label{ font-size:12px; color:var(--muted); font-family:var(--font-mono); }
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .listener-chip{ font-family:var(--font-mono); font-size:12.5px; background:var(--bg-inset); border:1px solid var(--line); color:var(--ink-dim); padding:7px 13px; border-radius:999px; cursor:pointer; }
+  .listener-chip.active{ background:var(--ember-soft); border-color:var(--ember); color:var(--ember); }
+  .control-check{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-dim); cursor:pointer; }
+  .demo-actions{ flex-direction:row; align-items:flex-end; gap:10px; flex-wrap:wrap; }
+  .btn-ghost{ font-family:var(--font-body); font-size:13px; background:transparent; border:1px solid var(--line); color:var(--ink-dim); padding:8px 14px; border-radius:8px; cursor:pointer; }
+  .btn-ghost:hover{ border-color:var(--leaf); color:var(--ink); }
+  .btn-ghost:disabled{ opacity:.4; cursor:not-allowed; }
+
+  .demo-log{ background:var(--bg-inset); border:1px solid var(--line); border-radius:10px; padding:14px 18px; font-family:var(--font-mono); font-size:13px; }
+  .log-row{ display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px dashed var(--line-soft); }
+  .log-row:last-child{ border-bottom:none; }
+  .log-key{ color:var(--muted); }
+  .log-val{ color:var(--ember); font-weight:600; text-align:right; }
+
+  .closest-demo{ margin-top:10px; padding-top:22px; border-top:1px solid var(--line); }
+  .demo-btn{ display:inline-flex; align-items:center; gap:8px; background:var(--bg-inset); border:1px solid var(--line); color:var(--ink); padding:12px 20px; border-radius:10px; font-family:var(--font-body); font-size:14.5px; cursor:pointer; }
+  .demo-btn:hover{ border-color:var(--leaf); }
+  .demo-icon{ background:var(--bg-raised); border-radius:6px; padding:4px 7px; font-size:13px; }
+
+  /* ---------- Mistake cards ---------- */
+  .mistake-grid{ display:flex; flex-direction:column; gap:14px; }
+  .mistake-card{ background:var(--bg-raised); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+  .mistake-head{ display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+  .mark-warn{ flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--danger-soft); border:1px solid rgba(226,104,90,.5); color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; margin-top:2px; }
+  .mistake-title{ font-family:var(--font-display); font-weight:600; font-size:16px; color:var(--ink); margin:0; }
+  .mistake-body p{ margin:0 0 8px; font-size:14px; color:var(--ink-dim); }
+  .mistake-body p:last-child{ margin-bottom:0; }
+  .mistake-body .lbl{ font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-right:6px; }
+
+  /* ---------- Practice checklist ---------- */
+  .practice-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+  .practice-list li{ display:flex; gap:12px; align-items:flex-start; color:var(--ink-dim); font-size:14.5px; }
+  .mark-good{ flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--leaf-soft); border:1px solid rgba(127,182,158,.5); color:var(--leaf); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; margin-top:1px; }
+
+  /* ---------- Footer ---------- */
+  .site-footer{ border-top:1px solid var(--line); padding:44px 24px 64px; text-align:center; }
+  .site-footer p{ color:var(--muted); font-size:13.5px; max-width:600px; margin:0 auto; }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    html{ scroll-behavior:auto; }
+  }
+
+  @media (max-width:600px){
+    .content{ padding:0 16px 80px; }
+    .hero{ padding:36px 0 30px; }
+    .section{ padding:40px 0; }
+    .demo-panel{ padding:16px; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#content">Əsas məzmuna keç</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="lesson-id">
+      <span class="lesson-badge">23</span>
+      <span class="lesson-title-short">Event Delegation &amp; Advanced DOM</span>
+    </div>
+    <button class="toc-toggle" id="tocToggle" type="button" aria-expanded="false" aria-controls="tocNav">
+      <span aria-hidden="true">&#9776;</span> Mündəricat
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="tocNav" aria-label="Dərsin mündəricatı">
+    <ol class="toc-list">
+      <li><a href="#bubbling"><span class="toc-num">01</span> Bubbling nədir?</a></li>
+      <li><a href="#target-current"><span class="toc-num">02</span> target vs currentTarget</a></li>
+      <li><a href="#delegation"><span class="toc-num">03</span> Event Delegation</a></li>
+      <li><a href="#dinamik-dom"><span class="toc-num">04</span> Dinamik DOM</a></li>
+      <li><a href="#parent"><span class="toc-num">05</span> parentElement</a></li>
+      <li><a href="#closest"><span class="toc-num">06</span> closest()</a></li>
+      <li><a href="#laboratoriya"><span class="toc-num">07</span> Canlı Laboratoriya</a></li>
+      <li><a href="#sehvler"><span class="toc-num">08</span> Səhvlər &amp; Buglar</a></li>
+      <li><a href="#best-practices"><span class="toc-num">09</span> Best Practices</a></li>
+      <li><a href="#xulase"><span class="toc-num">10</span> Xülasə</a></li>
+    </ol>
+  </nav>
+
+  <main class="content" id="content">
+
+    <div class="hero">
+      <p class="eyebrow-hero">Dərs 23</p>
+      <h1>Event Delegation &amp; Advanced DOM</h1>
+      <p class="lead">Kliklədiyin an brauzer bir hadisəni DOM ağacının kökünə doğru yola salır. Bu səyahəti idarə etməyi öyrənəndə, minlərlə ayrı-ayrı listener yazmaq əvəzinə, cəmi birini yazmağı bacaracaqsan.</p>
+      <p class="lead-sub">Bu dərsdə: event bubbling necə işləyir, <code class="inline-code">event.target</code> ilə <code class="inline-code">event.currentTarget</code> arasındakı fərq, dinamik yaradılan elementlərlə iş, <code class="inline-code">parentElement</code> və digər DOM gəzinti üsulları, <code class="inline-code">closest()</code> metodu, ən çox rast gəlinən səhvlər və peşəkar tövsiyələr.</p>
+      <div class="topic-chips">
+        <span class="topic-chip">event.target</span>
+        <span class="topic-chip">dinamik DOM</span>
+        <span class="topic-chip">parentElement</span>
+        <span class="topic-chip">closest()</span>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="pulse-track">
+          <span class="pulse-dot" style="--d:0s"></span>
+          <span class="pulse-dot" style="--d:0.2s"></span>
+          <span class="pulse-dot" style="--d:0.4s"></span>
+          <span class="pulse-dot" style="--d:0.6s"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 01 BUBBLING -->
+    <section class="section" id="bubbling">
+      <p class="eyebrow">01</p>
+      <h2>Bubbling: Hər Şeyin Təməli</h2>
+      <p>DOM-dakı elementlər bir-birinin içində yerləşərək bir ağac formalaşdırır: <code class="inline-code">body</code> içində <code class="inline-code">div</code>, onun içində <code class="inline-code">ul</code>, onun içində <code class="inline-code">li</code> və s. İndi təsəvvür et ki, ən dərindəki <code class="inline-code">li</code>-yə klikləyirsən. Sual budur: bu klik hadisəsi yalnız o <code class="inline-code">li</code>-də qalır, yoxsa başqa yerə də gedir?</p>
+      <p>Cavab: gedir. Brauzer klik hadisəsini əvvəlcə həqiqətən klikləndiyi elementdə işə salır, sonra onu addım-addım valideynlərinə — <code class="inline-code">li</code>-dən <code class="inline-code">ul</code>-a, <code class="inline-code">ul</code>-dan <code class="inline-code">div</code>-ə, oradan <code class="inline-code">body</code>-ə, elə <code class="inline-code">document</code>-ə qədər — ötürür. Elə bil suya atılan daşın yaratdığı dalğalar mərkəzdən kənara doğru yayılır; fərq bir onda ki, burada dalğa aşağıdan yuxarıya, kökə doğru "qalxır". Buna <strong>event bubbling (hadisənin köpüklənməsi)</strong> deyilir.</p>
+
+      <div class="code-block">
+        <div class="code-label">HTML</div>
+        <pre><code>&lt;div id="ata"&gt;
+  &lt;div id="ana"&gt;
+    &lt;button id="ovlad"&gt;Klik et&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-label">JavaScript</div>
+        <pre><code><span class="tok-kw">document</span>.getElementById(<span class="tok-str">'ata'</span>).<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, () =&gt; console.log(<span class="tok-str">'ata işə düşdü'</span>));
+<span class="tok-kw">document</span>.getElementById(<span class="tok-str">'ana'</span>).<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, () =&gt; console.log(<span class="tok-str">'ana işə düşdü'</span>));
+<span class="tok-kw">document</span>.getElementById(<span class="tok-str">'ovlad'</span>).<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, () =&gt; console.log(<span class="tok-str">'övlad işə düşdü'</span>));
+
+<span class="tok-com">// Butona klikləyəndə console-da bu ardıcıllıqla görünər:</span>
+<span class="tok-com">// övlad işə düşdü</span>
+<span class="tok-com">// ana işə düşdü</span>
+<span class="tok-com">// ata işə düşdü</span></code></pre>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon" aria-hidden="true">💡</span>
+        <div>
+          <p><strong>Əlavə qeyd:</strong> Bubbling-in əksi olan <em>capturing</em> fazası da var — <code class="inline-code">addEventListener</code>-in üçüncü arqumenti <code class="inline-code">{capture:true}</code> versən, dinləyici bubbling-dən əvvəl, yuxarıdan aşağıya doğru gedən mərhələdə işə düşür.</p>
+          <p>99% hallarda buna ehtiyac olmur, amma mövcudluğunu bilmək faydalıdır — məsələn, bəzi kitabxanalar "xaricə klik" (click-outside) məntiqini məhz capturing ilə tənzimləyir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 TARGET vs CURRENTTARGET -->
+    <section class="section" id="target-current">
+      <p class="eyebrow">02</p>
+      <h2>event.target vs event.currentTarget</h2>
+      <p>Bubbling anlayışını bilən kimi, bu iki xassənin fərqi asanlaşır — amma bu, yeni başlayanların ən çox qarışdırdığı məqamlardan biridir:</p>
+      <ul>
+        <li><strong>event.target</strong> — istifadəçinin həqiqətən kliklədiyi, ən dərin element. Bubbling boyunca bu <strong>dəyişmir</strong>, bütün valideynlərdə eyni qalır.</li>
+        <li><strong>event.currentTarget</strong> — hazırda işləyən listener-in bağlı olduğu element. Eyni klik bir neçə fərqli elementdəki listener-i növbə ilə tetiklədiyi üçün, bu hər dəfə <strong>dəyişir</strong>.</li>
+      </ul>
+
+      <div class="code-block">
+        <div class="code-label">JavaScript</div>
+        <pre><code>document.getElementById(<span class="tok-str">'ata'</span>).<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, <span class="tok-kw">function</span>(e){
+  console.log(<span class="tok-str">'target:'</span>, e.target.id);            <span class="tok-com">// həmişə 'ovlad' (button klikləndisə)</span>
+  console.log(<span class="tok-str">'currentTarget:'</span>, e.currentTarget.id); <span class="tok-com">// həmişə 'ata' — listener bura bağlıdır</span>
+  console.log(<span class="tok-str">'this === currentTarget:'</span>, <span class="tok-kw">this</span> === e.currentTarget); <span class="tok-com">// true</span>
+});</code></pre>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon" aria-hidden="true">⚠️</span>
+        <div>
+          <p><strong>Nüans:</strong> <code class="inline-code">this</code> yalnız adi <code class="inline-code">function(){}</code> sintaksisində <code class="inline-code">currentTarget</code>-ə bərabərdir. Listener-i arrow function (<code class="inline-code">() =&gt; {}</code>) kimi yazsan, <code class="inline-code">this</code> artıq element olmayacaq — arrow function-ların öz <code class="inline-code">this</code>-i yoxdur, əhatə edən (lexical) scope-dan miras alır.</p>
+          <p>Arrow function işlədirsənsə, həmişə <code class="inline-code">e.currentTarget</code> yaz, <code class="inline-code">this</code>-ə güvənmə.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 DELEGATION -->
+    <section class="section" id="delegation">
+      <p class="eyebrow">03</p>
+      <h2>Event Delegation: Bir Dinləyici, Minlərlə Element</h2>
+      <p>İndi bu iki anlayışı (bubbling + target/currentTarget) birləşdirəndə, çox güclü bir texnika ortaya çıxır: <strong>event delegation</strong>. Fikir sadədir — hər bir uşaq elementə ayrı-ayrı <code class="inline-code">addEventListener</code> yazmaq əvəzinə, ortaq bir valideynə cəmi <strong>bir</strong> listener bağlayırsan. Klik istənilən uşaqda baş versə də, bubbling sayəsində bu tək listener-ə çatır, sən isə <code class="inline-code">event.target</code>-ə baxaraq dəqiq hansı uşağın klikləndiyini öyrənirsən.</p>
+
+      <div class="compare-grid">
+        <div class="code-block">
+          <div class="code-label bad">❌ Pis — delegation olmadan</div>
+          <pre><code><span class="tok-com">// 100 li varsa, 100 dəfə</span>
+<span class="tok-com">// addEventListener çağırılır</span>
+document.querySelectorAll(<span class="tok-str">'.item'</span>).forEach(item =&gt; {
+  item.<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, <span class="tok-kw">function</span>(){
+    console.log(<span class="tok-str">'klikləndi:'</span>, <span class="tok-kw">this</span>.textContent);
+  });
+});</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-label good">✅ Yaxşı — delegation ilə</div>
+          <pre><code><span class="tok-com">// Cəmi 1 listener —</span>
+<span class="tok-com">// siyahının özünə bağlanır</span>
+document.querySelector(<span class="tok-str">'.list'</span>).<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, <span class="tok-kw">function</span>(e){
+  <span class="tok-kw">if</span> (!e.target.classList.contains(<span class="tok-str">'item'</span>)) <span class="tok-kw">return</span>;
+  console.log(<span class="tok-str">'klikləndi:'</span>, e.target.textContent);
+});</code></pre>
+        </div>
+      </div>
+
+      <p>Fərq nəyə görə vacibdir? Birincisi, performans — yüzlərlə listener yerinə bir dənəsi yaddaşda daha az yer tutur. İkincisi (və daha vacibi) — növbəti bölmədə görəcəyin kimi, bu üsul sən hələ yaratmadığın elementlər üçün də avtomatik işləyir.</p>
+    </section>
+
+    <!-- 04 DINAMIK DOM -->
+    <section class="section" id="dinamik-dom">
+      <p class="eyebrow">04</p>
+      <h2>Dinamik DOM: Hələ Mövcud Olmayan Elementlər</h2>
+      <p>Real tətbiqlərdə DOM statik deyil — istifadəçi bir düyməyə basanda, API-dan data gələndə və ya axtarış nəticələri dəyişəndə, sən JavaScript ilə yeni elementlər yaradıb səhifəyə əlavə edirsən (<code class="inline-code">document.createElement</code> + <code class="inline-code">appendChild</code>). Sual budur: bu yeni elementlər köhnə listener-lardan "xəbərdar" olacaqmı?</p>
+      <p>Əgər listener-i birbaşa köhnə elementlərin özünə bağlamısansa — yox. Həmin <code class="inline-code">addEventListener</code> çağırışı yalnız o anda mövcud olan elementlərə tətbiq olunub; sonradan yaranan element haqqında heç nə bilmir. Bu, təcrübəsiz developerlərin ən çox rastlaşdığı "niyə mənim yeni elementim işləmir?" probleminin əsas səbəbidir.</p>
+      <p>Delegation isə bunu default olaraq həll edir, çünki listener heç vaxt dəyişməyən, həmişə mövcud olan bir valideyndə oturur (məsələn, səhifə yüklənəndən bəri var olan <code class="inline-code">&lt;ul class="list"&gt;</code>). Yeni <code class="inline-code">&lt;li&gt;</code> əlavə olunanda, ona klikləmək yenə də eyni bubbling yolu ilə <code class="inline-code">&lt;ul&gt;</code>-a çatır və <code class="inline-code">event.target</code> avtomatik olaraq yeni elementi göstərir — əlavə heç bir kod yazmadan.</p>
+
+      <div class="code-block">
+        <div class="code-label">JavaScript</div>
+        <pre><code><span class="tok-kw">const</span> list = document.querySelector(<span class="tok-str">'.todo-list'</span>);
+
+<span class="tok-com">// Bu TƏK listener HƏM mövcud, HƏM DƏ gələcəkdə əlavə olunacaq</span>
+<span class="tok-com">// bütün .todo-item elementləri üçün işləyəcək:</span>
+list.<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, <span class="tok-kw">function</span>(e){
+  <span class="tok-kw">const</span> item = e.target.<span class="tok-fn">closest</span>(<span class="tok-str">'.todo-item'</span>);
+  <span class="tok-kw">if</span> (!item) <span class="tok-kw">return</span>;
+  item.classList.toggle(<span class="tok-str">'done'</span>);
+});
+
+<span class="tok-com">// Sonradan yeni element əlavə etsən belə...</span>
+<span class="tok-kw">const</span> yeni = document.<span class="tok-fn">createElement</span>(<span class="tok-str">'li'</span>);
+yeni.className = <span class="tok-str">'todo-item'</span>;
+yeni.textContent = <span class="tok-str">'Yeni tapşırıq'</span>;
+list.appendChild(yeni);
+<span class="tok-com">// ...yuxarıdakı listener onu da tutur, çünki delegation bubbling-ə əsaslanır.</span></code></pre>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon" aria-hidden="true">💡</span>
+        <div>
+          <p><strong>Digər üsul:</strong> <code class="inline-code">MutationObserver</code> DOM-a elementlərin əlavə olunmasını izləmək üçündür (məsələn, "yeni sətir gəldi, ona stil ver" kimi hallarda). Event delegation isə hadisələri (klik, submit və s.) tutmaq üçündür.</p>
+          <p>İkisi fərqli problemləri həll edir, çox vaxt bir layihədə çiyin-çiyinə istifadə olunurlar.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 PARENTELEMENT -->
+    <section class="section" id="parent">
+      <p class="eyebrow">05</p>
+      <h2>parentElement və DOM-da Gəzinti</h2>
+      <p>Delegation-da bəzən aşağıdan yuxarıya əl ilə gəzmək lazım gəlir. Bunun üçün DOM bir neçə hazır xassə təqdim edir:</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Xassə</th><th>Nə qaytarır</th><th>Qeyd</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="inline-code">parentElement</span></td><td>Bilavasitə valideyn ELEMENT</td><td>Valideyn element deyilsə, <span class="inline-code">null</span></td></tr>
+            <tr><td><span class="inline-code">parentNode</span></td><td>Bilavasitə valideyn NODE</td><td>Element, document və ya fragment ola bilər</td></tr>
+            <tr><td><span class="inline-code">children</span></td><td>Yalnız element uşaqlar</td><td>Mətn/şərh node-ları daxil deyil</td></tr>
+            <tr><td><span class="inline-code">childNodes</span></td><td>Bütün uşaq node-lar</td><td>Mətn, şərh və elementlərin hamısı</td></tr>
+            <tr><td><span class="inline-code">nextElementSibling</span></td><td>Növbəti "bacı" element</td><td>Element olmayanları ötürür</td></tr>
+            <tr><td><span class="inline-code">previousElementSibling</span></td><td>Əvvəlki "bacı" element</td><td>Element olmayanları ötürür</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>99% halda <code class="inline-code">parentElement</code> və <code class="inline-code">parentNode</code> eyni nəticəni verir, amma fərq bəzən özünü göstərir: <code class="inline-code">document.documentElement</code> (yəni <code class="inline-code">&lt;html&gt;</code>) üçün <code class="inline-code">.parentNode</code> → <code class="inline-code">document</code> qaytarır (bu bir node-dur, element deyil), amma <code class="inline-code">.parentElement</code> → <code class="inline-code">null</code> qaytarır, çünki <code class="inline-code">document</code> element sayılmır.</p>
+      <p>Odur ki, əgər "yuxarıya doğru gedərkən mütləq ELEMENT-lə işləyəcəyəm" deyə düşünürsənsə, <code class="inline-code">parentElement</code> daha təhlükəsiz seçimdir — naməlum node tipləri ilə qarşılaşıb səhv almazsan.</p>
+    </section>
+
+    <!-- 06 CLOSEST -->
+    <section class="section" id="closest">
+      <p class="eyebrow">06</p>
+      <h2>closest(): Yuxarı Doğru Ağıllı Axtarış</h2>
+      <p><code class="inline-code">parentElement</code> səni cəmi bir səviyyə yuxarı aparır. Bəs valideynin tam olaraq neçə səviyyə yuxarıda olduğunu bilmirsənsə, sadəcə "hansısa yuxarı elementdə <code class="inline-code">.card</code> class-ı var, onu tap" demək istəyirsənsə? Məhz bunun üçün <code class="inline-code">closest()</code> var.</p>
+      <p><code class="inline-code">element.closest(selector)</code> elementin özündən başlayır (özü daxil!) və valideynlər zənciri boyunca yuxarı doğru gedərək, verilmiş CSS selector-a uyğun gələn ilk elementi qaytarır. Heç bir uyğun element tapılmasa, <code class="inline-code">null</code> qaytarır.</p>
+      <p>Bu, delegation-da həyati əhəmiyyət daşıyır, çünki real UI-da kliklədiyin element çox vaxt sənin "əsl" istədiyin element olmur. Aşağıdakı nümunəyə bax:</p>
+
+      <div class="code-block">
+        <div class="code-label">HTML</div>
+        <pre><code>&lt;button class="btn" data-id="42"&gt;
+  &lt;span class="icon"&gt;✎&lt;/span&gt; Redaktə et
+&lt;/button&gt;</code></pre>
+      </div>
+      <div class="code-block">
+        <div class="code-label">JavaScript</div>
+        <pre><code>document.<span class="tok-fn">addEventListener</span>(<span class="tok-str">'click'</span>, <span class="tok-kw">function</span>(e){
+  <span class="tok-com">// İstifadəçi ikona (&lt;span&gt;) klikləsə,</span>
+  <span class="tok-com">// e.target elə o span olacaq — button yox!</span>
+  <span class="tok-kw">const</span> btn = e.target.<span class="tok-fn">closest</span>(<span class="tok-str">'.btn'</span>);
+  <span class="tok-kw">if</span> (!btn) <span class="tok-kw">return</span>; <span class="tok-com">// .btn-dən kənar bir yerə klikləndi</span>
+  console.log(<span class="tok-str">'Redaktə ID:'</span>, btn.dataset.id); <span class="tok-com">// ikona klikləsən belə işləyir</span>
+});</code></pre>
+      </div>
+
+      <h3>Özün sına: icon-in-button problemi</h3>
+      <p class="section-intro">Aşağıdakı düyməyə həm mətnindən, həm də kiçik qələm ikonundan klik et — hər iki halda da <code class="inline-code">closest('.btn')</code> düz düyməni tapır.</p>
+      <div class="demo-panel closest-demo" id="closestDemoWrap">
+        <button class="demo-btn" type="button" data-id="42">
+          <span class="demo-icon" aria-hidden="true">✎</span> Redaktə et
+        </button>
+        <div class="demo-log" id="closestLog" aria-live="polite">Yuxarıdakı ikona və ya mətnə klikləyib fərqinə bax…</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Xüsusiyyət</th><th>closest(selector)</th><th>querySelector(selector)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Axtarış istiqaməti</td><td>Yuxarı — valideynlər zənciri</td><td>Aşağı — uşaq elementlər</td></tr>
+            <tr><td>Başlanğıc nöqtəsi</td><td>Elementin özü daxil olmaqla</td><td>Çağırılan elementin daxili</td></tr>
+            <tr><td>Uyğun tapılmasa</td><td><span class="inline-code">null</span> qaytarır</td><td><span class="inline-code">null</span> qaytarır</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 07 LABORATORIYA -->
+    <section class="section" id="laboratoriya">
+      <p class="eyebrow">07</p>
+      <h2>Canlı Laboratoriya: Bubbling-i Öz Gözünlə Gör</h2>
+      <p class="section-intro">Aşağıda kiçik bir DOM ağacı var: <code class="inline-code">document → .card → ul.list → li</code> (yaşılımtıl "yarpaq" elementlər). İstənilən yarpağa klik et və hadisənin necə yuxarı doğru "köpükləndiyini" izlə.</p>
+
+      <div class="demo-panel">
+        <ol class="demo-instructions">
+          <li>Bir yarpağa (🍃) klik et — narıncı işıq yuxarı doğru necə hərəkət edir, izlə.</li>
+          <li>"Dinləyici haradadır?" seçimini dəyiş, sonra yenidən klik et — <code class="inline-code">event.target</code> sabit qalır, amma <code class="inline-code">event.currentTarget</code> dəyişir.</li>
+          <li>"closest('.card') nəticəsini işıqlandır" qutusunu işarələ və yenidən klik et.</li>
+          <li>"+ Element əlavə et" düyməsinə bas və yeni yarpağa klik et — o da işləyir, çünki bu widget-in özü məhz delegation ilə qurulub!</li>
+        </ol>
+
+        <div class="demo-controls">
+          <div class="control-group">
+            <span class="control-label">DİNLƏYİCİ HARADADIR?</span>
+            <div class="chip-row" role="group" aria-label="Dinləyicinin bağlı olduğu element">
+              <button class="listener-chip" type="button" data-level="list">ul.list</button>
+              <button class="listener-chip active" type="button" data-level="card">.card</button>
+              <button class="listener-chip" type="button" data-level="root">document</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <span class="control-label">EKSTRA</span>
+            <label class="control-check">
+              <input type="checkbox" id="closestCheck">
+              closest('.card') nəticəsini işıqlandır
+            </label>
+          </div>
+          <div class="control-group demo-actions">
+            <button class="btn-ghost" id="addLeafBtn" type="button">+ Element əlavə et</button>
+            <button class="btn-ghost" id="resetLeafBtn" type="button">Sıfırla</button>
+          </div>
+        </div>
+
+        <div class="demo-tree" id="demoTree">
+          <div class="node" data-level="root">
+            <span class="node-tag">document</span>
+            <div class="node" data-level="card">
+              <span class="node-tag">section.card</span>
+              <div class="node" data-level="list" id="demoList">
+                <span class="node-tag">ul.list</span>
+                <div class="node leaf" data-level="leaf" role="button" tabindex="0">🍃 Element A</div>
+                <div class="node leaf" data-level="leaf" role="button" tabindex="0">🍃 Element B</div>
+                <div class="node leaf" data-level="leaf" role="button" tabindex="0">🍃 Element C</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-log" aria-live="polite">
+          <div class="log-row"><span class="log-key">event.target</span><span class="log-val" id="logTarget">—</span></div>
+          <div class="log-row"><span class="log-key">event.currentTarget</span><span class="log-val" id="logCurrent">—</span></div>
+          <div class="log-row"><span class="log-key">target.closest('.card')</span><span class="log-val" id="logClosest">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 SƏHVLƏR -->
+    <section class="section" id="sehvler">
+      <p class="eyebrow">08</p>
+      <h2>Ən Çox Rast Gəlinən Səhvlər və Buglar</h2>
+      <p class="section-intro">Bu bölmədəki səhvlərin əksəriyyəti "kod işləyir, amma gözlənilməz yerdə sınır" tipindəndir — məhz buna görə tapılması çətindir. Növbəti dəfə qəribə bir bug-la qarşılaşanda, bu siyahını yoxla.</p>
+
+      <div class="mistake-grid">
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">tagName həmişə BÖYÜK hərflərlədir</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span><code class="inline-code">if (e.target.tagName === 'li')</code> — bu şərt heç vaxt <code class="inline-code">true</code> olmayacaq, çünki <code class="inline-code">tagName</code> <code class="inline-code">'LI'</code> formatında (böyük hərflərlə) qaytarılır.</p>
+            <p><span class="lbl">Həll</span><code class="inline-code">e.target.tagName === 'LI'</code> yaz, ya da daha etibarlı olan <code class="inline-code">e.target.matches('li')</code> və ya class/data-attribute əsaslı yoxlamadan istifadə et.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">closest() nəticəsini yoxlamadan işlətmək</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span><code class="inline-code">const card = e.target.closest('.card'); card.classList.add('active');</code> — klik <code class="inline-code">.card</code>-dan tamamilə kənar bir yerə düşübsə, <code class="inline-code">closest()</code> <code class="inline-code">null</code> qaytarır və növbəti sətir xəta ilə çökür.</p>
+            <p><span class="lbl">Həll</span><code class="inline-code">closest()</code>-i işlətdiyin HƏR yerdə <code class="inline-code">if (!card) return;</code> yoxlaması əlavə et.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">event.target-i "gözlədiyin dəqiq element" güman etmək</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span>İçində ikon, <code class="inline-code">&lt;span&gt;</code>, <code class="inline-code">&lt;strong&gt;</code> və ya şəkil olan bir elementə klik edəndə, <code class="inline-code">event.target</code> çox vaxt bu daxili elementlərdən biri olur — sənin "əsas" saydığın valideyn deyil.</p>
+            <p><span class="lbl">Həll</span>Dəqiq valideynə ehtiyacın varsa, <code class="inline-code">event.target</code> yerinə <code class="inline-code">event.target.closest('.əsas-element')</code> işlət.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">parentNode ilə parentElement-i qarışdırmaq</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span>Əksər halda fərq görünmür, amma <code class="inline-code">document</code>-ə yaxın node-larda <code class="inline-code">parentElement</code> gözlənilmədən <code class="inline-code">null</code> qaytara bilər, halbuki <code class="inline-code">parentNode</code> qeyri-element bir node qaytarır və kod səssizcə səhv nəticə verir.</p>
+            <p><span class="lbl">Həll</span>Element gözlədiyin yerdə həmişə <code class="inline-code">parentElement</code> işlət — heç olmasa "element deyilsə null al" davranışı proqnozlaşdırılandır.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">stopPropagation()-in düşünülmədən istifadəsi</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span>Bir komponentin içində <code class="inline-code">e.stopPropagation()</code> çağırmaq bubbling-i həmin nöqtədə tam dayandırır. Səhifənin başqa yerində (məsələn <code class="inline-code">document</code>-ə bağlı) bir delegation listener varsa, o bu hadisədən heç vaxt xəbər tutmayacaq.</p>
+            <p><span class="lbl">Həll</span><code class="inline-code">stopPropagation()</code>-i yalnız niyə lazım olduğunu bilərək çağır və yanına qısa şərh yaz.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">Dinamik elementlər üçün delegation-u unutmaq</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span>Siyahıya JS ilə yeni element əlavə edirsən, amma köhnə vərdişlə hər elementə ayrı-ayrı <code class="inline-code">addEventListener</code> yazmağa çalışırsan — nəticədə ya unudulur, ya da eyni kod təkrar-təkrar yazılır.</p>
+            <p><span class="lbl">Həll</span>Dinamik siyahı/kart/sətir yaradan hər yerdə default olaraq delegation-dan istifadə et.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">Arrow function-da this-in currentTarget olacağını güman etmək</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span><code class="inline-code">list.addEventListener('click', (e) => { console.log(this); })</code> — arrow function-ların öz <code class="inline-code">this</code>-i yoxdur, nəticədə <code class="inline-code">this</code> gözlədiyin element olmur.</p>
+            <p><span class="lbl">Həll</span>Arrow function işlədəndə element lazım olan hər yerdə <code class="inline-code">e.currentTarget</code>-dən istifadə et.</p>
+          </div>
+        </div>
+
+        <div class="mistake-card">
+          <div class="mistake-head"><span class="mark-warn" aria-hidden="true">!</span><h3 class="mistake-title">Delegation-u həddindən artıq "geniş" qurmaq</h3></div>
+          <div class="mistake-body">
+            <p><span class="lbl">Problem</span>Hər şeyi rahatlıq üçün birbaşa <code class="inline-code">document</code>-ə bağlamaq işləyir, amma layihə böyüdükcə debug etmək çətinləşir və hər klikdə lazımsız yerə çoxlu şərt yoxlanılır.</p>
+            <p><span class="lbl">Həll</span>Delegation-u mümkün qədər ən yaxın sabit valideynə bağla (<code class="inline-code">document</code> yox, konkret <code class="inline-code">.list</code>, <code class="inline-code">.table-body</code>, <code class="inline-code">.modal</code> və s.).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 BEST PRACTICES -->
+    <section class="section" id="best-practices">
+      <p class="eyebrow">09</p>
+      <h2>Daha Yaxşı Etmək Üçün: Peşəkar Tövsiyələr</h2>
+      <ul class="practice-list">
+        <li><span class="mark-good" aria-hidden="true">✓</span><span>Delegation üçün həmişə ən yaxın sabit valideyni seç, <code class="inline-code">document</code>-i son çarə kimi saxla.</span></li>
+        <li><span class="mark-good" aria-hidden="true">✓</span><span><code class="inline-code">closest()</code>-dən sonra həmişə <code class="inline-code">null</code> yoxlaması et — bu, bir sətirlik vərdişdir, amma saatlarla debug vaxtına qənaət etdirir.</span></li>
+        <li><span class="mark-good" aria-hidden="true">✓</span><span>Element tipini <code class="inline-code">tagName</code>-ə deyil, <code class="inline-code">data-*</code> atributlarına və ya class-lara əsaslanaraq müəyyən et (<code class="inline-code">data-action="sil"</code> kimi) — kod həm oxunaqlı olur, həm HTML strukturunu dəyişəndə sınmır.</span></li>
+        <li><span class="mark-good" aria-hidden="true">✓</span><span>Delegated handler-i kiçik bir "router"a çevir: <code class="inline-code">e.target.closest('[data-action]')</code>-dan <code class="inline-code">dataset.action</code>-ı oxu və uyğun funksiyanı çağır — uzun <code class="inline-code">if/else</code> yığınından qaçmış olursan.</span></li>
+        <li><span class="mark-good" aria-hidden="true">✓</span><span>Yeni funksiyanı yazandan sonra, mütləq dinamik əlavə olunan bir elementlə də test et — səhifə yüklənəndə mövcud olanlarla kifayətlənmə.</span></li>
+        <li><span class="mark-good" aria-hidden="true">✓</span><span><code class="inline-code">stopPropagation()</code>-i son çarə kimi saxla və hər çağırışın yanında niyə lazım olduğunu şərh et.</span></li>
+        <li><span class="mark-good" aria-hidden="true">✓</span><span>Performans üçün: yüzlərlə uşaq elementə tək-tək listener bağlamaq əvəzinə, həmişə bir delegation listener-i seç.</span></li>
+      </ul>
+    </section>
+
+    <!-- 10 XÜLASƏ -->
+    <section class="section" id="xulase">
+      <p class="eyebrow">10</p>
+      <h2>Sürətli Xülasə</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Termin</th><th>Nə vaxt işlədilir</th><th>Qeyd</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="inline-code">event.target</span></td><td>Həqiqətən klikləniləni tapmaq üçün</td><td>Bubbling boyunca DƏYİŞMİR</td></tr>
+            <tr><td><span class="inline-code">event.currentTarget</span></td><td>Listener-in bağlı olduğu elementi tapmaq üçün</td><td>Adi function-da <span class="inline-code">this</span>-ə bərabərdir</td></tr>
+            <tr><td><span class="inline-code">parentElement</span></td><td>Bir səviyyə yuxarı, ELEMENT lazım olanda</td><td>Element deyilsə <span class="inline-code">null</span></td></tr>
+            <tr><td><span class="inline-code">parentNode</span></td><td>Bir səviyyə yuxarı, NODE lazım olanda (nadir)</td><td><span class="inline-code">document</span> da ola bilər</td></tr>
+            <tr><td><span class="inline-code">closest(sel)</span></td><td>Yuxarı doğru uyğun elementi axtaranda</td><td>Özünü də yoxlayır, tapmasa <span class="inline-code">null</span></td></tr>
+            <tr><td><span class="inline-code">querySelector(sel)</span></td><td>Aşağı doğru (uşaqlar arasında) axtaranda</td><td>Yuxarı getmir</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Bu dərsi tam mənimsəmək üçün ən yaxşı yol: özün kiçik bir siyahı (to-do list, məhsul kartları və s.) qur, ona yalnız delegation ilə klik, silmə və redaktə funksiyaları əlavə et. Kod işə düşəndə <code class="inline-code">console.log(e.target, e.currentTarget)</code> yazıb nəticəyə bax — nəzəriyyə ilə praktika arasındakı fərq elə burada itir.</p>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>Dərs 23 · Event Delegation &amp; Advanced DOM — bu material tədris məqsədi daşıyır.</p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Mobile TOC ---------- */
+  var tocToggle = document.getElementById('tocToggle');
+  var tocNav = document.getElementById('tocNav');
+  if (tocToggle && tocNav) {
+    tocToggle.addEventListener('click', function () {
+      var isOpen = tocNav.classList.toggle('open');
+      tocToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    tocNav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        tocNav.classList.remove('open');
+        tocToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Main bubbling demo ---------- */
+  var tree = document.getElementById('demoTree');
+  var logTarget = document.getElementById('logTarget');
+  var logCurrent = document.getElementById('logCurrent');
+  var logClosest = document.getElementById('logClosest');
+  var chips = document.querySelectorAll('.listener-chip');
+  var closestCheck = document.getElementById('closestCheck');
+  var addBtn = document.getElementById('addLeafBtn');
+  var resetBtn = document.getElementById('resetLeafBtn');
+  var listEl = document.getElementById('demoList');
+
+  var listenerLevel = 'card';
+
+  function setListenerLevel(level) {
+    listenerLevel = level;
+    document.querySelectorAll('.node').forEach(function (n) {
+      n.classList.remove('listening');
+    });
+    var node = document.querySelector('.node[data-level="' + level + '"]');
+    if (node) node.classList.add('listening');
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      chips.forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      setListenerLevel(chip.dataset.level);
+    });
+  });
+
+  var letters = ['D', 'E', 'F', 'G'];
+  var addedCount = 0;
+  if (addBtn) {
+    addBtn.addEventListener('click', function () {
+      if (addedCount >= letters.length) return;
+      var leaf = document.createElement('div');
+      leaf.className = 'node leaf';
+      leaf.setAttribute('role', 'button');
+      leaf.setAttribute('tabindex', '0');
+      leaf.dataset.level = 'leaf';
+      leaf.dataset.dynamic = 'true';
+      leaf.textContent = '\ud83c\udf43 Element ' + letters[addedCount];
+      listEl.appendChild(leaf);
+      addedCount++;
+      if (addedCount >= letters.length) addBtn.disabled = true;
+    });
+  }
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function () {
+      var dynamics = document.querySelectorAll('.node.leaf[data-dynamic="true"]');
+      dynamics.forEach(function (n) { n.remove(); });
+      addedCount = 0;
+      if (addBtn) addBtn.disabled = false;
+    });
+  }
+
+  function buildPath(el) {
+    var path = [];
+    var cur = el;
+    while (cur) {
+      if (cur.classList && cur.classList.contains('node')) path.push(cur);
+      cur = cur.parentElement;
+    }
+    return path;
+  }
+
+  function runBubble(leafEl) {
+    var path = buildPath(leafEl);
+    var stepDelay = prefersReducedMotion ? 0 : 170;
+    path.forEach(function (node, i) {
+      setTimeout(function () {
+        node.classList.add('pulse');
+        setTimeout(function () { node.classList.remove('pulse'); }, 320);
+      }, i * stepDelay);
+    });
+
+    var currentNode = document.querySelector('.node[data-level="' + listenerLevel + '"]');
+    var cardNode = leafEl.closest('.node[data-level="card"]');
+
+    if (logTarget) logTarget.textContent = leafEl.textContent.trim();
+    if (logCurrent) {
+      var curTag = currentNode ? currentNode.querySelector(':scope > .node-tag') : null;
+      logCurrent.textContent = curTag ? curTag.textContent : '—';
+    }
+    if (logClosest) {
+      var cardTag = cardNode ? cardNode.querySelector(':scope > .node-tag') : null;
+      logClosest.textContent = cardTag ? cardTag.textContent : 'tapılmadı (null)';
+    }
+
+    if (closestCheck && closestCheck.checked && cardNode) {
+      cardNode.classList.add('closest-hit');
+      setTimeout(function () { cardNode.classList.remove('closest-hit'); }, 900);
+    }
+  }
+
+  if (tree) {
+    tree.addEventListener('click', function (e) {
+      var leaf = e.target.closest('.node.leaf');
+      if (!leaf) return;
+      runBubble(leaf);
+    });
+    tree.addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('leaf')) {
+        e.preventDefault();
+        runBubble(e.target);
+      }
+    });
+  }
+
+  setListenerLevel(listenerLevel);
+
+  /* ---------- closest() mini demo ---------- */
+  var closestDemoWrap = document.getElementById('closestDemoWrap');
+  var closestLog = document.getElementById('closestLog');
+  if (closestDemoWrap) {
+    closestDemoWrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('.demo-btn');
+      var tag = e.target.tagName.toLowerCase();
+      if (!btn) return;
+      closestLog.innerHTML =
+        'event.target &rarr; &lt;' + tag + '&gt;<br>' +
+        "target.closest('.demo-btn') &rarr; button (data-id=" + btn.dataset.id + ')';
+    });
+  }
+})();
+</script>
+</body>
+</html>
